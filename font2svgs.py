@@ -35,9 +35,7 @@ def save_all_glyph_as_svg(font):
         # font は y 軸方向が svg と反対なので、反転する
         content = dedent(f'''\
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 {-ascender} {width} {height}">
-                <g transform="scale(1, -1)">
-                    <path d="{svg_path_pen.getCommands()}"/>
-                </g>
+                <path d="{svg_path_pen.getCommands()}" transform="scale(1, -1)"/>
             </svg>
         ''')
         # 4桁0パディング

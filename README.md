@@ -139,10 +139,12 @@ Matrix can calculate the scale, rotation, and shift at one time by raising the d
 \y'/ = \b b f/ × |y|  
                  \1/  
 ```
-$ python svg2glif.py 4e00.svg out.glif -w 2048 -H 2048 -t "2 0 0 2 0 0"
+$ python svg2glif.py 4e00.svg out.glif -w 2048 -H 2048 -t "2 0 0 -2 0 0"
 ```
 
 ## 各glifをufoに移動する
+
+## ufo -> otf
 
 # pypinyinで拼音が見つからない漢字まとめ
 [FIX_PINYIN.md](FIX_PINYIN.md)

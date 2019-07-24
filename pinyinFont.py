@@ -41,7 +41,7 @@ class PinyinFont(object):
     BRANK_W_mm : float
         ピンインの標準空白幅[mm]
     """
-    def __init__(self, font_size_filename, AI_CAV_W_mm= 352.778, SV_CAV_W= 1000, PY_SPC_W_mm= 300, PY_SPC_H_mm = 82, PY_BSE_H_mm = 235, BRANK_W_mm = 18.72):
+    def __init__(self, font_size_filename, AI_CAV_W_mm= 352.778, SV_CAV_W= 1000, PY_SPC_W_mm= 300, PY_SPC_H_mm = 82, PY_BSE_H_mm = -235, BRANK_W_mm = 18.72):
         super(PinyinFont, self).__init__()
         self.AI_CAV_W_mm = AI_CAV_W_mm
         self.SV_CAV_W    = SV_CAV_W
@@ -87,8 +87,8 @@ class PinyinFont(object):
         all_pinyin_w = sum(pinyin_ws) * self.CMGN + bnk_num * bnk_w
         # 中央寄せ. x軸上の開始位置
         start_x = (self.AI_CAV_W_mm - all_pinyin_w) / 2
-        # 最初の文字の左からどれだけずれているか
-        pinyin_biase = self.dict_font_size[self.pinyin[0]]["DistanceFromLeft"]
+        # 最初の文字の右端とキャンバス左端までの距離
+        pinyin_biase = (self.dict_font_size[self.pinyin[0]]["CanvasWidth"] - self.dict_font_size[self.pinyin[0]]["CanvasWidth"]) / 2
 
         pinyin_positions = []
         # 各文字の座標を計算する
@@ -132,25 +132,30 @@ class PinyinFont(object):
 
         # まだ拼音を追加していないとき. rootの要素はひとつのみ
         if len(root) == 1:
-            # root要素を取得
-            hunzi = root[0]
-            # 属性の削除
-            hunzi.attrib.pop("fill", None)
-            # 属性の追加
-            hunzi.set("transform", "scale(0.85,0.75)translate(85,0)")
 
             # g要素を作る
+            # 拼音と漢字を包むグループ
+            g_char = ET.Element('g')
+            g_char.set("transform", "scale(1, -1)")
+
+            # root要素(漢字のパス)を取得
+            hunzi = root[0]
+            # 属性の追加
+            hunzi.set("transform", "scale(0.85,0.75)translate(85,0)")
+            g_char.append(hunzi)
+
             # 拼音のグループ
             g_pinyin = ET.Element('g')
             g_pinyin.set("transform", "scale(0.2396,0.2396)")
             # 各拼音のpathを取得して追加する
             for i in range(len(pinyin)):
                 p_path = ET.parse("pinyin/{}.svg".format(pinyin[i])).getroot()[0]
-                p_path.attrib.pop("fill", None)
                 p_path.set( "transform", "translate({},{})".format(pinyin_positions[i], -(self.PY_BSE_H_mm * self.DMGN / self.CMGN)) )
                 g_pinyin.append(p_path)
-            root.append(g_pinyin)
-            # root.remove(hunzi)
+            g_char.append(g_pinyin)
+
+            root.append(g_char)
+            root.remove(hunzi)
 
             tree = ET.ElementTree(root)
             tree.write(os.path.join(DIR_SVG, "{}.svg".format(self.cid)), encoding="UTF-8")
@@ -165,13 +170,15 @@ if __name__ == '__main__':
     dict_pinyin_unicode = json.load(f)
 
     p = PinyinFont( font_size_filename=os.path.join(DIR_JSN,PINYIN_ALPHABET_SIZE_JSON) )
+    p.createPinyinSVG(cid=dict_unicode2cid["U+4E58"], pinyin=dict_pinyin_unicode["SimplifiedChinese"]["U+4E58"]["Pinyin"])
+
 
     # 簡体字
-    for unicode in dict_pinyin_unicode["SimplifiedChinese"]:
-        print( "{}: {}".format(dict_pinyin_unicode["SimplifiedChinese"][unicode]["Character"],dict_pinyin_unicode["SimplifiedChinese"][unicode]["Pinyin"]) )
-        p.createPinyinSVG(cid=dict_unicode2cid[unicode], pinyin=dict_pinyin_unicode["SimplifiedChinese"][unicode]["Pinyin"])
-
-    # 繁体字
-    for unicode in dict_pinyin_unicode["TraditionalChinese"]:
-        print( "{}: {}".format(dict_pinyin_unicode["TraditionalChinese"][unicode]["Character"],dict_pinyin_unicode["TraditionalChinese"][unicode]["Pinyin"]) )
-        p.createPinyinSVG(cid=dict_unicode2cid[unicode], pinyin=dict_pinyin_unicode["TraditionalChinese"][unicode]["Pinyin"])
+    # for unicode in dict_pinyin_unicode["SimplifiedChinese"]:
+    #     print( "{}: {}".format(dict_pinyin_unicode["SimplifiedChinese"][unicode]["Character"],dict_pinyin_unicode["SimplifiedChinese"][unicode]["Pinyin"]) )
+    #     p.createPinyinSVG(cid=dict_unicode2cid[unicode], pinyin=dict_pinyin_unicode["SimplifiedChinese"][unicode]["Pinyin"])
+    #
+    # # 繁体字
+    # for unicode in dict_pinyin_unicode["TraditionalChinese"]:
+    #     print( "{}: {}".format(dict_pinyin_unicode["TraditionalChinese"][unicode]["Character"],dict_pinyin_unicode["TraditionalChinese"][unicode]["Pinyin"]) )
+    #     p.createPinyinSVG(cid=dict_unicode2cid[unicode], pinyin=dict_pinyin_unicode["TraditionalChinese"][unicode]["Pinyin"])
