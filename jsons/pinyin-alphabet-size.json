@@ -1,0 +1,272 @@
+{
+   "a": {
+      "DistanceFromLeft": 16.581,
+      "Height": 190.5,
+      "Width": 151.694
+   },
+   "b": {
+      "DistanceFromLeft": 27.164,
+      "Height": 268.111,
+      "Width": 165.806
+   },
+   "c": {
+      "DistanceFromLeft": 13.053,
+      "Height": 190.5,
+      "Width": 137.583
+   },
+   "d": {
+      "DistanceFromLeft": 14.817,
+      "Height": 268.111,
+      "Width": 165.806
+   },
+   "e": {
+      "DistanceFromLeft": 13.053,
+      "Height": 190.5,
+      "Width": 158.75
+   },
+   "f": {
+      "DistanceFromLeft": 18.344,
+      "Height": 261.056,
+      "Width": 137.583
+   },
+   "g": {
+      "DistanceFromLeft": 14.817,
+      "Height": 268.111,
+      "Width": 162.278
+   },
+   "h": {
+      "DistanceFromLeft": 27.164,
+      "Height": 264.583,
+      "Width": 155.222
+   },
+   "i": {
+      "DistanceFromLeft": 37.747,
+      "Height": 264.583,
+      "Width": 38.806
+   },
+   "j": {
+      "DistanceFromLeft": -4.586,
+      "Height": 342.194,
+      "Width": 95.25
+   },
+   "k": {
+      "DistanceFromLeft": 27.164,
+      "Height": 264.583,
+      "Width": 158.75
+   },
+   "l": {
+      "DistanceFromLeft": 37.747,
+      "Height": 264.583,
+      "Width": 38.806
+   },
+   "m": {
+      "DistanceFromLeft": 25.4,
+      "Height": 186.972,
+      "Width": 229.306
+   },
+   "n": {
+      "DistanceFromLeft": 25.4,
+      "Height": 186.972,
+      "Width": 155.222
+   },
+   "o": {
+      "DistanceFromLeft": 13.053,
+      "Height": 190.5,
+      "Width": 172.861
+   },
+   "p": {
+      "DistanceFromLeft": 25.4,
+      "Height": 264.583,
+      "Width": 165.806
+   },
+   "q": {
+      "DistanceFromLeft": 14.817,
+      "Height": 264.583,
+      "Width": 165.806
+   },
+   "r": {
+      "DistanceFromLeft": 25.4,
+      "Height": 183.444,
+      "Width": 119.944
+   },
+   "s": {
+      "DistanceFromLeft": 20.108,
+      "Height": 190.5,
+      "Width": 137.583
+   },
+   "t": {
+      "DistanceFromLeft": 16.581,
+      "Height": 246.944,
+      "Width": 137.583
+   },
+   "u": {
+      "DistanceFromLeft": 23.636,
+      "Height": 186.972,
+      "Width": 153.458
+   },
+   "v": {
+      "DistanceFromLeft": 11.289,
+      "Height": 183.444,
+      "Width": 172.861
+   },
+   "w": {
+      "DistanceFromLeft": 14.817,
+      "Height": 183.444,
+      "Width": 250.472
+   },
+   "x": {
+      "DistanceFromLeft": 16.581,
+      "Height": 183.444,
+      "Width": 162.278
+   },
+   "y": {
+      "DistanceFromLeft": 11.289,
+      "Height": 261.056,
+      "Width": 172.861
+   },
+   "z": {
+      "DistanceFromLeft": 25.4,
+      "Height": 183.444,
+      "Width": 141.111
+   },
+   "à": {
+      "DistanceFromLeft": 16.581,
+      "Height": 271.639,
+      "Width": 151.694
+   },
+   "á": {
+      "DistanceFromLeft": 16.581,
+      "Height": 271.639,
+      "Width": 151.694
+   },
+   "è": {
+      "DistanceFromLeft": 13.053,
+      "Height": 271.639,
+      "Width": 158.75
+   },
+   "é": {
+      "DistanceFromLeft": 13.053,
+      "Height": 271.639,
+      "Width": 158.75
+   },
+   "ì": {
+      "DistanceFromLeft": -7.408,
+      "Height": 268.111,
+      "Width": 88.9
+   },
+   "í": {
+      "DistanceFromLeft": 37.747,
+      "Height": 268.111,
+      "Width": 88.9
+   },
+   "ò": {
+      "DistanceFromLeft": 13.053,
+      "Height": 271.639,
+      "Width": 172.861
+   },
+   "ó": {
+      "DistanceFromLeft": 13.053,
+      "Height": 271.639,
+      "Width": 172.861
+   },
+   "ù": {
+      "DistanceFromLeft": 23.636,
+      "Height": 271.639,
+      "Width": 153.458
+   },
+   "ú": {
+      "DistanceFromLeft": 23.636,
+      "Height": 271.639,
+      "Width": 153.458
+   },
+   "ü": {
+      "DistanceFromLeft": 23.636,
+      "Height": 264.583,
+      "Width": 153.458
+   },
+   "ā": {
+      "DistanceFromLeft": 16.581,
+      "Height": 254,
+      "Width": 151.694
+   },
+   "ē": {
+      "DistanceFromLeft": 13.053,
+      "Height": 254,
+      "Width": 158.75
+   },
+   "ě": {
+      "DistanceFromLeft": 13.053,
+      "Height": 271.639,
+      "Width": 158.75
+   },
+   "ī": {
+      "DistanceFromLeft": -7.056,
+      "Height": 250.472,
+      "Width": 127
+   },
+   "ḿ": {
+     "DistanceFromLeft": 25.4,
+     "Height": 268.111,
+     "Width": 229.306
+   },
+   "ń": {
+     "DistanceFromLeft": 25.4,
+     "Height": 268.111,
+     "Width": 155.222
+   },
+   "ō": {
+      "DistanceFromLeft": 13.053,
+      "Height": 254,
+      "Width": 172.861
+   },
+   "ū": {
+      "DistanceFromLeft": 23.636,
+      "Height": 254,
+      "Width": 153.458
+   },
+   "ǎ": {
+      "DistanceFromLeft": 16.581,
+      "Height": 271.639,
+      "Width": 151.694
+   },
+   "ǐ": {
+      "DistanceFromLeft": -15.875,
+      "Height": 268.111,
+      "Width": 144.639
+   },
+   "ǒ": {
+      "DistanceFromLeft": 13.053,
+      "Height": 271.639,
+      "Width": 172.861
+   },
+   "ǔ": {
+      "DistanceFromLeft": 23.636,
+      "Height": 271.639,
+      "Width": 153.458
+   },
+   "ǖ": {
+      "DistanceFromLeft": 23.636,
+      "Height": 321.028,
+      "Width": 153.458
+   },
+   "ǘ": {
+      "DistanceFromLeft": 23.636,
+      "Height": 342.194,
+      "Width": 153.458
+   },
+   "ǚ": {
+      "DistanceFromLeft": 23.636,
+      "Height": 342.194,
+      "Width": 153.458
+   },
+   "ǜ": {
+      "DistanceFromLeft": 23.636,
+      "Height": 342.194,
+      "Width": 153.458
+   },
+   "ở": {
+      "DistanceFromLeft": 13.053,
+      "Height": 285.75,
+      "Width": 229.306
+   }
+}
