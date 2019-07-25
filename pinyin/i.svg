@@ -1,3 +1,3 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -860 324 1000">
-    <path d="M107 0V520H217V0H107ZM107 640V750H217V640H107Z" transform="scale(1, -1)"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -860 500 1000">
+    <path d="M117 520H332V88H437V0H87V88H222V432H117V520ZM201 635V760H332V635H201Z" transform="scale(1, -1)"/>
 </svg>

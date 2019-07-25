@@ -34,46 +34,58 @@ ttx -y n ./NotoSansCJK-Regular.ttc
 $ pyenv global 3.7.2
 $ pip install -r requirements.txt
 ```
+```
+#GUI で使う
+$ brew cask install xquartz
+#fontforgeのインストール
+$ brew install fontforge
+#GUI 版のインストール
+$ brew cask install fontforge
+```
+
 ## 設定ファイルの生成
 ```
 # 中国語の漢字の一覧を作る
 $ python createHanziUnicodeJson.py
-# CMAP テーブルからunicodeとcidのマッピングテーブルを作る
+# CMAP テーブルからunicodeとcidのマッピングテーブルを作る.
 $ python createUnicode2cidJson.py fonts/SourceHanSerifSC-Regular.otf
 ```
 
 ## 拼音表示のための文字を抽出する
-拼音の表示部のためにアルファベットを取り出す。
-gの形がmplus-1c-medium.ttfはきれいなので、今回これを使った。
+固定幅の英字フォントのみ対応
 ```
-$ python font2svgs.py fonts/mplus-1c-medium.ttf
+$ python font2svgs.py fonts/mplus-1m-medium.ttf
 ```
 以下のsvgを取り出して、リネームする。その後、pinyinディレクトリ配下に置く。  
 そして、SVGsを削除する  
+
+```
+$ python getPinyinAlphbets.py
+```
 
 |文字|ファイル名|変更名|
 |:--:|:-----:|:-----:|
 |a| A.svg | a.svg |
 |ā| Amacron.svg | ā.svg |
-|á| Aacute.svg | á.svg |
+|á| Aacute.svg  | á.svg |
 |ǎ| uni01CE.svg | ǎ.svg |
-|à| agrave.svg | à.svg |
+|à| Agrave.svg  | à.svg |
 |b| B.svg | b.svg |
 |c| C.svg | c.svg |
 |d| D.svg | d.svg |
 |e| E.svg | e.svg |
 |ē| Emacron.svg | ē.svg |
-|é| Eacute.svg | é.svg |
-|ě| Ecaron.svg | ě.svg |
-|è| Egrave.svg | è.svg |
+|é| Eacute.svg  | é.svg |
+|ě| Ecaron.svg  | ě.svg |
+|è| Egrave.svg  | è.svg |
 |f| F.svg | f.svg |
 |g| G.svg | g.svg |
 |h| H.svg | h.svg |
 |i| I.svg | i.svg |
 |ī| Imacron.svg | ī.svg |
-|í| Iacute.svg | í.svg |
+|í| Iacute.svg  | í.svg |
 |ǐ| uni01D0.svg | ǐ.svg |
-|ì| Igrave.svg | ì.svg |
+|ì| Igrave.svg  | ì.svg |
 |j| J.svg | j.svg |
 |k| K.svg | k.svg |
 |l| L.svg | l.svg |
@@ -81,9 +93,9 @@ $ python font2svgs.py fonts/mplus-1c-medium.ttf
 |n| N.svg | n.svg |
 |o| O.svg | o.svg |
 |ō| Omacron.svg | ō.svg |
-|ó| Oacute.svg | ó.svg |
+|ó| Oacute.svg  | ó.svg |
 |ǒ| uni01D2.svg | ǒ.svg |
-|ò| Ograve.svg | ò.svg |
+|ò| Ograve.svg  | ò.svg |
 |p| P.svg | p.svg |
 |q| Q.svg | q.svg |
 |r| R.svg | r.svg |
@@ -91,10 +103,11 @@ $ python font2svgs.py fonts/mplus-1c-medium.ttf
 |t| T.svg | t.svg |
 |u| U.svg | u.svg |
 |ū| Umacron.svg | ū.svg |
-|ú| Uacute.svg | ú.svg |
+|ú| Uacute.svg  | ú.svg |
 |ǔ| uni01D4.svg | ǔ.svg |
-|ù| Ugrave.svg | ù.svg |
+|ù| Ugrave.svg  | ù.svg |
 |ü| Udieresis.svg | ü.svg |
+|v| V.svg | v.svg |
 |w| W.svg | w.svg |
 |x| X.svg | x.svg |
 |y| Y.svg | y.svg |
@@ -104,11 +117,11 @@ $ python font2svgs.py fonts/mplus-1c-medium.ttf
 |ǚ| uni01DA.svg | ǚ.svg |
 |ǜ| uni01DC.svg | ǜ.svg |
 |ḿ| uni1E3F.svg | ḿ.svg |
-|ń| Nacute.svg | ń.svg |
+|ń| Nacute.svg  | ń.svg |
 |ở| uni1EDF.svg | ở.svg |
 
 
-ピンインの配置をするために、文字に関する位置情報をまとめる。  
+ピンインの配置をするために、文字に関する位置情報をまとめる。AI上の情報をまとめてる。  
 jsons/pinyin-alphabet-size.json を編集する  
 
 ## 拼音を書き込む漢字のSVGを抽出する
@@ -127,9 +140,6 @@ $ python pinyinFont.py
 $ python removeWithoutHanziSVG.py
 ```
 
-## otf -> UFO
-fontforge を用いて変換
-
 ## SVG -> glif に置き換える
 ufoの中の各文字のアウトラインを持つのがglif
 Ref.[extract rotation, scale values from 2d transformation matrix](https://stackoverflow.com/questions/4361242/extract-rotation-scale-values-from-2d-transformation-matrix)  
@@ -138,9 +148,20 @@ Matrix can calculate the scale, rotation, and shift at one time by raising the d
 /x'\   /a c e\   /x\  
 \y'/ = \b b f/ × |y|  
                  \1/  
+
+## SVG の容量を削除する
+transformが多重に掛かっているので、一つにまとめる
+SVGCleaner.appを使う
+
 ```
-$ python svg2glif.py 4e00.svg out.glif -w 2048 -H 2048 -t "2 0 0 -2 0 0"
+$ python svgs2glifs.py fonts/SVGs jsons/unicode-cid-mapping.json -w 2048 -H 2048 -t "2 0 0
+-2 0 0"
 ```
+<!-- ```
+$ python svg2glif.py fonts/SVGs/cid09502.svg out.glif -w 2048 -H 2048 -t "2 0 0 -2 0 0"
+``` -->
+## otf -> UFO
+fontforge を用いて変換
 
 ## 各glifをufoに移動する
 

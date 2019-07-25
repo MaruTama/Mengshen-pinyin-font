@@ -20,7 +20,7 @@ if __name__ == '__main__':
     # 全てのファイル名のセットを作る
     file_names = {os.path.basename(file) for file in files}
 
-    # # unicode -> cid の変換をするため
+    # unicode -> cid の変換をするため
     f = open(os.path.join(DIR_JSN,UNICODE_TO_CID_JSON), 'r')
     dict_unicode2cid = json.load(f)
     # 中国語の漢字情報の一覧を取得する
