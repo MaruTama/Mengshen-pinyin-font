@@ -38,17 +38,18 @@ class PinyinFont(object):
         ピンイン表示縦幅[mm]
     PY_BSE_H_mm : float
         ピンイン表示のベースラインの下部からの高さ
-    BRANK_W_mm : float
+    TRACKING_W_mm : float
         ピンインの標準空白幅[mm]
+        Tracking is about uniform spacing across a text selection.
     """
-    def __init__(self, font_size_filename, AI_CAV_W_mm= 352.778, SV_CAV_W= 1000, PY_SPC_W_mm= 300, PY_SPC_H_mm = 82, PY_BSE_H_mm = -235, BRANK_W_mm = 18.72):
+    def __init__(self, font_size_filename, AI_CAV_W_mm= 352.778, SV_CAV_W= 1000, PY_SPC_W_mm= 300, PY_SPC_H_mm = 90, PY_BSE_H_mm = -270, TRACKING_W_mm = 2):
         super(PinyinFont, self).__init__()
         self.AI_CAV_W_mm = AI_CAV_W_mm
         self.SV_CAV_W    = SV_CAV_W
         self.PY_SPC_W_mm = PY_SPC_W_mm
         self.PY_SPC_H_mm = PY_SPC_H_mm
         self.PY_BSE_H_mm = PY_BSE_H_mm
-        self.BRANK_W_mm  = BRANK_W_mm
+        self.TRACKING_W_mm  = TRACKING_W_mm
         self.font_size_filename = font_size_filename
 
         self.__readPinyinSize()
@@ -75,26 +76,26 @@ class PinyinFont(object):
     各ピンインの座標を計算する
     """
     def __getPinyinPositions(self):
+
         # ピンインの各字の横幅のリスト
-        pinyin_ws = [self.dict_font_size[alp]["Width"] for alp in self.pinyin]
+        pinyin_ws = [self.dict_font_size[alp]["CanvasWidth"] for alp in self.pinyin]
+        # バイアス
+        pinyin_bias_ws = [(self.dict_font_size[alp]["CanvasWidth"]-self.dict_font_size[alp]["Width"])/2 for alp in self.pinyin]
         # 空白数 1文字のときは1，それ以外はlen(pinyin_ws)-1
         bnk_num = 1 if len(pinyin_ws)==1 else len(pinyin_ws)-1
         # 空白幅の設定 [mm]
         # self.BRANK_W_mm を空白幅の上限としている
         tmp = (self.PY_SPC_W_mm - sum(pinyin_ws) * self.CMGN) / bnk_num
-        bnk_w = tmp if tmp < self.BRANK_W_mm else self.BRANK_W_mm
+        bnk_w = tmp if tmp < self.TRACKING_W_mm else self.TRACKING_W_mm
         # ピンイン全幅 [mm]
         all_pinyin_w = sum(pinyin_ws) * self.CMGN + bnk_num * bnk_w
         # 中央寄せ. x軸上の開始位置
         start_x = (self.AI_CAV_W_mm - all_pinyin_w) / 2
-        # 最初の文字の右端とキャンバス左端までの距離
-        pinyin_biase = (self.dict_font_size[self.pinyin[0]]["CanvasWidth"] - self.dict_font_size[self.pinyin[0]]["CanvasWidth"]) / 2
 
         pinyin_positions = []
         # 各文字の座標を計算する
         for idx in range(len(pinyin_ws)):
-            pinyin_positions.append( ((start_x + (sum(pinyin_ws[:idx])-pinyin_biase) * self.CMGN) + idx * bnk_w) * self.DMGN / self.CMGN )
-            # print( ((start_x + (sum(pinyin_ws[:idx])-pinyin_biase) * self.CMGN) + idx * bnk_w) * self.DMGN / self.CMGN )
+            pinyin_positions.append( ((start_x + (sum(pinyin_ws[:idx])+sum(pinyin_bias_ws[:idx+1])) * self.CMGN) + idx * bnk_w) * self.DMGN / self.CMGN )
 
         return pinyin_positions
 
@@ -130,8 +131,9 @@ class PinyinFont(object):
         tree = ET.parse(os.path.join(DIR_SVG, "{}.svg".format(self.cid)))
         root = tree.getroot()
 
-        # まだ拼音を追加していないとき. rootの要素はひとつのみ
-        if len(root) == 1:
+
+        # まだ拼音を追加していないとき. root以下の要素は<path>ひとつのみ
+        if len(root.findall('./{http://www.w3.org/2000/svg}path')) > 0:
 
             # g要素を作る
             # 拼音と漢字を包むグループ
@@ -170,15 +172,16 @@ if __name__ == '__main__':
     dict_pinyin_unicode = json.load(f)
 
     p = PinyinFont( font_size_filename=os.path.join(DIR_JSN,PINYIN_ALPHABET_SIZE_JSON) )
-    p.createPinyinSVG(cid=dict_unicode2cid["U+4E58"], pinyin=dict_pinyin_unicode["SimplifiedChinese"]["U+4E58"]["Pinyin"])
+    # 位置の計算のテスト
+    # p.createPinyinSVG(cid=dict_unicode2cid["U+4E58"], pinyin=dict_pinyin_unicode["SimplifiedChinese"]["U+4E58"]["Pinyin"])
 
 
     # 簡体字
-    # for unicode in dict_pinyin_unicode["SimplifiedChinese"]:
-    #     print( "{}: {}".format(dict_pinyin_unicode["SimplifiedChinese"][unicode]["Character"],dict_pinyin_unicode["SimplifiedChinese"][unicode]["Pinyin"]) )
-    #     p.createPinyinSVG(cid=dict_unicode2cid[unicode], pinyin=dict_pinyin_unicode["SimplifiedChinese"][unicode]["Pinyin"])
-    #
-    # # 繁体字
-    # for unicode in dict_pinyin_unicode["TraditionalChinese"]:
-    #     print( "{}: {}".format(dict_pinyin_unicode["TraditionalChinese"][unicode]["Character"],dict_pinyin_unicode["TraditionalChinese"][unicode]["Pinyin"]) )
-    #     p.createPinyinSVG(cid=dict_unicode2cid[unicode], pinyin=dict_pinyin_unicode["TraditionalChinese"][unicode]["Pinyin"])
+    for unicode in dict_pinyin_unicode["SimplifiedChinese"]:
+        print( "{}: {}".format(dict_pinyin_unicode["SimplifiedChinese"][unicode]["Character"],dict_pinyin_unicode["SimplifiedChinese"][unicode]["Pinyin"]) )
+        p.createPinyinSVG(cid=dict_unicode2cid[unicode], pinyin=dict_pinyin_unicode["SimplifiedChinese"][unicode]["Pinyin"])
+
+    # 繁体字
+    for unicode in dict_pinyin_unicode["TraditionalChinese"]:
+        print( "{}: {}".format(dict_pinyin_unicode["TraditionalChinese"][unicode]["Character"],dict_pinyin_unicode["TraditionalChinese"][unicode]["Pinyin"]) )
+        p.createPinyinSVG(cid=dict_unicode2cid[unicode], pinyin=dict_pinyin_unicode["TraditionalChinese"][unicode]["Pinyin"])

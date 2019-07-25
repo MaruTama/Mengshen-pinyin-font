@@ -1,272 +1,272 @@
 {
    "a": {
-      "CanvasWidth": 544,
+      "CanvasWidth": 176.389,
       "Height": 190.5,
-      "Width": 151.694
+      "Width": 137.583
    },
    "b": {
-      "CanvasWidth": 589,
+      "CanvasWidth": 176.389,
       "Height": 268.111,
-      "Width": 165.806
+      "Width": 144.639
    },
    "c": {
-      "CanvasWidth": 494,
+      "CanvasWidth": 176.389,
       "Height": 190.5,
-      "Width": 137.583
+      "Width": 127
    },
    "d": {
-      "CanvasWidth": 589,
+      "CanvasWidth": 176.389,
       "Height": 268.111,
-      "Width": 165.806
+      "Width": 144.639
    },
    "e": {
-      "CanvasWidth": 529,
+      "CanvasWidth": 176.389,
       "Height": 190.5,
-      "Width": 158.75
+      "Width": 141.111
    },
    "f": {
-      "CanvasWidth": 509,
+      "CanvasWidth": 176.389,
       "Height": 261.056,
-      "Width": 137.583
+      "Width": 128.764
    },
    "g": {
-      "CanvasWidth": 574,
+      "CanvasWidth": 176.389,
       "Height": 268.111,
-      "Width": 162.278
+      "Width": 144.639
    },
    "h": {
-      "CanvasWidth": 584,
+      "CanvasWidth": 176.389,
       "Height": 264.583,
-      "Width": 155.222
+      "Width": 137.583
    },
    "i": {
-      "CanvasWidth": 324,
+      "CanvasWidth": 176.389,
       "Height": 264.583,
-      "Width": 38.806
+      "Width": 123.472
    },
    "j": {
-      "CanvasWidth": 364,
+      "CanvasWidth": 176.389,
       "Height": 342.194,
-      "Width": 95.25
+      "Width": 93.486
    },
    "k": {
-      "CanvasWidth": 569,
+      "CanvasWidth": 176.389,
       "Height": 264.583,
-      "Width": 158.75
+      "Width": 142.875
    },
    "l": {
-      "CanvasWidth": 324,
+      "CanvasWidth": 176.389,
       "Height": 264.583,
-      "Width": 38.806
+      "Width": 134.056
    },
    "m": {
-      "CanvasWidth": 789,
+      "CanvasWidth": 176.389,
       "Height": 186.972,
-      "Width": 229.306
+      "Width": 165.806
    },
    "n": {
-      "CanvasWidth": 579,
+      "CanvasWidth": 176.389,
       "Height": 186.972,
-      "Width": 155.222
+      "Width": 137.583
    },
    "o": {
-      "CanvasWidth": 564,
+      "CanvasWidth": 176.389,
       "Height": 190.5,
-      "Width": 172.861
+      "Width": 148.167
    },
    "p": {
-      "CanvasWidth": 584,
+      "CanvasWidth": 176.389,
       "Height": 264.583,
-      "Width": 165.806
+      "Width": 144.639
    },
    "q": {
-      "CanvasWidth": 584,
+      "CanvasWidth": 176.389,
       "Height": 264.583,
-      "Width": 165.806
+      "Width": 144.639
    },
    "r": {
-      "CanvasWidth": 464,
+      "CanvasWidth": 176.389,
       "Height": 183.444,
       "Width": 119.944
    },
    "s": {
-      "CanvasWidth": 504,
+      "CanvasWidth": 176.389,
       "Height": 190.5,
-      "Width": 137.583
+      "Width": 130.528
    },
    "t": {
-      "CanvasWidth": 509,
+      "CanvasWidth": 176.389,
       "Height": 246.944,
-      "Width": 137.583
+      "Width": 134.056
    },
    "u": {
-      "CanvasWidth": 574,
+      "CanvasWidth": 176.389,
       "Height": 186.972,
-      "Width": 153.458
+      "Width": 134.056
    },
    "v": {
-      "CanvasWidth": 554,
+      "CanvasWidth": 176.389,
       "Height": 183.444,
-      "Width": 172.861
+      "Width": 148.167
    },
    "w": {
-      "CanvasWidth": 794,
+      "CanvasWidth": 176.389,
       "Height": 183.444,
-      "Width": 250.472
+      "Width": 165.806
    },
    "x": {
-      "CanvasWidth": 554,
+      "CanvasWidth": 176.389,
       "Height": 183.444,
-      "Width": 162.278
-   },
-   "y": {
-      "CanvasWidth": 554,
-      "Height": 261.056,
-      "Width": 172.861
-   },
-   "z": {
-      "CanvasWidth": 544,
-      "Height": 183.444,
-      "Width": 141.111
-   },
-   "à": {
-      "CanvasWidth": 544,
-      "Height": 271.639,
-      "Width": 151.694
-   },
-   "á": {
-      "CanvasWidth": 544,
-      "Height": 271.639,
-      "Width": 151.694
-   },
-   "è": {
-      "CanvasWidth": 529,
-      "Height": 271.639,
-      "Width": 158.75
-   },
-   "é": {
-      "CanvasWidth": 529,
-      "Height": 271.639,
-      "Width": 158.75
-   },
-   "ì": {
-      "CanvasWidth": 338,
-      "Height": 268.111,
-      "Width": 88.9
-   },
-   "í": {
-      "CanvasWidth": 338,
-      "Height": 268.111,
-      "Width": 88.9
-   },
-   "ò": {
-      "CanvasWidth": 564,
-      "Height": 271.639,
-      "Width": 172.861
-   },
-   "ó": {
-      "CanvasWidth": 564,
-      "Height": 271.639,
-      "Width": 172.861
-   },
-   "ù": {
-      "CanvasWidth": 574,
-      "Height": 271.639,
-      "Width": 153.458
-   },
-   "ú": {
-      "CanvasWidth": 574,
-      "Height": 271.639,
-      "Width": 153.458
-   },
-   "ü": {
-      "CanvasWidth": 574,
-      "Height": 264.583,
-      "Width": 153.458
-   },
-   "ā": {
-      "CanvasWidth": 544,
-      "Height": 254,
-      "Width": 151.694
-   },
-   "ē": {
-      "CanvasWidth": 529,
-      "Height": 254,
-      "Width": 158.75
-   },
-   "ě": {
-      "CanvasWidth": 529,
-      "Height": 271.639,
-      "Width": 158.75
-   },
-   "ī": {
-      "CanvasWidth": 320,
-      "Height": 250.472,
-      "Width": 127
-   },
-   "ḿ": {
-     "CanvasWidth": 789,
-     "Height": 268.111,
-     "Width": 229.306
-   },
-   "ń": {
-     "CanvasWidth": 579,
-     "Height": 268.111,
-     "Width": 155.222
-   },
-   "ō": {
-      "CanvasWidth": 564,
-      "Height": 254,
-      "Width": 172.861
-   },
-   "ū": {
-      "CanvasWidth": 574,
-      "Height": 254,
-      "Width": 153.458
-   },
-   "ǎ": {
-      "CanvasWidth": 544,
-      "Height": 271.639,
-      "Width": 151.694
-   },
-   "ǐ": {
-      "CanvasWidth": 320,
-      "Height": 268.111,
       "Width": 144.639
    },
-   "ǒ": {
-      "CanvasWidth": 564,
+   "y": {
+      "CanvasWidth": 176.389,
+      "Height": 261.056,
+      "Width": 155.222
+   },
+   "z": {
+      "CanvasWidth": 176.389,
+      "Height": 183.444,
+      "Width": 125.236
+   },
+   "à": {
+      "CanvasWidth": 176.389,
+      "Height": 273.403,
+      "Width": 137.583
+   },
+   "á": {
+      "CanvasWidth": 176.389,
+      "Height": 273.403,
+      "Width": 137.583
+   },
+   "è": {
+      "CanvasWidth": 176.389,
+      "Height": 273.403,
+      "Width": 141.111
+   },
+   "é": {
+      "CanvasWidth": 176.389,
+      "Height": 273.403,
+      "Width": 141.111
+   },
+   "ì": {
+      "CanvasWidth": 176.389,
+      "Height": 269.875,
+      "Width": 123.472
+   },
+   "í": {
+      "CanvasWidth": 176.389,
+      "Height": 269.875,
+      "Width": 123.472
+   },
+   "ò": {
+      "CanvasWidth": 176.389,
       "Height": 271.639,
-      "Width": 172.861
+      "Width": 148.167
+   },
+   "ó": {
+      "CanvasWidth": 176.389,
+      "Height": 273.403,
+      "Width": 148.167
+   },
+   "ù": {
+      "CanvasWidth": 176.389,
+      "Height": 273.403,
+      "Width": 134.056
+   },
+   "ú": {
+      "CanvasWidth": 176.389,
+      "Height": 273.403,
+      "Width": 134.056
+   },
+   "ü": {
+      "CanvasWidth": 176.389,
+      "Height": 268.111,
+      "Width": 134.056
+   },
+   "ā": {
+      "CanvasWidth": 176.389,
+      "Height": 252.236,
+      "Width": 137.583
+   },
+   "ē": {
+      "CanvasWidth": 176.389,
+      "Height": 252.236,
+      "Width": 141.111
+   },
+   "ě": {
+      "CanvasWidth": 176.389,
+      "Height": 273.403,
+      "Width": 142.169
+   },
+   "ī": {
+      "CanvasWidth": 176.389,
+      "Height": 248.708,
+      "Width": 123.472
+   },
+   "ḿ": {
+     "CanvasWidth": 176.389,
+     "Height": 269.875,
+     "Width": 165.806
+   },
+   "ń": {
+     "CanvasWidth": 176.389,
+     "Height": 269.875,
+     "Width": 137.583
+   },
+   "ō": {
+      "CanvasWidth": 176.389,
+      "Height": 252.236,
+      "Width": 148.167
+   },
+   "ū": {
+      "CanvasWidth": 176.389,
+      "Height": 252.236,
+      "Width": 134.056
+   },
+   "ǎ": {
+      "CanvasWidth": 176.389,
+      "Height": 273.403,
+      "Width": 141.111
+   },
+   "ǐ": {
+      "CanvasWidth": 176.389,
+      "Height": 269.875,
+      "Width": 141.111
+   },
+   "ǒ": {
+      "CanvasWidth": 176.389,
+      "Height": 273.403,
+      "Width": 148.167
    },
    "ǔ": {
-      "CanvasWidth": 574,
-      "Height": 271.639,
-      "Width": 153.458
+      "CanvasWidth": 176.389,
+      "Height": 273.403,
+      "Width": 141.111
    },
    "ǖ": {
-      "CanvasWidth": 574,
-      "Height": 321.028,
-      "Width": 153.458
+      "CanvasWidth": 176.389,
+      "Height": 309.033,
+      "Width": 134.056
    },
    "ǘ": {
-      "CanvasWidth": 574,
-      "Height": 342.194,
-      "Width": 153.458
+      "CanvasWidth": 176.389,
+      "Height": 319.264,
+      "Width": 134.056
    },
    "ǚ": {
-      "CanvasWidth": 574,
-      "Height": 342.194,
-      "Width": 153.458
+      "CanvasWidth": 176.389,
+      "Height": 319.264,
+      "Width": 141.111
    },
    "ǜ": {
-      "CanvasWidth": 574,
-      "Height": 342.194,
-      "Width": 153.458
+      "CanvasWidth": 176.389,
+      "Height": 319.264,
+      "Width": 134.056
    },
    "ở": {
-      "CanvasWidth": 689,
-      "Height": 285.75,
-      "Width": 229.306
+      "CanvasWidth": 176.389,
+      "Height": 287.514,
+      "Width": 160.514
    }
 }
