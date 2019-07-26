@@ -1,5 +1,7 @@
-# oss-pinyin-font-tools
-Tools for to create OpenSource Pinyin Font
+# pinyin-font
+OpenSource Pinyin Font and that is created tools.
+
+[Download](https://github.com/MaruTama/pinyin-font-tools/releases)
 ![screenshot](./imgs/ss.png)
 
 元のフォント
