@@ -1,16 +1,19 @@
 # oss-pinyin-font-tools
 Tools for to create OpenSource Pinyin Font
+![screenshot](./imgs/ss.png)
 
 元のフォント
 - [source-han-serif(源ノ明朝) otf](https://github.com/adobe-fonts/source-han-serif/tree/release/OTF)
 - [source-han-sans(源ノ角ゴシック) otf](https://github.com/adobe-fonts/source-han-sans/tree/release/OTF)
+
+
 <!-- otf->ttf にしてあるフォント
 - [Source-Han-TrueType](https://github.com/Pal3love/Source-Han-TrueType) -->
 
 <!-- # 変換方法
 ```
 #otf -> ttf
-$ python otf2ttf.py SourceHanSerif-Regular.otf
+$ python otf2ttf.py fonts/SourceHanSerifSC-Regular.otf
 ```
 
 ```
@@ -34,6 +37,7 @@ ttx -y n ./NotoSansCJK-Regular.ttc
 $ pyenv global 3.7.2
 $ pip install -r requirements.txt
 ```
+
 ```
 #GUI で使う
 $ brew cask install xquartz
@@ -90,39 +94,35 @@ $ python getPinyinAlphbets.py
 |k| K.svg | k.svg |
 |l| L.svg | l.svg |
 |m| M.svg | m.svg |
+|ḿ| uni1E3F.svg | ḿ.svg |
 |n| N.svg | n.svg |
+|ń| Nacute.svg  | ń.svg |
 |o| O.svg | o.svg |
 |ō| Omacron.svg | ō.svg |
 |ó| Oacute.svg  | ó.svg |
 |ǒ| uni01D2.svg | ǒ.svg |
 |ò| Ograve.svg  | ò.svg |
+|ở| uni1EDF.svg | ở.svg |
 |p| P.svg | p.svg |
 |q| Q.svg | q.svg |
 |r| R.svg | r.svg |
 |s| S.svg | s.svg |
 |t| T.svg | t.svg |
 |u| U.svg | u.svg |
-|ū| Umacron.svg | ū.svg |
-|ú| Uacute.svg  | ú.svg |
-|ǔ| uni01D4.svg | ǔ.svg |
-|ù| Ugrave.svg  | ù.svg |
+|ū| Umacron.svg   | ū.svg |
+|ú| Uacute.svg    | ú.svg |
+|ǔ| uni01D4.svg   | ǔ.svg |
+|ù| Ugrave.svg    | ù.svg |
 |ü| Udieresis.svg | ü.svg |
+|ǖ| uni01D6.svg   | ǖ.svg |
+|ǘ| uni01D8.svg   | ǘ.svg |
+|ǚ| uni01DA.svg   | ǚ.svg |
+|ǜ| uni01DC.svg   | ǜ.svg |
 |v| V.svg | v.svg |
 |w| W.svg | w.svg |
 |x| X.svg | x.svg |
 |y| Y.svg | y.svg |
 |z| Z.svg | z.svg |
-|ǖ| uni01D6.svg | ǖ.svg |
-|ǘ| uni01D8.svg | ǘ.svg |
-|ǚ| uni01DA.svg | ǚ.svg |
-|ǜ| uni01DC.svg | ǜ.svg |
-|ḿ| uni1E3F.svg | ḿ.svg |
-|ń| Nacute.svg  | ń.svg |
-|ở| uni1EDF.svg | ở.svg |
-
-
-ピンインの配置をするために、文字に関する位置情報をまとめる。AI上の情報をまとめてる。  
-jsons/pinyin-alphabet-size.json を編集する  
 
 ## 拼音を書き込む漢字のSVGを抽出する
 漢字のSVGを取り出す
@@ -140,6 +140,10 @@ $ python pinyinFont.py
 $ python removeWithoutHanziSVG.py
 ```
 
+## SVGの最適化する
+transformが多重に掛かっているので、一つにまとめる.  
+簡単なので[SVGCleaner.app](https://github.com/RazrFalcon/svgcleaner-gui/releases)を使う。
+
 ## SVG -> glif に置き換える
 ufoの中の各文字のアウトラインを持つのがglif
 Ref.[extract rotation, scale values from 2d transformation matrix](https://stackoverflow.com/questions/4361242/extract-rotation-scale-values-from-2d-transformation-matrix)  
@@ -149,13 +153,10 @@ Matrix can calculate the scale, rotation, and shift at one time by raising the d
 \y'/ = \b b f/ × |y|  
                  \1/  
 
-## SVG の容量を削除する
-transformが多重に掛かっているので、一つにまとめる
-SVGCleaner.appを使う
 
 ```
 $ python svgs2glifs.py fonts/SVGs jsons/unicode-cid-mapping.json -w 2048 -H 2048 -t "2 0 0
--2 0 0"
+2 0 0"
 ```
 <!-- ```
 $ python svg2glif.py fonts/SVGs/cid09502.svg out.glif -w 2048 -H 2048 -t "2 0 0 -2 0 0"
@@ -171,4 +172,4 @@ fontforge を用いて変換
 [FIX_PINYIN.md](FIX_PINYIN.md)
 
 # やること
-[] 文字のサイズの設定を外部におく
+[] 数値設定を外部におく
