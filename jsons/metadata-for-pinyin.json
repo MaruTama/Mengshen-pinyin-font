@@ -1,0 +1,30 @@
+{
+  "AI":{
+    "Canvas":{
+      "Width": 722.489,
+      "Pinyin":{
+        "Width":614.4,
+        "Height":204.8,
+        "BaseLine":675.84,
+        "DefaultTracking":16
+      }
+    },
+    "Alphbet":{
+      "Width":176.389,
+      "MaxHeight":319.264
+    }
+  },
+  "SVG":{
+    "Width":2048,
+    "Hanzi":{
+      "Scale":{
+        "X":1,
+        "Y":1
+      },
+      "Translate":{
+        "X":0,
+        "Y":0
+      }
+    }
+  }
+}

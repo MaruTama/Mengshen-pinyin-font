@@ -13,10 +13,11 @@ from fontTools.ttLib import TTFont
 from textwrap import dedent
 from fontTools.pens.svgPathPen import SVGPathPen
 
-DIR_SVG = "./fonts/SVGs"
 
 # GlyphをSVGに変換
-def save_all_glyph_as_svg(font):
+def save_all_glyph_as_svg(font,DIR_SVG):
+    # すでにフォルダがある場合は無視する
+    os.makedirs(DIR_SVG, exist_ok=True)
     glyph_set = font.getGlyphSet()
     cmap = font.getBestCmap()
 
@@ -44,15 +45,14 @@ def save_all_glyph_as_svg(font):
 
 
 def main(args=None):
+
     parser = argparse.ArgumentParser(description='this script is to convert otf to svg')
     parser.add_argument('font_name')
     arg = parser.parse_args(args)
 
     font = TTFont(arg.font_name)
-
-    # すでにフォルダがある場合は無視する
-    os.makedirs(DIR_SVG, exist_ok=True)
-    save_all_glyph_as_svg(font)
+    dir = os.path.dirname(arg.font_name)
+    save_all_glyph_as_svg(font, os.path.join(dir, "SVGs"))
 
 
 if __name__ == '__main__':

@@ -1,12 +1,16 @@
 import os
+import sys
+import argparse
 import glob
+import font2svgs
+from fontTools.ttLib import TTFont
 
 
 # 漢字のSVGがあるディレクトリ
-DIR_SVG = "./fonts/SVGs"
+DIR_SVG = "./fonts/pinyin_alphbets"
 
-if __name__ == '__main__':
-    files = glob.glob(os.path.join(DIR_SVG,"*"))
+def get_svg_of_pinyin_alphbets(DIR_SVG):
+    files = glob.glob(os.path.join(DIR_SVG,"*.svg"))
     # 全てのファイル名のセットを作る
     file_names = {os.path.basename(file) for file in files}
 
@@ -23,3 +27,17 @@ if __name__ == '__main__':
 
         except Exception as e:
             pass
+
+def main(args=None):
+    parser = argparse.ArgumentParser(description='this script is to pick-up svg for to display pinyin')
+    parser.add_argument('font_name')
+    arg = parser.parse_args(args)
+
+    font = TTFont(arg.font_name)
+
+    font2svgs.save_all_glyph_as_svg(font, DIR_SVG)
+    get_svg_of_pinyin_alphbets(DIR_SVG)
+
+
+if __name__ == '__main__':
+    sys.exit(main())
