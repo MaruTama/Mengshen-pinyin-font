@@ -1,13 +1,14 @@
 # pinyin-font
 OpenSource Pinyin Font and that is created tools.
 
+[Download](https://github.com/MaruTama/pinyin-font-tools/releases)
+![screenshot](./imgs/ss.png)
+
+
 # Font Installation Instructions
 - [macOS](https://support.apple.com/en-us/HT201749)
 - [Windows](https://www.microsoft.com/en-us/Typography/TrueTypeInstall.aspx)
 - [Linux/Unix-based systems](https://github.com/adobe-fonts/source-code-pro/issues/17#issuecomment-8967116)
-
-[Download](https://github.com/MaruTama/pinyin-font-tools/releases)
-![screenshot](./imgs/ss.png)
 
 
 # pinyin font 作り方
@@ -189,7 +190,7 @@ transformが多重に掛かっているので、一つにまとめる.
 簡単なので[SVGCleaner.app](https://github.com/RazrFalcon/svgcleaner-gui/releases)を使う。
 
 ## SVG -> glif に置き換える
-ufoの中の各文字のアウトラインを持つのがglif
+ufoの中の各文字のアウトラインを持つのがglif  
 Ref.[extract rotation, scale values from 2d transformation matrix](https://stackoverflow.com/questions/4361242/extract-rotation-scale-values-from-2d-transformation-matrix)  
 Matrix can calculate the scale, rotation, and shift at one time by raising the dimension.  
 <!--
