@@ -1,13 +1,21 @@
 # pinyin-font
 OpenSource Pinyin Font and that is created tools.
 
+# Font Installation Instructions
+- [macOS](https://support.apple.com/en-us/HT201749)
+- [Windows](https://www.microsoft.com/en-us/Typography/TrueTypeInstall.aspx)
+- [Linux/Unix-based systems](https://github.com/adobe-fonts/source-code-pro/issues/17#issuecomment-8967116)
+
 [Download](https://github.com/MaruTama/pinyin-font-tools/releases)
 ![screenshot](./imgs/ss.png)
 
+
+# pinyin font 作り方
 ベースにしたフォント
 ttfだし容量が削減されている。ピンインを表示する漢字に関しては削減されてない。
 - [Source-Han-TrueType](https://github.com/Pal3love/Source-Han-TrueType)
-その元のフォント
+
+Source-Han-TrueType の基のフォント
 - [source-han-serif(源ノ明朝) otf](https://github.com/adobe-fonts/source-han-serif/tree/release/OTF)
 - [source-han-sans(源ノ角ゴシック) otf](https://github.com/adobe-fonts/source-han-sans/tree/release/OTF)
 
@@ -28,8 +36,6 @@ ttx -t GSUB SourceHanSerif-Regular.otf
 ttx -y n ./NotoSansCJK-Regular.ttc
 ``` -->
 
-
-# pinyin font 作り方
 ## 依存関係
 ```
 $ pyenv global 3.7.2
@@ -204,7 +210,7 @@ Matrix can calculate the scale, rotation, and shift at one time by raising the d
   \end{pmatrix}
 \end{align*}
  -->
-![matrix](./imgs/texclip20190728183918.png)
+![matrix](./imgs/texclip20190728183918.png)  
 Transformation matrix as a list of six. float values (e.g. -t "0.1 0 0 -0.1 -50 200", -t "a b c d e f")   
 ```
 $ python svgs2glifs.py fonts/SVGs jsons/unicode-cid-mapping.json -w 2048 -H 2048 -t "1 0 0
@@ -231,9 +237,10 @@ $ fontforge -script ttf2ufo.pe fonts/SourceHanSerifCN-Regular.ttf
 ![ttf-to-ufo-img5.png](./imgs/ttf-to-ufo-img5.png)
 
 ## 各glifをufoに移動する
-先程、出力した glyphs/\*.glif を fonts/ufo/glyphs\*.glif の下に上書きする。
-glyphs ごと上書きするとうまく行かない。なぜ？Finderのせい？なので、ファイル単位で移動またはコピーする。
+先程、出力した glyphs/\*.glif を fonts/ufo/glyphs\*.glif の下に上書きする。  
+glyphs ごと上書きするとうまく行かない。なぜ？Finderのせい？なので、ファイル単位で移動またはコピーする。  
 16026個ある。
+
 ## ufo -> ttf
 <!-- ```
 $ fontforge -script ufo2ttf.pe fonts/SourceHanSerifCN-Regular.ufo
