@@ -26,7 +26,7 @@ def getUnicode2CidJson(cmap):
 
 
 def main(args=None):
-    parser = argparse.ArgumentParser(description='this script is to convert ttf to png')
+    parser = argparse.ArgumentParser(description='this script is to get unicode and cid mapping table from cmap table')
     parser.add_argument('font_name')
     arg = parser.parse_args(args)
     font = TTFont(arg.font_name)

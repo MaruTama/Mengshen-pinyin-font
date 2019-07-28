@@ -20,7 +20,7 @@ TRADITIONAL_FILE_NAME = os.path.basename(TRADITIONAL_FILE_URL)
 DIR_MT = "./unicode_tables"
 
 # json の名前
-PINYIN_JSON = "unicode-pinyin-mapping.json"
+HANZI_AND_PINYIN_JSON = "hanzi-and-pinyin-mapping.json"
 DIR_JSN = "./jsons"
 
 # 簡体字
