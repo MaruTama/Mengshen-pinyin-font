@@ -146,27 +146,3 @@ Big5(大五碼)かCNS11643, 前者の方がメジャー
 
 [源ノ明朝をいろいろなフォントと縦組みで比較してみた](https://silight.hatenablog.jp/entry/2017/04/04/170908)
 > 私がTTFバージョンを配布することも考えたのですが、源ノ明朝のライセンスはSIL Open Font Licenseとなっており、修正を加えたフォントの名前にオリジナルの名前を含めてはいけないというルールが定められています。このルールは、中身はほとんど同じなのに名前だけ違うフォントの乱立を招きます。そういった事態を避けるためにも現時点では私からは配布しません。
-
-
-
-# 台湾フォントのための拼音チェック
-
-[TTFの全グリフをPNGにしてみる](https://qiita.com/scrpgil/items/7c7c0a354b3688ddfc6b)
-```
-#ttf -> PNG (時間かかる 3.6以上じゃないといけない)
-$ python ttf2png.py SourceHanSerif-Regular.ttf
-```
-
-
-OCR
-Google の API はそれなりに精度いいけど、エラー多いかも.
-拼音を直接認識する例がない。  
-漢字 -> 拼音 はあるけど、意味ない。  
-アルファベットの例を転用する。  
-- [Machine Learning Photo OCR](https://www.ritchieng.com/machine-learning-photo-ocr/)
-- [🔥 Latest Deep Learning OCR with Keras and Supervisely in 15 minutes](https://hackernoon.com/latest-deep-learning-ocr-with-keras-and-supervisely-in-15-minutes-34aecd630ed8)
-- [Building TensorFlow OCR Systems: Key Approaches and Tutorials](https://missinglink.ai/guides/deep-learning-frameworks/building-tensorflow-ocr-systems-key-approaches-and-tutorials/)
-- [SimpleHTR](https://github.com/githubharald/SimpleHTR/tree/master)
-
-データセットをつくるために
-- [Pillow(PIL)で1文字の画像をたくさん生成する](https://qiita.com/lazykyama/items/65bcce351f3d1cf07d8e)

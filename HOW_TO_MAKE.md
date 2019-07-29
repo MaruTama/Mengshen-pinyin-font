@@ -114,7 +114,9 @@ $ python getPinyinAlphbets.py fonts/mplus-1m-medium.ttf
 |z| Z.svg | z.svg |
 
 
-metadata-for-pinyin.json
+metadata-for-pinyin.json を制作する。  
+![outline](./imgs/outline.png)  
+
 ```
 {
   "AI":{
