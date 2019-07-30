@@ -1,3 +1,12 @@
+# 間違っている熟語パターン
+- 长城(ZhǎngChéng -> ChángChéng)
+- 银行(YínXíng -> YínHáng)
+- 首都(ShǒuDōu -> Shǒudū)
+
+# 間違ってた漢字
+为(wèi -> wéi)
+
+# pypinyinで見つからなかったもの
 [Word dictionary](https://www.mdbg.net/chinese/dictionary)でで検索してピンインが見つかったもの
 
 |unicode|汉字|旧字/異体字|拼音|link|
