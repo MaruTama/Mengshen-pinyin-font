@@ -1,2 +1,6 @@
 __pycache__
 .DS_Store
+fonts/pinyin_alphbets/*
+fonts/SVGs/*
+fonts/ufo/*
+glyphs/*

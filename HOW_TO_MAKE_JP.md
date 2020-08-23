@@ -261,6 +261,7 @@ $ fontforge -script ufo2ttf.pe fonts/SourceHanSerifCN-Regular.ufo
 
 
 # ligatures
+- [OpenType Cookbook](http://opentypecookbook.com/)
 - [glyphs Ligatures](https://glyphsapp.com/tutorials/ligatures)
 - [github ligatures](https://github.com/topics/ligatures)
 - [kiliman/operator-mono-lig](https://github.com/kiliman/operator-mono-lig)

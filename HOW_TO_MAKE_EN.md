@@ -4,8 +4,8 @@
 - Display pinyin at both Simplified and Traditional Chinese
 - The scope of simplified Chinese characters is based on the [General规范汉字表](https://blogs.adobe.com/CCJKType/2014/03/china-8105.html)
 - The scope of traditional Chinese characters is based on the [Big5(Big 5碼)-2003](https://moztw.org/docs/big5/)
-- The scope of Japanese Kanji is based on the [当用漢字字体表（i.e.:新字体）] (https://kotobank.jp/word/%E6%96%B0%E5%AD%97%E4%BD%93-537633)
-- 新字体(Japanese new glyphs) are limited to the extent that [常用漢字（Joyo Kanji）] (https://kanji.jitenon.jp/cat/joyo.html) can be displayed.
+- The scope of Japanese Kanji is based on the [当用漢字字体表（i.e.:新字体）](https://kotobank.jp/word/%E6%96%B0%E5%AD%97%E4%BD%93-537633)
+- 新字体(Japanese new glyphs) are limited to the extent that [常用漢字（Joyo Kanji）](https://kanji.jitenon.jp/cat/joyo.html) can be displayed.
 - Display hiragana(e.g.:あ) and katakana(e.g.:ア)
 
 Font based on the below font.  
@@ -244,6 +244,7 @@ $ fontforge -script ufo2ttf.pe fonts/SourceHanSerifCN-Regular.ufo
 
 
 # ligatures
+- [OpenType Cookbook](http://opentypecookbook.com/)
 - [glyphs Ligatures](https://glyphsapp.com/tutorials/ligatures)
 - [github ligatures](https://github.com/topics/ligatures)
 - [kiliman/operator-mono-lig](https://github.com/kiliman/operator-mono-lig)
