@@ -1,62 +1,54 @@
-# pinyin font 作り方
-ベースにしたフォント  
-ttfだし容量が削減されている。ピンインを表示する漢字に関しては削減されてない。
+# How to make pinyin-font
+## Requirement
+
+- Display pinyin at both Simplified and Traditional Chinese
+- The scope of simplified Chinese characters is based on the [General规范汉字表](https://blogs.adobe.com/CCJKType/2014/03/china-8105.html)
+- The scope of traditional Chinese characters is based on the [Big5(Big 5碼)-2003](https://moztw.org/docs/big5/)
+- The scope of Japanese Kanji is based on the [当用漢字字体表（i.e.:新字体）] (https://kotobank.jp/word/%E6%96%B0%E5%AD%97%E4%BD%93-537633)
+- 新字体(Japanese new glyphs) are limited to the extent that [常用漢字（Joyo Kanji）] (https://kanji.jitenon.jp/cat/joyo.html) can be displayed.
+- Display hiragana(e.g.:あ) and katakana(e.g.:ア)
+
+Font based on the below font.  
+It's ttf and the space is reduced. Then all the target china character are included.
 - [Source-Han-TrueType](https://github.com/Pal3love/Source-Han-TrueType)
 
-Source-Han-TrueType の基のフォント
-- [source-han-serif(源ノ明朝) otf](https://github.com/adobe-fonts/source-han-serif/tree/release/OTF)
-- [source-han-sans(源ノ角ゴシック) otf](https://github.com/adobe-fonts/source-han-sans/tree/release/OTF)
+## Resolve dependency
 
-
-<!-- # 変換方法
-
-```
-#ttf -> ttx
-$ ttx SourceHanSerif-Regular.ttf
-#ttx -> ttf #n の名前をつけてくれるので、上書きされない
-$ ttx SourceHanSerif-Regular.ttx
-#テーブルを指定して変換
-ttx -t GSUB SourceHanSerif-Regular.otf
-```
-
-```
-#ttc -> ttx の場合 n はttxにしたい番号
-ttx -y n ./NotoSansCJK-Regular.ttc
-``` -->
-
-## 依存関係
 ```
 $ pyenv global 3.7.2
 $ pip install -r requirements.txt
 ```
 
 ```
-#GUI で使う
+# Used in GUI
 $ brew cask install xquartz
-#fontforgeのインストール
+# fontforge installation
 $ brew install fontforge
-#fontforgeコマンドが動かないとき
+# When the fontforge command doesn't work
 $ brew link fontforge
-#GUI 版のインストール
+# GUI version installation
 $ brew cask install fontforge
 ```
 
-## 設定ファイルの生成
+##Generating a configuration file
+
 ```
-# 中国語の漢字の一覧を作る
+# Make a list of target chinese characters
 $ python createHanziUnicodeJson.py
-# CMAP テーブルからunicodeとcidのマッピングテーブルを作る.
+# Create unicode and cid mapping table from a CMAP table.
 $ python createUnicode2cidJson.py fonts/SourceHanSerifCN-Regular.ttf
 ```
 
-## 拼音表示のための文字を抽出する
-固定幅の英字フォントのみ対応  
-fonts/pinyin_alphbets に保存する
+## Extracting characters for pinyin
+Only fixed-width English fonts are supported.
+Save to fonts/pinyin_alphbets
+
 ```
 $ python getPinyinAlphbets.py fonts/mplus-1m-medium.ttf
 ```
 
-|文字|ファイル名|変更名|
+
+|Character|File name|Change name|
 |:--:|:-----:|:-----:|
 |a| A.svg | a.svg |
 |ā| Amacron.svg | ā.svg |
@@ -113,43 +105,42 @@ $ python getPinyinAlphbets.py fonts/mplus-1m-medium.ttf
 |y| Y.svg | y.svg |
 |z| Z.svg | z.svg |
 
-
-metadata-for-pinyin.json を制作する。  
-![outline](./imgs/outline.png)  
+Create metadata-for-pinyin.json.
+![outline](./imgs/outline.png)
 
 ```
 {
   "AI":{
     "Canvas":{
-      <!-- Canvasの横幅 -->
+      <!-- The width of the canvas -->
       "Width": 722.489,
       "Pinyin":{
-        <!-- 拼音表示部分のcanvasの横・縦幅 -->
+        <!-- Canvas size of the pinyin display area -->
         "Width":614.4,
         "Height":204.8,
-        <!-- Canvas下部から拼音表示部分までの高さ -->
+        <!-- The height from the botton of the canvas to the pinyin display area -->
         "BaseLine":675.84,
-        <!-- 拼音表示のアルファベットの字間 -->
+        <!-- Character spacing in the pinyin display area -->
         "DefaultTracking":16
       }
     },
     "Alphbet":{
-      <!-- 拼音表示に使うアルファベットのcanvasの横幅 -->
+      <!-- The width of the pinyin display area -->
       "Width":176.389,
-      <!-- 拼音表示に使うアルファベットで最も高いの(多分 ǘ ǚ ǜ)の高さ -->
+      <!-- The height of highest character in pinyin (probably:ǘ ǚ ǜ) -->
       "MaxHeight":319.264
     }
   },
   "SVG":{
-    <!-- viewBoxの横幅 -->
+    <!-- The width of viewBox -->
     "Width":2048,
-    <!-- 漢字の伸縮率 -->
+    <!-- The scale of chinese character -->
     "Hanzi":{
       "Scale":{
         "X":1,
         "Y":1
       },
-      <!-- 漢字の移動量 -->
+      <!-- The translation of chinese character  -->
       "Translate":{
         "X":0,
         "Y":0
@@ -158,28 +149,31 @@ metadata-for-pinyin.json を制作する。
   }
 }
 ```
-## 拼音を書き込む漢字のSVGを抽出する
-漢字のSVGを取り出す
+
+## Extract the target chinese characters
+Extracting SVGs of chinese characters
 ```
 $ python font2svgs.py fonts/SourceHanSerifCN-Regular.ttf
 ```
 
-## 拼音を書き込む
+## Writing pinyin into chinese characters
 ```
 $ python pinyinFont.py fonts/SVGs fonts/pinyin_alphbets jsons/unicode-cid-mapping.json jsons/hanzi-and-pinyin-mapping.json jsons/metadata-for-pinyin.json
 ```
 
-## 中国語の(拼音を書き込んだ)漢字以外のsvgを消す
+## Delete characters without the target characters
 ```
 $ python removeWithoutHanziSVG.py fonts/SVGs jsons/unicode-cid-mapping.json jsons/hanzi-and-pinyin-mapping.json
 ```
 
-## SVGの最適化する
-transformが多重に掛かっているので、一つにまとめる.  
-簡単なので[SVGCleaner.app](https://github.com/RazrFalcon/svgcleaner-gui/releases)を使う。
+## Optimize SVGs
+There are multiple transformations, so I'm going to combine them into one.
+Use [SVGCleaner.app](https://github.com/RazrFalcon/svgcleaner-gui/releases) for simplicity.
 
-## SVG -> glif に置き換える
-ufoの中の各文字のアウトラインを持つのがglif  
+## Replace SVG to glif
+A glif is a file with character outlines in [UFO](https://unifiedfontobject.org/).
+The Unified Font Object (UFO) is a human readable, future proof format for storing font data.
+
 Ref.[extract rotation, scale values from 2d transformation matrix](https://stackoverflow.com/questions/4361242/extract-rotation-scale-values-from-2d-transformation-matrix)  
 Matrix can calculate the scale, rotation, and shift at one time by raising the dimension.  
 <!--
@@ -214,8 +208,8 @@ $ python svg2glif.py fonts/SVGs/cid09502.svg out.glif -w 2048 -H 2048 -t "2 0 0 
 $ python otf2ttf.py fonts/SourceHanSerifSC-Regular.otf
 ``` -->
 
-## ttf -> ufo
-fontforge を用いて変換.
+## Convart ttf to UFO
+Transformation using fontforge.
 <!-- ```
 $ fontforge -script ttf2ufo.pe fonts/SourceHanSerifCN-Regular.ttf
 ``` -->
@@ -226,12 +220,12 @@ $ fontforge -script ttf2ufo.pe fonts/SourceHanSerifCN-Regular.ttf
 ![ttf-to-ufo-img4.png](./imgs/ttf-to-ufo-img4.png)
 ![ttf-to-ufo-img5.png](./imgs/ttf-to-ufo-img5.png)
 
-## 各glifをufoに移動する
-先程、出力した glyphs/\*.glif を fonts/ufo/glyphs\*.glif の下に上書きする。  
-glyphs ごと上書きするとうまく行かない。なぜ？Finderのせい？なので、ファイル単位で移動またはコピーする。  
-16026個ある。
+## Move each glif to ufo
+Overwrite the glyphs/*.glif that I just output under fonts/ufo/glyphs*.glif.
+When I overwrite each glyphs, it doesn't work. Why, is it because of the Finder? So, move or copy them file by file.  
+There are 16026 files.
 
-## ufo -> ttf
+## Assemble UFO to ttf
 <!-- ```
 $ fontforge -script ufo2ttf.pe fonts/SourceHanSerifCN-Regular.ufo
 ``` -->
@@ -244,5 +238,22 @@ $ fontforge -script ufo2ttf.pe fonts/SourceHanSerifCN-Regular.ufo
 ![ufo-to-ttf-img6.png](./imgs/ufo-to-ttf-img6.png)
 ![ufo-to-ttf-img7.png](./imgs/ufo-to-ttf-img7.png)
 
-# pypinyinで拼音が見つからない漢字まとめ
+
+# The collection of Chinese characters were not found in pypinyin
 [FIX_PINYIN.md](FIX_PINYIN.md)
+
+
+# ligatures
+- [glyphs Ligatures](https://glyphsapp.com/tutorials/ligatures)
+- [github ligatures](https://github.com/topics/ligatures)
+- [kiliman/operator-mono-lig](https://github.com/kiliman/operator-mono-lig)
+- [【完全版】Ligature Symbols フォントセットの自作方法](https://kudakurage.hatenadiary.com/entry/20120720/1342749116)
+
+<!-- fontforge
+ctrl + Shift + F -> Lookups
+cid59875 -->
+
+## 多音字
+- [中国語の多音字辞典（Chinese Duoyinzi Dictionary）](https://dokochina.com/duoyinzi.htm)
+- [常用多音字表](http://xh.5156edu.com/page/18317.html)
+- [104个汉字多音字一句话总结](http://news.sina.com.cn/c/2017-03-19/doc-ifycnikk1155875.shtml)
