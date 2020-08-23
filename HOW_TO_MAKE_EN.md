@@ -30,7 +30,7 @@ $ brew link fontforge
 $ brew cask install fontforge
 ```
 
-##Generating a configuration file
+## Generating a configuration file
 
 ```
 # Make a list of target chinese characters
@@ -41,7 +41,7 @@ $ python createUnicode2cidJson.py fonts/SourceHanSerifCN-Regular.ttf
 
 ## Extracting characters for pinyin
 Only fixed-width English fonts are supported.
-Save to fonts/pinyin_alphbets
+Save to "fonts/pinyin_alphbets"
 
 ```
 $ python getPinyinAlphbets.py fonts/mplus-1m-medium.ttf
@@ -105,7 +105,7 @@ $ python getPinyinAlphbets.py fonts/mplus-1m-medium.ttf
 |y| Y.svg | y.svg |
 |z| Z.svg | z.svg |
 
-Create metadata-for-pinyin.json.
+Create "metadata-for-pinyin.json".
 ![outline](./imgs/outline.png)
 
 ```
@@ -221,7 +221,7 @@ $ fontforge -script ttf2ufo.pe fonts/SourceHanSerifCN-Regular.ttf
 ![ttf-to-ufo-img5.png](./imgs/ttf-to-ufo-img5.png)
 
 ## Move each glif to ufo
-Overwrite the glyphs/*.glif that I just output under fonts/ufo/glyphs*.glif.
+Overwrite the "glyphs/\*.glif" that I just output under "fonts/ufo/glyphs/\*.glif".
 When I overwrite each glyphs, it doesn't work. Why, is it because of the Finder? So, move or copy them file by file.  
 There are 16026 files.
 
