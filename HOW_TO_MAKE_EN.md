@@ -1,18 +1,18 @@
 # How to make pinyin-font
+
 ## Requirement
 
-- Display pinyin at both Simplified and Traditional Chinese
-- The scope of simplified Chinese characters is based on the [General规范汉字表](https://blogs.adobe.com/CCJKType/2014/03/china-8105.html)
-- The scope of traditional Chinese characters is based on the [Big5(Big 5碼)-2003](https://moztw.org/docs/big5/)
-- The scope of Japanese Kanji is based on the [当用漢字字体表（i.e.:新字体）](https://kotobank.jp/word/%E6%96%B0%E5%AD%97%E4%BD%93-537633)
-- 新字体(Japanese new glyphs) are limited to the extent that [常用漢字（Joyo Kanji）](https://kanji.jitenon.jp/cat/joyo.html) can be displayed.
-- Display hiragana(e.g.:あ) and katakana(e.g.:ア)
+- Display pinyin for both Simplified and Traditional Chinese
+- The scope of Simplified Chinese characters is based on the *[Table of General Standard Chinese Characters](https://en.wikipedia.org/wiki/Table_of_General_Standard_Chinese_Characters)* ([通用规范汉字表](https://blogs.adobe.com/CCJKType/2014/03/china-8105.html))
+- The scope of Traditional Chinese characters is based on the *[Big-5-2003](https://en.wikipedia.org/wiki/Big5)* ([五大碼-2003](https://moztw.org/docs/big5/))
+- The scope of Japanese Kanji is based on the *[Tōyō kanji List (mainly Shinjitai)](https://en.wikipedia.org/wiki/Shinjitai)* ([当用漢字字体表（i.e.:新字体）](https://kotobank.jp/word/%E6%96%B0%E5%AD%97%E4%BD%93-537633))
+- Japanese new glyphs/*Shinjitai* (新字体) that can be displayed are limited to the extent of *[Jōyō_kanji](https://en.wikipedia.org/wiki/J%C5%8Dy%C5%8D_kanji)* ([常用漢字](https://kanji.jitenon.jp/cat/joyo.html))
+- Hiragana (e.g.:あ) and katakana (e.g.:ア) are available
 
-Font based on the below font.  
-It's ttf and the space is reduced. Then all the target china character are included.
-- [Source-Han-TrueType](https://github.com/Pal3love/Source-Han-TrueType)
+The font used here is based on [Source-Han-TrueType](https://github.com/Pal3love/Source-Han-TrueType).
+This is a TTF version of [Source Han Sans](https://github.com/adobe-fonts/source-han-sans)/[Source Han Serif](https://github.com/adobe-fonts/source-han-serif) with reduced file size. All required Chinese characters are included.
 
-## Resolve dependency
+## Dependencies
 
 ```
 $ pyenv global 3.7.2
@@ -30,7 +30,7 @@ $ brew link fontforge
 $ brew cask install fontforge
 ```
 
-## Generating a configuration file
+## Generating configuration file
 
 ```
 # Make a list of target chinese characters
@@ -41,7 +41,7 @@ $ python createUnicode2cidJson.py fonts/SourceHanSerifCN-Regular.ttf
 
 ## Extracting characters for pinyin
 Only fixed-width English fonts are supported.
-Save to "fonts/pinyin_alphbets"
+Save the font to "fonts/pinyin_alphabets"
 
 ```
 $ python getPinyinAlphbets.py fonts/mplus-1m-medium.ttf
@@ -150,31 +150,31 @@ Create "metadata-for-pinyin.json".
 }
 ```
 
-## Extract the target chinese characters
-Extracting SVGs of chinese characters
+## Extract the target Chinese characters
+Extracting SVGs of Chinese characters from font
 ```
 $ python font2svgs.py fonts/SourceHanSerifCN-Regular.ttf
 ```
 
-## Writing pinyin into chinese characters
+## Writing pinyin into Chinese characters
 ```
 $ python pinyinFont.py fonts/SVGs fonts/pinyin_alphbets jsons/unicode-cid-mapping.json jsons/hanzi-and-pinyin-mapping.json jsons/metadata-for-pinyin.json
 ```
 
-## Delete characters without the target characters
+## Delete characters that are not in the scope of project
 ```
 $ python removeWithoutHanziSVG.py fonts/SVGs jsons/unicode-cid-mapping.json jsons/hanzi-and-pinyin-mapping.json
 ```
 
 ## Optimize SVGs
 There are multiple transformations, so I'm going to combine them into one.
-Use [SVGCleaner.app](https://github.com/RazrFalcon/svgcleaner-gui/releases) for simplicity.
+[SVGCleaner.app](https://github.com/RazrFalcon/svgcleaner-gui/releases) is used for its simplicity.
 
-## Replace SVG to glif
-A glif is a file with character outlines in [UFO](https://unifiedfontobject.org/).
+## Replace SVG to .glif
+A .glif is a file with character outlines in [UFO](https://unifiedfontobject.org/).
 The Unified Font Object (UFO) is a human readable, future proof format for storing font data.
 
-Ref.[extract rotation, scale values from 2d transformation matrix](https://stackoverflow.com/questions/4361242/extract-rotation-scale-values-from-2d-transformation-matrix)  
+Refer to *[extract rotation, scale values from 2d transformation matrix](https://stackoverflow.com/questions/4361242/extract-rotation-scale-values-from-2d-transformation-matrix)*
 Matrix can calculate the scale, rotation, and shift at one time by raising the dimension.  
 <!--
 \begin{align*}
@@ -208,8 +208,8 @@ $ python svg2glif.py fonts/SVGs/cid09502.svg out.glif -w 2048 -H 2048 -t "2 0 0 
 $ python otf2ttf.py fonts/SourceHanSerifSC-Regular.otf
 ``` -->
 
-## Convart ttf to UFO
-Transformation using fontforge.
+## Convart TTF to UFO
+Conversion using FontForge.
 <!-- ```
 $ fontforge -script ttf2ufo.pe fonts/SourceHanSerifCN-Regular.ttf
 ``` -->
@@ -220,12 +220,12 @@ $ fontforge -script ttf2ufo.pe fonts/SourceHanSerifCN-Regular.ttf
 ![ttf-to-ufo-img4.png](./imgs/ttf-to-ufo-img4.png)
 ![ttf-to-ufo-img5.png](./imgs/ttf-to-ufo-img5.png)
 
-## Move each glif to ufo
-Overwrite the "glyphs/\*.glif" that I just output under "fonts/ufo/glyphs/\*.glif".
+## Move each .glif to UFO
+Overwrite the "glyphs/\*.glif" that is output under "fonts/ufo/glyphs/\*.glif".
 When I overwrite each glyphs, it doesn't work. Why, is it because of the Finder? So, move or copy them file by file.  
 There are 16026 files.
 
-## Assemble UFO to ttf
+## Assemble UFO to TTF
 <!-- ```
 $ fontforge -script ufo2ttf.pe fonts/SourceHanSerifCN-Regular.ufo
 ``` -->
@@ -239,11 +239,11 @@ $ fontforge -script ufo2ttf.pe fonts/SourceHanSerifCN-Regular.ufo
 ![ufo-to-ttf-img7.png](./imgs/ufo-to-ttf-img7.png)
 
 
-# The collection of Chinese characters were not found in pypinyin
+# Collection of Chinese characters that are not found in `pypinyin`
 [FIX_PINYIN.md](FIX_PINYIN.md)
 
 
-# ligatures
+# Ligatures
 - [OpenType Cookbook](http://opentypecookbook.com/)
 - [glyphs Ligatures](https://glyphsapp.com/tutorials/ligatures)
 - [github ligatures](https://github.com/topics/ligatures)
@@ -254,7 +254,7 @@ $ fontforge -script ufo2ttf.pe fonts/SourceHanSerifCN-Regular.ufo
 ctrl + Shift + F -> Lookups
 cid59875 -->
 
-## 多音字
+## Heteronyms ([多音字](https://zh.wikipedia.org/wiki/%E5%A4%9A%E9%9F%B3%E5%AD%97))
 - [中国語の多音字辞典（Chinese Duoyinzi Dictionary）](https://dokochina.com/duoyinzi.htm)
 - [常用多音字表](http://xh.5156edu.com/page/18317.html)
 - [104个汉字多音字一句话总结](http://news.sina.com.cn/c/2017-03-19/doc-ifycnikk1155875.shtml)
