@@ -78,8 +78,8 @@
 |U+2CE2A|𬸪|鷭|fán|[GlyphWiki](http://glyphwiki.org/wiki/u2ce2a)|
 |U+2CE88|𬺈|齮|yǐ|[GlyphWiki](http://glyphwiki.org/wiki/u2ce88)|
 ||||||
-|U+5159|兙| |shí, kè|[GlyphWiki](http://glyphwiki.org/wiki/u5159)|
-|U+5161|兡| |bǎi, kè|[GlyphWiki](http://glyphwiki.org/wiki/u5161)|
+|U+5159|兙| |shíkè|[GlyphWiki](http://glyphwiki.org/wiki/u5159)|
+|U+5161|兡| |bǎikè|[GlyphWiki](http://glyphwiki.org/wiki/u5161)|
 
 [Word dictionary](https://www.mdbg.net/chinese/dictionary)で検索してピンインが見つからなかったものの一覧
 
