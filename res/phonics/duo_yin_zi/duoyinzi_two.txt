@@ -1,3 +1,7 @@
+# format:
+#{idioms}: {reading}
+#{hanzi}: {default reading} -> {variation reading}
+
 奔头儿: bèn/tou/r
 奔: bēi -> bèn
 儿: ér -> r
