@@ -3,7 +3,7 @@ __pycache__
 res/fonts/alphbets4pinyin/*
 res/fonts/SVGs/*
 res/fonts/ufo/*
-glyphs/*
+tmp/*
 tools/SVGCleaner.app
 tools/ttf2ufo.pe
 tools/ufo2ttf.pe
