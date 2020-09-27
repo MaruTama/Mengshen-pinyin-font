@@ -1,6 +1,6 @@
 # format: {code point}: {pinyins}  # {hanzi}
 # e.g.:
-# U+4E2D: zhōng,zhòng  # 中
+# U+4E2D: zhōng,zhòng  #中
 U+FA0C: wù  #兀
 U+FA0D: hù,huò  #嗀
 U+5159: shí,kè  #兙
