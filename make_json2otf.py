@@ -1,12 +1,8 @@
 # python3 make_json2otf.py output.otf
 
 # Note
-# [How to merge 2 json file using jq?](https://stackoverrun.com/ja/q/5331015)
-# template_main.json の glyf table に template_glyf.json をマージする
-# 前半の '.[0].glyf = .[1]' こっちが引数をとる
-# 後半の '.[0]' こっちが出力された json の最初の要素(template_main.jsonの要素)を取る。（このコマンドだと置換できるが、なぜか末尾にtemplate_glyf.json の内容がくっつくため）
-# $ jq -s '.[0].glyf = .[1] | .[0]' tmp/json/template_main.json tmp/json/template_glyf.json > text.json
-
+# [How to merge 2 JSON objects from 2 files using jq?](https://stackoverflow.com/questions/19529688/how-to-merge-2-json-objects-from-2-files-using-jq)
+# jq -n --argfile o1 template_main.json --argfile o2 template_sample.json '$o1 | select(1).glyf |=  $o2' > marged.json
 
 import os
 import sys
@@ -30,8 +26,7 @@ def marge_json():
     template_main_json_path = os.path.join(DIR_SOURCE_FONT, TAMPLATE_MAIN_JSON)
     template_glyf_json_path = os.path.join(DIR_SOURCE_FONT, TAMPLATE_GLYF_JSON)
     template_json_path = os.path.join(DIR_SOURCE_FONT, TAMPLATE_JSON)
-    # FIXME: なんとか動いているがもっときれいなコマンドにしたい
-    cmd = "jq -s '.[0].glyf = .[1] | .[0]' {} {} > {}".format(template_main_json_path, template_glyf_json_path, template_json_path)
+    cmd = "jq -n --argfile o1 {} --argfile o2 {} '$o1 | select(1).glyf |=  $o2' > {}".format(template_main_json_path, template_glyf_json_path, template_json_path)
     process_shell(cmd)
 
 def convert_json2otf(output_font_name):
