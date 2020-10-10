@@ -154,36 +154,41 @@ def make_pattern_one(phrase_holder, PATTERN_ONE_TABLE_FILE):
 """
 ここから pattern_two のための関数
 """
-def make_pattern_two():
-    pass
+def make_pattern_two(IGNONE_PHRASE_PATTERN):
+    """
+    着手: [背着手]
+    轴子: [大轴子,压轴子]
+    """
 
 def main():
-    IGNONE_PHRASE_PATTERN = "phrase_pattern_including_ignone.txt"
-    PHRASE_TABLE = "phrase_of_pattern_one.txt"
+    PHRASE_ONE_TABLE = "phrase_of_pattern_one.txt"
+    PHRASE_TWO_TABLE = "phrase_of_pattern_two.txt"
     DIR_RT = "../"
 
-    PATTERN_ONE_TABLE = "duoyinzi_pattern_one.txt"
-    PATTERN_TWO_TABLE = "duoyinzi_pattern_two.txt"
+    OUTPUT_PATTERN_ONE_TABLE = "duoyinzi_pattern_one.txt"
+    OUTPUT_PATTERN_TWO_TABLE = "duoyinzi_pattern_two.txt"
     DIR_OT = "../../../../outputs"
 
-    PHRASE_TABLE_FILE = os.path.join(DIR_RT, PHRASE_TABLE)
-    IGNONE_PHRASE_PATTERN_FILE = os.path.join(DIR_RT, IGNONE_PHRASE_PATTERN)
+    PHRASE_ONE_TABLE_FILE = os.path.join(DIR_RT, PHRASE_ONE_TABLE)
 
-    PATTERN_ONE_TABLE_FILE = os.path.join(DIR_OT, PATTERN_ONE_TABLE)
+    OUTPUT_PATTERN_ONE_TABLE_FILE = os.path.join(DIR_OT, OUTPUT_PATTERN_ONE_TABLE)
+    OUTPUT_PATTERN_TWO_TABLE_FILE = os.path.join(DIR_OT, OUTPUT_PATTERN_TWO_TABLE)
 
     # 一応確認しておく
-    validate.main(PHRASE_TABLE_FILE, IGNONE_PHRASE_PATTERN_FILE)
+    validate.main(PHRASE_ONE_TABLE_FILE)
 
     # pattern_one から phrase_holder を作る
     # duoyinzi_pattern_one を作成する
-    phrase_holder = ph.PhraseHolder(PHRASE_TABLE_FILE)
-    make_pattern_one(phrase_holder, PATTERN_ONE_TABLE_FILE)
-
-
+    phrase_holder = ph.PhraseHolder(PHRASE_ONE_TABLE_FILE)
+    make_pattern_one(phrase_holder, OUTPUT_PATTERN_ONE_TABLE_FILE)
 
 
     # pattern_two から phrase_holder を作る
     # duoyinzi_pattern_two を作成する
+    # 重複を確認する
+
+    # phrase_holder = ph.PhraseHolder(PHRASE_TABLE_FILE)
+    # make_pattern_two(phrase_holder, PATTERN_TWO_TABLE)
 
 
     # 特殊なパターンを作る

@@ -12,6 +12,8 @@
 占卜: zhān/bǔ
 刨子: bào/zǐ
 参差: cēn/cī
+差不多: chà/bu/duō
+差不离: chà/bu/lí
 朝日: zhāo/rì 
 乳臭未干: rǔ/xiù/wèi/gān
 处分: chǔ/fèn
@@ -36,31 +38,15 @@
 相片: xiàng/piān
 血晕: xiě/yùn
 应和: yìng/hè
+答应: dā/yìng
 种地: zhòng/dì
 作坊: zuō/fang
+了得: liǎo/de
+干吗: gàn/má
+舍得: shě/de
+作料: zuó/liao
 分子: fèn/zǐ
-
-
+模子: mú/zǐ
+划子: huá/zǐ
 奔头儿: bèn/tou/r
 差点儿: chà/diǎn/r
-参差: cēn/cī
-差不多: chà/bu/duō
-
-差不离: chà/bu/lí
-
-
-答应: dā/yìng
-
-
-了得: liǎo/de
-
-
-干吗: gàn/má
-
-模子: mú/zǐ
-
-舍得: shě/de
-
-作料: zuó/liao
-
-划子: huá/zǐ

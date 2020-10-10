@@ -17,14 +17,14 @@ SIMPLIFIED_FILE_NAME = os.path.basename(SIMPLIFIED_FILE_URL)
 # 繁体字
 TRADITIONAL_FILE_URL  = "https://moztw.org/docs/big5/table/big5_2003-u2b.txt"
 TRADITIONAL_FILE_NAME = os.path.basename(TRADITIONAL_FILE_URL)
-DIR_MT = "../download_unicode_tables"
+DIR_MT = "../../download_unicode_tables"
 
 # table の名前
 TGSCC_MAPPING_TABLE     = "TGSCC-mapping-table.txt"
 BIG5_MAPPING_TABLE      = "BIG5-mapping-table.txt"
 OVERWRITE_MAPPING_TABLE = "overwrite.txt"
 MARGED_MAPPING_TABLE    = "marged-mapping-table.txt"
-DIR_OT = "../../outputs"
+DIR_OT = "../../../outputs"
 
 # テーブルをダウンロードする
 def download_table_texts():

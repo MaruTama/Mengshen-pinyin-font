@@ -15,13 +15,7 @@ def get_duplicate_word(PHRASE_TABLE_FILE):
     return duplicate_words
 
 # 他のパターン（単語）に影響するパターン（単語）がないか
-def get_duplicate_pattern_of_word(PHRASE_TABLE_FILE, IGNONE_PHRASE_PATTERN_FILE):
-    ignone_phrase_patterns = []
-    with open(IGNONE_PHRASE_PATTERN_FILE) as read_file:
-        for line in read_file:
-            pattern = line.rstrip('\n').split(": ")[0]
-            ignone_phrase_patterns.append(pattern)
-
+def get_duplicate_pattern_of_word(PHRASE_TABLE_FILE):
     words = []
     str_consolidated_words = ""
     with open(PHRASE_TABLE_FILE) as read_file:
@@ -33,7 +27,7 @@ def get_duplicate_pattern_of_word(PHRASE_TABLE_FILE, IGNONE_PHRASE_PATTERN_FILE)
     duplicate_pattern_of_words = []
     for word in words:
         found_words = re.findall(word, str_consolidated_words)
-        if len(found_words) > 1 and not (word in ignone_phrase_patterns):
+        if len(found_words) > 1:
             duplicate_pattern_of_words.append(word)
             
     return duplicate_pattern_of_words
@@ -69,7 +63,7 @@ def get_multiple_replacement_by_duoyinzi(PHRASE_TABLE_FILE):
                 list_multiple_replacement_by_duoyinzi.append(word)
     return list_multiple_replacement_by_duoyinzi
 
-def main(PHRASE_TABLE_FILE, IGNONE_PHRASE_PATTERN_FILE):    
+def main(PHRASE_TABLE_FILE):    
 
     # 単語の重複がないか（単純な記述ミス）
     # 対処法
@@ -101,7 +95,7 @@ def main(PHRASE_TABLE_FILE, IGNONE_PHRASE_PATTERN_FILE):
     大轴子: dà/zhòu/zǐ
     压轴子: yā/zhòu/zi
     """
-    duplicate_pattern_of_words = get_duplicate_pattern_of_word(PHRASE_TABLE_FILE, IGNONE_PHRASE_PATTERN_FILE)
+    duplicate_pattern_of_words = get_duplicate_pattern_of_word(PHRASE_TABLE_FILE)
     if len(duplicate_pattern_of_words) > 0:
         print("重複する単語（パターン）を削除してください")
         print("There are duplicates that affect other words :")
@@ -153,12 +147,10 @@ def main(PHRASE_TABLE_FILE, IGNONE_PHRASE_PATTERN_FILE):
     print()
         
 if __name__ == '__main__':
-    IGNONE_PHRASE_PATTERN = "phrase_pattern_including_ignone.txt"
     PHRASE_TABLE = "phrase.txt"
     DIR_PT = "../"
 
     PHRASE_TABLE_FILE = os.path.join(DIR_PT, PHRASE_TABLE)
-    IGNONE_PHRASE_PATTERN_FILE = os.path.join(DIR_PT, IGNONE_PHRASE_PATTERN)
 
-    main(PHRASE_TABLE_FILE, IGNONE_PHRASE_PATTERN_FILE)
+    main(PHRASE_TABLE_FILE)
 
