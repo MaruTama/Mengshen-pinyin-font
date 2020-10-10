@@ -117,7 +117,7 @@ U+4E33: chǎn,chuàn  #丳
 U+4E34: lín  #临
 U+4E38: wán  #丸
 U+4E39: dān  #丹
-U+4E3A: wèi,wéi  #为
+U+4E3A: wéi,wèi  # 为
 U+4E3B: zhǔ,zhù  #主
 U+4E3C: jǐng,dǎn  #丼
 U+4E3D: lì,lí  #丽
@@ -315,7 +315,7 @@ U+4F58: shé  #佘
 U+4F59: yú,tú,xú,yù  #余
 U+4F5A: yì,dié  #佚
 U+4F5B: fú,bó,bì,fó  #佛
-U+4F5C: zuò,zuō,zuó  #作
+U+4F5C: zuò,zuō,zuó,zuo  #作
 U+4F5D: gōu,kòu,jū  #佝
 U+4F5E: nìng  #佞
 U+4F5F: tóng  #佟
@@ -718,7 +718,7 @@ U+516E: xī  #兮
 U+5170: lán  #兰
 U+5171: gòng,gōng,gǒng,hóng  #共
 U+5173: guān  #关
-U+5174: xìng,xīng  #兴
+U+5174: xīng,xìng  # 兴
 U+5175: bīng  #兵
 U+5176: qí,jī,jì  #其
 U+5177: jù  #具
@@ -1279,7 +1279,7 @@ U+5487: bié,bì  #咇
 U+5488: fú  #咈
 U+5489: yāng,yǎng  #咉
 U+548B: zǎ,zé,zhà,zhā  #咋
-U+548C: hé,hè,huò,huó,hú  #和
+U+548C: hé,hè,huò,huó,huo,hú  #和
 U+548D: hāi,tāi  #咍
 U+548E: jiù,gāo  #咎
 U+548F: yǒng  #咏
@@ -1320,7 +1320,7 @@ U+54B8: xián,jiǎn,jiān  #咸
 U+54BA: xuǎn,xuān  #咺
 U+54BB: xiū,xǔ,xiāo,xù  #咻
 U+54BC: guō,wāi,hé,wǒ,wō,guǎ  #咼
-U+54BD: yàn,yān,yè,yuān  #咽
+U+54BD: yān,yàn,yè,yuān  # 咽
 U+54BE: lǎo  #咾
 U+54BF: yī  #咿
 U+54C0: āi  #哀
@@ -3964,7 +3964,7 @@ U+62CF: ná  #拏
 U+62D0: guǎi  #拐
 U+62D1: qián  #拑
 U+62D2: jù,jǔ  #拒
-U+62D3: tà,zhí,tuò  #拓
+U+62D3: tuò,tà,zhí  # 拓
 U+62D4: bá,bō,bié,fá,bèi  #拔
 U+62D6: tuō,chǐ  #拖
 U+62D7: ǎo,ào,niù,yù  #拗
@@ -6338,7 +6338,7 @@ U+6EFE: gǔn  #滾
 U+6EFF: mǎn,mèn  #滿
 U+6F00: qǐng,qīng  #漀
 U+6F01: yú  #漁
-U+6F02: piào,piāo,piǎo,biāo  #漂
+U+6F02: piāo,piào,piǎo,biāo  # 漂
 U+6F03: jì  #漃
 U+6F05: cháo  #漅
 U+6F06: qī,qiè  #漆
@@ -8917,7 +8917,7 @@ U+7CC1: sǎn,shēn  #糁
 U+7CC5: róu  #糅
 U+7CC7: hóu  #糇
 U+7CC8: xǔ  #糈
-U+7CCA: hú,hū,hù  #糊
+U+7CCA: hú,hū,hù,hu  #糊
 U+7CCB: jiàn  #糋
 U+7CCC: zān  #糌
 U+7CCD: cí  #糍
@@ -9316,7 +9316,7 @@ U+7ECF: jīng,jìng  #经
 U+7ED0: dài  #绐
 U+7ED1: bǎng  #绑
 U+7ED2: róng  #绒
-U+7ED3: jié,jiē  #结
+U+7ED3: jié,jiē,jie  #结
 U+7ED4: kù  #绔
 U+7ED5: rào,rǎo  #绕
 U+7ED6: dié  #绖
@@ -9969,7 +9969,7 @@ U+8209: jǔ  #舉
 U+820A: jiù  #舊
 U+820B: xìn  #舋
 U+820C: shé,guā  #舌
-U+820D: shě,shè,shì  #舍
+U+820D: shè,shě,shì  # 舍
 U+8210: shì  #舐
 U+8211: tān  #舑
 U+8212: shū,yù  #舒
@@ -13893,7 +13893,7 @@ U+957A: ǎo  #镺
 U+957B: dié  #镻
 U+957C: qū  #镼
 U+957D: liǎo,liáo  #镽
-U+957F: zhǎng,cháng  #长
+U+957F: cháng,zhǎng  # 长
 U+9580: mén  #門
 U+9582: shuān  #閂
 U+9583: shǎn  #閃
@@ -13966,7 +13966,7 @@ U+95E2: pì,pī  #闢
 U+95E3: dàng,tāng  #闣
 U+95E4: huán  #闤
 U+95E5: tà  #闥
-U+95E8: mén  #门
+U+95E8: mén,mēn  #门
 U+95E9: shuān  #闩
 U+95EA: shǎn  #闪
 U+95EB: yán  #闫
@@ -14137,7 +14137,7 @@ U+96BA: hú,què,hè  #隺
 U+96BB: zhī,huò  #隻
 U+96BC: sǔn  #隼
 U+96BD: juàn,jùn  #隽
-U+96BE: nán,nàn  #难
+U+96BE: nán,nàn,nan  #难
 U+96BF: yì  #隿
 U+96C0: què,qiāo,qiǎo  #雀
 U+96C1: yàn  #雁
