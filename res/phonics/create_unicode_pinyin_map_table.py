@@ -17,13 +17,14 @@ SIMPLIFIED_FILE_NAME = os.path.basename(SIMPLIFIED_FILE_URL)
 # 繁体字
 TRADITIONAL_FILE_URL  = "https://moztw.org/docs/big5/table/big5_2003-u2b.txt"
 TRADITIONAL_FILE_NAME = os.path.basename(TRADITIONAL_FILE_URL)
-DIR_MT = "./download_unicode_tables"
+DIR_MT = "../download_unicode_tables"
 
 # table の名前
 TGSCC_MAPPING_TABLE     = "TGSCC-mapping-table.txt"
 BIG5_MAPPING_TABLE      = "BIG5-mapping-table.txt"
-MARGED_MAPPING_TABLE    = "marged-mapping-table.txt"
 OVERWRITE_MAPPING_TABLE = "overwrite.txt"
+MARGED_MAPPING_TABLE    = "marged-mapping-table.txt"
+DIR_OT = "../../outputs"
 
 # テーブルをダウンロードする
 def download_table_texts():
@@ -123,7 +124,7 @@ def get_traditional_chinese_mapping_tables():
             write_file.write("U+{:X}: {}  #{}\n".format(_unicode, str_pinyins, character))
 
 
-# 繁体字 の漢字以外のコードを消すのと足りないpinyinを追加
+# 繁体字 の漢字以外のコードを消す
 def deleteWithoutHunzi4big5(unicode_table):
     _unicode_table = unicode_table.copy()
     # 繁体字 のこの範囲は漢字以外の文字なので削除する
@@ -166,17 +167,17 @@ def marge_mapping_table():
     unicode_list_for_sort = list(set(unicode_list_for_sort))
     unicode_list_for_sort.sort()
 
-    with open(MARGED_MAPPING_TABLE, mode='w') as write_file:
+    with open(os.path.join(DIR_OT, MARGED_MAPPING_TABLE), mode='w') as write_file:
         for int_unicode in unicode_list_for_sort:
             write_file.write(marged_mapping_table[int_unicode])
 
-# 足りないピンインを追加する
+# pinyin を上書きする（pypinyin で変換できなかったもの誤っているものの修正）
 def overwrite_pinyin():
     marged_mapping_table = {}
     unicode_list_for_sort = []
     header = ""
 
-    with open(MARGED_MAPPING_TABLE) as read_file:
+    with open(os.path.join(DIR_OT, MARGED_MAPPING_TABLE)) as read_file:
         for line in read_file:
             # "U+4ECD" -> "4ECD" -> 20173　ソートのために文字列から数値にする
             str_unicode = line.rstrip('\n').split(':')[0]
@@ -198,7 +199,7 @@ def overwrite_pinyin():
     unicode_list_for_sort = list(set(unicode_list_for_sort))
     unicode_list_for_sort.sort()
 
-    with open(MARGED_MAPPING_TABLE, mode='w') as write_file:
+    with open(os.path.join(DIR_OT, MARGED_MAPPING_TABLE), mode='w') as write_file:
         for int_unicode in unicode_list_for_sort:
             write_file.write(marged_mapping_table[int_unicode])
 
