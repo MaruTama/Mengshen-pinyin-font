@@ -1,6 +1,5 @@
 阿托品: ā/tuō/pǐn
 阿谀: ē/yú
-背着手: bèi/zhe/shǒu
 背离: bèi/lí
 背弃: bēi/qì
 背书: bèi/shū
@@ -1556,7 +1555,6 @@
 睡不着: shuì/bù/zháo
 没着了: méi/zhāo/le
 着陆: zhuó/lù
-着手: zhuó/shǒu
 执着: zhí/zhuó
 沉着: chén/zhuó
 着落: zhuó/luò
@@ -1642,13 +1640,10 @@
 种植: zhòng/zhí
 栽种: zāi/zhòng
 耕种: gēng/zhòng
-轴子: zhóu/zǐ
 轴承: zhóu/chéng
 轴心: zhóu/xīn
 车轴: chē/zhóu
 画轴: huà/zhóu
-大轴子: dà/zhòu/zi
-压轴子: yā/zhòu/zi
 转播: zhuǎn/bō
 转变: zhuǎn/biàn
 转车: zhuǎn/chē
