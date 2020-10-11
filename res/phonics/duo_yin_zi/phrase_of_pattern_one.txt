@@ -118,6 +118,7 @@
 曾泉: zēng/quán
 曾标: zēng/biāo
 差劲: chà/jìn
+差点儿: chà/diǎn/r
 差额: chā/é
 差距: chā/jù
 差价: chā/jià
@@ -236,6 +237,7 @@
 腥臭: xīng/chòu
 腋臭: yè/chòu
 铜臭: tóng/xiù
+无色无臭: wú/sè/wú/xiù
 处女: chǔ/nǚ
 处世: chǔ/shì
 处暑: chǔ/shǔ
@@ -538,6 +540,18 @@
 缝补: féng/bǔ
 缝合: féng/hé
 缝纫: féng/rèn
+干部: gàn/bù
+干劲: gàn/jìn
+干将: gàn/jiàng
+干练: gàn/liàn
+干流: gàn/liú
+干事: gàn/shì
+干线: gàn/xiàn
+才干: cái/gàn
+骨干: gǔ/gàn
+蛮干: mán/gàn
+能干: néng/gàn
+主干: zhǔ/gàn
 干巴: gān/bā
 干杯: gān/bēi
 干瘪: gān/biě
@@ -551,18 +565,6 @@
 若干: ruò/gān
 相干: xiāng/gān
 香干: xiāng/gān
-干部: gàn/bù
-干劲: gàn/jìn
-干将: gàn/jiàng
-干练: gàn/liàn
-干流: gàn/liú
-干事: gàn/shì
-干线: gàn/xiàn
-才干: cái/gàn
-骨干: gǔ/gàn
-蛮干: mán/gàn
-能干: néng/gàn
-主干: zhǔ/gàn
 更加: gèng/jiā
 更好: gèng/hǎo
 更其: gèng/qí
@@ -700,6 +702,7 @@
 人和: rén/hé
 温和: wēn/hé
 说和: shuō/hé
+一唱一和: yī/chàng/yī/hè
 搅和: jiǎo/huo
 暖和: nuǎn/huo
 热和: rè/huo
@@ -1027,6 +1030,7 @@
 累及: lěi/jí
 累进: lěi/jìn
 连累: lián/lěi
+累累: lěi/lèi
 累赘: léi/zhuì
 劳累: láo/lèi
 累死了: lèi/sǐ/le
@@ -1419,6 +1423,7 @@
 血债: xuè/zhài
 血战: xuè/zhàn
 血渍: xuè/zì
+血淋淋: xiě/lín/lín
 兴办: xīng/bàn
 兴奋: xīng/fèn
 兴建: xīng/jiàn

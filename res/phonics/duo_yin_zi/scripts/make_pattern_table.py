@@ -69,15 +69,23 @@ def compress_pattern_one_table(pattern_table):
             patterns = list( pattern_table_4_work[charactor]["patterns"].values() )[0]
             for pattern in patterns:
                 phrase = pattern.replace("~", charactor)
-                for new_charactor in phrase:
+                for i in range(len(phrase)):
+                    new_charactor = phrase[i]
                     if new_charactor != charactor and new_charactor in pattern_table_4_work:
                         if len(pattern_table_4_work[new_charactor]["patterns"]) > 1:
                             pinyin = PINYIN_MAPPING_TABLE[new_charactor][DEFALT_READING]
-                            add_pattern_one_table( pattern_table_4_work, new_charactor, pinyin, phrase.replace(new_charactor, "~") )
+                            # replace で置き換えると　累累: lěi/lèi　のpatternが ~~ になるので手動で置換する
+                            pattern = replace_str(phrase, i, "~")
+                            add_pattern_one_table( pattern_table_4_work, new_charactor, pinyin, pattern )
     
             pattern_table_4_work.pop(charactor)
 
     return pattern_table_4_work
+
+def replace_str(target_str, index, replace_charactor):
+    tmp = list(target_str)
+    tmp[index] = replace_charactor
+    return "".join( tmp )
 
 # パターンテーブルの txt を出力する
 def export_pattern_one_table(pattern_table, PATTERN_ONE_TABLE_FILE):
@@ -108,7 +116,7 @@ def seek_variational_pinyin_in_phrase(phrase_instance):
         charactor_default_pinyin = PINYIN_MAPPING_TABLE[charactor][DEFALT_READING]
         if charactor_pinyin != charactor_default_pinyin:
             count_variational_pinyin += 1
-            target_hanzes.append(charactor)
+            target_hanzes.append( (i, charactor) )
 
     return count_variational_pinyin, target_hanzes
 
@@ -136,13 +144,17 @@ def make_pattern_one(phrase_holder, PATTERN_ONE_TABLE_FILE):
             for i in range(len(phrase)):
                 charactor = phrase[i]
                 if 1 < len(PINYIN_MAPPING_TABLE[charactor]):
-                    add_pattern_one_table( pattern_table, charactor, phrase_instance.get_list_pinyin()[i], phrase.replace(charactor, "~") )
+                    pinyin = phrase_instance.get_list_pinyin()[i]
+                    # replace で置き換えると　累累: lěi/lèi　のpatternが ~~ になるので、手動で置換する
+                    pattern = replace_str(phrase, i, "~")
+                    add_pattern_one_table( pattern_table, charactor, pinyin, pattern )
                     break
         # 対象の多音字の漢字のパターンに入れる
         elif 1 == count_variational_pinyin:
-            target_hanzi = target_hanzes[0]
-            idx = phrase.index(target_hanzi)
-            add_pattern_one_table( pattern_table, target_hanzi, phrase_instance.get_list_pinyin()[idx], phrase.replace(target_hanzi, "~") )
+            (idx, target_hanzi) = target_hanzes[0]
+            variational_pinyin = phrase_instance.get_list_pinyin()[idx]
+            pattern = replace_str(phrase, idx, "~")
+            add_pattern_one_table( pattern_table, target_hanzi, variational_pinyin, pattern )
         # 単語はすべて標準的なピンイン（多音字ではない）
         else:
             message = "{} は 2文字以上 多音字を含んでいます。".format( phrase_instance.get_name() )
@@ -154,11 +166,8 @@ def make_pattern_one(phrase_holder, PATTERN_ONE_TABLE_FILE):
 """
 ここから pattern_two のための関数
 """
-def make_pattern_two(IGNONE_PHRASE_PATTERN):
-    """
-    着手: [背着手]
-    轴子: [大轴子,压轴子]
-    """
+def make_pattern_two(phrase_holder, OUTPUT_PATTERN_TWO_TABLE_FILE):
+    pass
 
 def main():
     PHRASE_ONE_TABLE = "phrase_of_pattern_one.txt"
@@ -170,30 +179,108 @@ def main():
     DIR_OT = "../../../../outputs"
 
     PHRASE_ONE_TABLE_FILE = os.path.join(DIR_RT, PHRASE_ONE_TABLE)
+    PHRASE_TWO_TABLE_FILE = os.path.join(DIR_RT, PHRASE_TWO_TABLE)
 
     OUTPUT_PATTERN_ONE_TABLE_FILE = os.path.join(DIR_OT, OUTPUT_PATTERN_ONE_TABLE)
     OUTPUT_PATTERN_TWO_TABLE_FILE = os.path.join(DIR_OT, OUTPUT_PATTERN_TWO_TABLE)
 
+    """
+    1, 阿, ā, [~托品]
+    2, 阿, ē, [~谀]
+    1, 差, chà, [~劲]
+    2, 差, chā, [~别|~额|~距|~价|~错|~异|~数|偏~|误~|逆~]
+    3, 差, chāi, [~遣|~使|~事|出~|公~|交~|钦~|当~]
+    1, 藏, cáng, [~匿|~书|~拙|暗~|保~|躲~|库~|收~|窝~|蕴~|珍~|贮~|掩~|捉迷~]
+    2, 藏, zàng, [~蓝|~历|~族|~红花|宝~]
+    """
+    """
+    lookup calt0 {
+        sub 阿' lookup lookup_00 [谀];
+        # 前後の文脈で書き方が変わる
+        sub 差' lookup lookup_00 [别 额 距 价 错 异 数];
+        sub [偏 误 逆] 差' lookup lookup_00;
+        sub 差' lookup lookup_01 [遣 使 事];
+        sub [出 公 交 钦 当] 差' lookup lookup_01;
+        sub 藏' lookup lookup_00 [蓝 历 族];
+        sub [宝] 藏' lookup lookup_00;
+        # 三文字以上ならそれ専用の参照を作る
+        sub 藏' lookup lookup_00 红 花;
+    } calt0;
+    lookup lookup_00 {
+        sub 阿 by 阿.ss02;
+        sub 差 by 差.ss02;
+        sub 藏 by 藏.ss02;
+    } lookup_00;
+    lookup lookup_01 {
+        sub 差 by 差.ss03;
+    } lookup_01;
+    """
     # 一応確認しておく
-    validate.main(PHRASE_ONE_TABLE_FILE)
-
+    validate.pattern_one(PHRASE_ONE_TABLE_FILE)
     # pattern_one から phrase_holder を作る
     # duoyinzi_pattern_one を作成する
     phrase_holder = ph.PhraseHolder(PHRASE_ONE_TABLE_FILE)
     make_pattern_one(phrase_holder, OUTPUT_PATTERN_ONE_TABLE_FILE)
 
+    print("========================================================================")
 
+
+    # 重複を確認する
+    # 異読の漢字が一つ以上あるか (颤颤巍巍: chàn/chàn/wēi/wēi これは異読字が無いので削除する)
+    validate.pattern_two(PHRASE_TWO_TABLE_FILE)
     # pattern_two から phrase_holder を作る
     # duoyinzi_pattern_two を作成する
-    # 重複を確認する
+    phrase_holder = ph.PhraseHolder(PHRASE_TWO_TABLE_FILE)
+    make_pattern_two(phrase_holder, OUTPUT_PATTERN_TWO_TABLE_FILE)
 
-    # phrase_holder = ph.PhraseHolder(PHRASE_TABLE_FILE)
-    # make_pattern_two(phrase_holder, PATTERN_TWO_TABLE)
+    """
+    lookup calt1 {
+        sub A' lookup lookup_10 A' lookup lookup_10 F;
+    } calt1;
+    lookup lookup_10 {
+        sub A by X;
+    } lookup_10;
+    """
+
+    """
+    [Tag: 'ss01' - 'ss20'](https://docs.microsoft.com/en-us/typography/opentype/spec/features_pt#-tag-ss01---ss20)
+    グリフの名前は、'ss01' - 'ss20' にする。
+    ss01 はなにも付いていない漢字のグリフにする。
+
+    最初からこんな漢字の cmap の記述に合わせて書く 
+    pattern_one は lookup_0*
+    pattern_two は lookup_1* を使う
+    占卜: zhān/bǔ
+        占 zhàn
+        卜 bo
+    
+    {
+        "lookup_table": {
+            # 標準的なピンイン
+            # 異読的なピンイン
+            "lookup_10": {
+                "占" : "无.ss02",
+                "卜" : "卜.ss02"
+            }
+        },
+        "pattern": {
+            "占卜" : [
+                {"占" : "lookup_10"}, 
+                {"卜" : "lookup_10"}
+            ]
+        }
+    }
+    """
+
 
 
     # 特殊なパターンを作る
     # 着手 と 背着手 のパターンができるかどうか確認しない
     #できた
+    """
+    着手: [背着手]
+    轴子: [大轴子,压轴子]
+    """
     """
     lookup calt2 {
         ignore sub uni80CC uni7740' uni624B;
