@@ -32,7 +32,7 @@ def download_table_texts():
     try:
         with urllib.request.urlopen(url=SIMPLIFIED_FILE_URL) as res:
             data = res.read().decode("utf-8")
-            file_ = open(os.path.join(DIR_MT,SIMPLIFIED_FILE_NAME), 'w')
+            file_ = open(os.path.join(DIR_MT,SIMPLIFIED_FILE_NAME), mode='w', encoding='utf-8')
             file_.write(data)
             file_.close()
 
@@ -47,7 +47,7 @@ def download_table_texts():
     try:
         with urllib.request.urlopen(url=TRADITIONAL_FILE_URL) as res:
             data = res.read().decode("utf-8")
-            file_ = open(os.path.join(DIR_MT,TRADITIONAL_FILE_NAME), 'w')
+            file_ = open(os.path.join(DIR_MT,TRADITIONAL_FILE_NAME), mode='w', encoding='utf-8')
             file_.write(data)
             file_.close()
 
@@ -72,7 +72,7 @@ def get_simplified_chinese_mapping_tables():
     8105	U+883C
     '''
     # 通用规范汉字表　三行目から開始
-    with open(os.path.join(DIR_MT,SIMPLIFIED_FILE_NAME)) as read_file:
+    with open(os.path.join(DIR_MT,SIMPLIFIED_FILE_NAME), mode='r', encoding='utf-8') as read_file:
         # 二行分読み飛ばす
         for i in range(2):
             next(read_file)
@@ -82,7 +82,7 @@ def get_simplified_chinese_mapping_tables():
             unicode_table.append(int_unicode)
 
     unicode_table.sort()
-    with open(TGSCC_MAPPING_TABLE, mode='w') as write_file:
+    with open(TGSCC_MAPPING_TABLE, mode='w', encoding='utf-8') as write_file:
         for _unicode in unicode_table:
             character = chr(_unicode)
             str_pinyins = ""
@@ -104,7 +104,7 @@ def get_traditional_chinese_mapping_tables():
     0xA244 0xFFE5
     '''
     # Big5-2003 二行目から開始
-    with open(os.path.join(DIR_MT,TRADITIONAL_FILE_NAME)) as read_file:
+    with open(os.path.join(DIR_MT,TRADITIONAL_FILE_NAME), mode='r', encoding='utf-8') as read_file:
         # 一行分読み飛ばす
         next(read_file)
         for line in read_file:
@@ -114,7 +114,7 @@ def get_traditional_chinese_mapping_tables():
     unicode_table.sort()
     unicode_table = deleteWithoutHunzi4big5(unicode_table)
 
-    with open(BIG5_MAPPING_TABLE, mode='w') as write_file:
+    with open(BIG5_MAPPING_TABLE, mode='w', encoding='utf-8') as write_file:
         for _unicode in unicode_table:
             character = chr(_unicode)
             str_pinyins = ""
@@ -148,7 +148,7 @@ def marge_mapping_table():
     unicode_list_for_sort = []
 
     # 簡体字
-    with open(TGSCC_MAPPING_TABLE) as read_file:
+    with open(TGSCC_MAPPING_TABLE, mode='r', encoding='utf-8') as read_file:
         for line in read_file:
             # "U+4ECD" -> "4ECD" -> 20173　ソートのために文字列から数値にする
             str_unicode = line.rstrip('\n').split(':')[0]
@@ -156,7 +156,7 @@ def marge_mapping_table():
             unicode_list_for_sort.append(int_unicode)
             marged_mapping_table.update( {int_unicode: line} )
     # 繁体字
-    with open(BIG5_MAPPING_TABLE) as read_file:
+    with open(BIG5_MAPPING_TABLE, mode='r', encoding='utf-8') as read_file:
         for line in read_file:
             str_unicode = line.rstrip('\n').split(':')[0]
             int_unicode =  int(str_unicode[2:], 16)
@@ -167,7 +167,7 @@ def marge_mapping_table():
     unicode_list_for_sort = list(set(unicode_list_for_sort))
     unicode_list_for_sort.sort()
 
-    with open(os.path.join(DIR_OT, MARGED_MAPPING_TABLE), mode='w') as write_file:
+    with open(os.path.join(DIR_OT, MARGED_MAPPING_TABLE), mode='w', encoding='utf-8') as write_file:
         for int_unicode in unicode_list_for_sort:
             write_file.write(marged_mapping_table[int_unicode])
 
@@ -177,7 +177,7 @@ def overwrite_pinyin():
     unicode_list_for_sort = []
     header = ""
 
-    with open(os.path.join(DIR_OT, MARGED_MAPPING_TABLE)) as read_file:
+    with open(os.path.join(DIR_OT, MARGED_MAPPING_TABLE), mode='r', encoding='utf-8') as read_file:
         for line in read_file:
             # "U+4ECD" -> "4ECD" -> 20173　ソートのために文字列から数値にする
             str_unicode = line.rstrip('\n').split(':')[0]
@@ -185,7 +185,7 @@ def overwrite_pinyin():
             unicode_list_for_sort.append(int_unicode)
             marged_mapping_table.update( {int_unicode: line} )
 
-    with open(OVERWRITE_MAPPING_TABLE) as read_file:
+    with open(OVERWRITE_MAPPING_TABLE, mode='r', encoding='utf-8') as read_file:
         # 3行分読み飛ばす
         for i in range(3):
             header += read_file.readline()
@@ -199,7 +199,7 @@ def overwrite_pinyin():
     unicode_list_for_sort = list(set(unicode_list_for_sort))
     unicode_list_for_sort.sort()
 
-    with open(os.path.join(DIR_OT, MARGED_MAPPING_TABLE), mode='w') as write_file:
+    with open(os.path.join(DIR_OT, MARGED_MAPPING_TABLE), mode='w', encoding='utf-8') as write_file:
         for int_unicode in unicode_list_for_sort:
             write_file.write(marged_mapping_table[int_unicode])
 

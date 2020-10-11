@@ -1,12 +1,21 @@
 #!/usr/bin/env python
 
 import os
+import json
 import pinyin_getter
 import phrase_holder as ph
 import validate_phrase as validate
 
 PINYIN_MAPPING_TABLE = pinyin_getter.get_pinyin_table_with_mapping_table()
 DEFALT_READING = 0
+
+# ss0X の番号振り
+# [Tag: 'ss01' - 'ss20'](https://docs.microsoft.com/en-us/typography/opentype/spec/features_pt#-tag-ss01---ss20)
+# グリフの名前は、'ss01' - 'ss20' にする。
+# ss01 はなにも付いていない漢字のグリフにする。
+SS_DEFALT_PINYIN      = 0
+SS_WITHOUT_PINYIN     = 1
+SS_VARIATIONAL_PINYIN = 2
 
 # [階層構造のあるdictをupdateする](https://www.greptips.com/posts/1242/)
 def deepupdate(dict_base, other):
@@ -15,6 +24,17 @@ def deepupdate(dict_base, other):
             deepupdate(dict_base[k], v)
         else:
             dict_base[k] = v
+
+def replace_str(target_str, index, replace_charactor):
+    tmp = list(target_str)
+    tmp[index] = replace_charactor
+    return "".join( tmp )
+
+def expand_pattern_list2str(patterns):
+    expand_pattern = ""
+    for pattern in patterns:
+        expand_pattern += "{}|".format(pattern) if pattern != patterns[-1] else pattern
+    return expand_pattern
 
 
 """
@@ -82,14 +102,9 @@ def compress_pattern_one_table(pattern_table):
 
     return pattern_table_4_work
 
-def replace_str(target_str, index, replace_charactor):
-    tmp = list(target_str)
-    tmp[index] = replace_charactor
-    return "".join( tmp )
-
 # パターンテーブルの txt を出力する
 def export_pattern_one_table(pattern_table, PATTERN_ONE_TABLE_FILE):
-    with open(PATTERN_ONE_TABLE_FILE, mode='w') as write_file:
+    with open(PATTERN_ONE_TABLE_FILE, mode='w', encoding='utf-8') as write_file:
         for charactor in pattern_table:
             order = 1
             for pinyin in PINYIN_MAPPING_TABLE[charactor]:
@@ -98,12 +113,6 @@ def export_pattern_one_table(pattern_table, PATTERN_ONE_TABLE_FILE):
                     line = "{0}, {1}, {2}, [{3}]\n".format(order, charactor, pinyin, str_patterns)
                     write_file.write(line)
                     order += 1
-
-def expand_pattern_list2str(patterns):
-    expand_pattern = ""
-    for pattern in patterns:
-        expand_pattern += "{}|".format(pattern) if pattern != patterns[-1] else pattern
-    return expand_pattern
 
 # 単語中に含まれる標準的でないピンインの数を返す
 def seek_variational_pinyin_in_phrase(phrase_instance):
@@ -166,8 +175,127 @@ def make_pattern_one(phrase_holder, PATTERN_ONE_TABLE_FILE):
 """
 ここから pattern_two のための関数
 """
+"""
+    {
+        "lookup_table": {
+            # 異読的なピンイン
+            # 数字の並びは、marged-mapping-table.txt の配列の添字順にする。
+            "lookup_10": {
+                "占" : "占.ss02",
+                "卜" : "卜.ss02",
+                "少" : "少.ss02",
+                "更" : "更.ss02"
+            }
+        },
+        "pattern": {
+            "占卜" : [
+                {"占" : "lookup_10"}, 
+                {"卜" : "lookup_10"}
+            ],
+            "少不更事" : [
+                {"少" : "lookup_10"},
+                {"不" : ""},
+                {"更" : "lookup_10"},
+                {"事" : ""}
+            ]
+        }
+    }
+"""
+# lookup table の番号にする
+def get_pinyin_priority(charactor, pinyin):
+    # index = 0 は標準の読みなので、必ず "1" 以上になる. なので、- 1 をして添字を0から開始にする
+    return PINYIN_MAPPING_TABLE[charactor].index(pinyin) - 1
+
+def add_lookup4pattern_two(lookup_table_dict, phrase_instance):
+    _, has_variational_pinyin_hanzes = seek_variational_pinyin_in_phrase(phrase_instance)
+    for (idx, target_charactor) in has_variational_pinyin_hanzes:
+        pinyin = phrase_instance.get_list_pinyin()[idx]
+        priority = get_pinyin_priority(target_charactor, pinyin)
+        lookup_name = "lookup_1{}".format( priority )
+        # init
+        if not (lookup_name in lookup_table_dict):
+            lookup_table_dict.update( {lookup_name:{}} )
+        # set
+        if not (target_charactor in lookup_table_dict[lookup_name]):
+            lookup_table_dict[lookup_name].update( { target_charactor : "{0}.ss0{1}".format( target_charactor, (SS_VARIATIONAL_PINYIN + priority) ) } )
+
+def get_pattern4pattern_two(phrase_instance):
+    phrase_value = []
+    phrase = phrase_instance.get_name()
+    # init
+    for charactor in phrase:
+        phrase_value.append( {charactor: None} )
+    # set
+    _, has_variational_pinyin_hanzes = seek_variational_pinyin_in_phrase(phrase_instance)
+    for (idx, target_charactor) in has_variational_pinyin_hanzes:
+        pinyin = phrase_instance.get_list_pinyin()[idx]
+        priority = get_pinyin_priority(target_charactor, pinyin)
+        phrase_value[idx] = \
+            {
+                target_charactor: "lookup_1{}".format( priority )
+            }
+    return phrase_value
+
 def make_pattern_two(phrase_holder, OUTPUT_PATTERN_TWO_TABLE_FILE):
-    pass
+    dict_base = { "lookup_table": {}, "patterns": {} }
+    for phrase_instance in phrase_holder.get_list_instance_phrases():
+        add_lookup4pattern_two(dict_base["lookup_table"], phrase_instance)
+        pattern = get_pattern4pattern_two(phrase_instance)
+        dict_base["patterns"].update( {phrase_instance.get_name() : pattern} )
+    
+    with open(OUTPUT_PATTERN_TWO_TABLE_FILE, mode='w', encoding='utf-8') as f:
+        json.dump(dict_base, f, indent=2, ensure_ascii=False)
+
+"""
+ここから exceptional_pattern のための関数
+"""
+# 特別なのでこれは手動で作成する。
+"""
+lookup calt2 {
+    ignore sub uni80CC uni7740' uni624B;
+    sub uni7740' uni624B by d;
+} calt2;
+
+着手: zhuó/shǒu, 背着手: bèi/zhe/shǒu
+轴子 は zhóu が標準的なピンインなので、ingone にしない
+轴子: zhóu/zi, 大轴子: dà/zhòu/zi, 压轴子: yā/zhòu/zi
+"""
+def make_exceptional_pattern(OUTPUT_EXCEPTION_PATTERN_TABLE_FILE):
+    dict_base = {
+        "lookup_table": {
+            "lookup_20": {
+                "着" : "着.ss02",
+                "轴" : "轴.ss02"
+            }
+        },
+        "patterns": {
+            "着手" : {
+                "ignore" : "背 着' 手",
+                "pattern" :[
+                    {"着" : "lookup_20"}, 
+                    {"手" : None}
+                ]
+            },
+            "大轴子" : {
+                "ignore" : None,
+                "pattern" :[
+                    {"大" : None}, 
+                    {"轴" : "lookup_20"},
+                    {"子" : None}
+                ]
+            },
+            "压轴子" : {
+                "ignore" : None,
+                "pattern" :[
+                    {"压" : None}, 
+                    {"轴" : "lookup_20"},
+                    {"子" : None}
+                ]
+            }
+        }
+    }
+    with open(OUTPUT_EXCEPTION_PATTERN_TABLE_FILE, mode='w', encoding='utf-8') as f:
+        json.dump(dict_base, f, indent=2, ensure_ascii=False)
 
 def main():
     PHRASE_ONE_TABLE = "phrase_of_pattern_one.txt"
@@ -175,7 +303,8 @@ def main():
     DIR_RT = "../"
 
     OUTPUT_PATTERN_ONE_TABLE = "duoyinzi_pattern_one.txt"
-    OUTPUT_PATTERN_TWO_TABLE = "duoyinzi_pattern_two.txt"
+    OUTPUT_PATTERN_TWO_TABLE = "duoyinzi_pattern_two.json"
+    OUTPUT_EXCEPTION_PATTERN_TABLE = "duoyinzi_exceptional_pattern.json"
     DIR_OT = "../../../../outputs"
 
     PHRASE_ONE_TABLE_FILE = os.path.join(DIR_RT, PHRASE_ONE_TABLE)
@@ -183,6 +312,8 @@ def main():
 
     OUTPUT_PATTERN_ONE_TABLE_FILE = os.path.join(DIR_OT, OUTPUT_PATTERN_ONE_TABLE)
     OUTPUT_PATTERN_TWO_TABLE_FILE = os.path.join(DIR_OT, OUTPUT_PATTERN_TWO_TABLE)
+    OUTPUT_EXCEPTION_PATTERN_TABLE_FILE = os.path.join(DIR_OT, OUTPUT_EXCEPTION_PATTERN_TABLE)
+    
 
     """
     1, 阿, ā, [~托品]
@@ -225,6 +356,7 @@ def main():
     print("========================================================================")
 
 
+    # pattern_two の検証を作成
     # 重複を確認する
     # 異読の漢字が一つ以上あるか (颤颤巍巍: chàn/chàn/wēi/wēi これは異読字が無いので削除する)
     validate.pattern_two(PHRASE_TWO_TABLE_FILE)
@@ -248,25 +380,39 @@ def main():
     ss01 はなにも付いていない漢字のグリフにする。
 
     最初からこんな漢字の cmap の記述に合わせて書く 
+    
     pattern_one は lookup_0*
     pattern_two は lookup_1* を使う
+    
     占卜: zhān/bǔ
         占 zhàn
         卜 bo
-    
+    少不更事: shào/bù/gēng/shì
+        少 shǎo
+        不 bù
+        更 gèng
+        事 shì
     {
         "lookup_table": {
-            # 標準的なピンイン
             # 異読的なピンイン
+            # 数字の並びは、marged-mapping-table.txt の配列の添字順にする。
             "lookup_10": {
                 "占" : "无.ss02",
-                "卜" : "卜.ss02"
+                "卜" : "卜.ss02",
+                "少" : "少.ss02",
+                "更" : "更.ss02"
             }
         },
         "pattern": {
             "占卜" : [
                 {"占" : "lookup_10"}, 
                 {"卜" : "lookup_10"}
+            ],
+            "少不更事" : [
+                {"少" : "lookup_10"},
+                {"不" : ""},
+                {"更" : "lookup_10"},
+                {"事" : ""}
             ]
         }
     }
@@ -287,10 +433,11 @@ def main():
         sub uni7740' uni624B by d;
     } calt2;
     """
+    make_exceptional_pattern(OUTPUT_EXCEPTION_PATTERN_TABLE_FILE)
+    print("========================================================================")
+    print("success!")
+    print("Output duoyinzi_exceptional_pattern.json.")
     
-
-    
-
 
 if __name__ == "__main__":
     main()

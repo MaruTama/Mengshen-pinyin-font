@@ -7,10 +7,9 @@
 ├── duoyinzi_pattern_two.txt
 ├── ignone_phrase_pattern.txt　<- 編集可能　特別なパターンのみで使う
 ├── issue.md
-├── phrase.txt　<- 編集可能　複数の読みを持つ漢字の単語帳になっている
-├── phrase_of_pattern_one.txt　<- phrase.txt を validate_phrase.py でチェックしてから作成するもの（自動化したいけど見落としそうなので手動で確認しながら）
-├── phrase_of_pattern_two.txt　<- phrase.txt を validate_phrase.py でチェックしてから作成するもの
-├── phrase_testcase.txt
+├── phrase_of_pattern_one.txt　<- 置き換えが1個または0個の単語
+├── phrase_of_pattern_two.txt　<- 置き換えが2個以上の単語
+├── phrase_testcase.txt　<- validate_phrase.py が有効的に働くかどうかの確認に使ったテストケース
 └── scripts
     ├── check_exsit_duoyinsi_on_word.py
     ├── make_pattern_table.py

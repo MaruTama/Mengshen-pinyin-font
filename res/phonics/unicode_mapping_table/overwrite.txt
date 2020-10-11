@@ -10,6 +10,7 @@ U+5174: xīng,xìng  # 兴
 U+548C: hé,hè,huò,huó,huo,hú  #和
 U+54BD: yān,yàn,yè,yuān  # 咽
 U+55E7: jiālún  #嗧
+U+5B9E: shí,shi  #实
 U+62D3: tuò,tà,zhí  # 拓
 U+6F02: piāo,piào,piǎo,biāo  # 漂
 U+7CCA: hú,hū,hù,hu  #糊

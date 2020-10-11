@@ -2591,7 +2591,7 @@ U+5B9A: dìng  #定
 U+5B9B: wǎn,yuān,yǔn,yù  #宛
 U+5B9C: yí  #宜
 U+5B9D: bǎo  #宝
-U+5B9E: shí  #实
+U+5B9E: shí,shi  #实
 U+5BA0: chǒng  #宠
 U+5BA1: shěn  #审
 U+5BA2: kè,qià  #客
