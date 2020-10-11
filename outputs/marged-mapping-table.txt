@@ -678,7 +678,7 @@ U+513A: nuó  #儺
 U+513B: tǎng,tàng,chǎng  #儻
 U+513C: yǎn  #儼
 U+513D: léi,lěi,luǒ  #儽
-U+513F: ér,rén  #儿
+U+513F: ér,rén,r  #儿
 U+5140: wù,wū  #兀
 U+5141: yǔn,yuán  #允
 U+5143: yuán  #元

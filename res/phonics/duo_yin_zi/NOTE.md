@@ -44,6 +44,10 @@ https://raw.githubusercontent.com/mozillazg/python-pinyin/master/pypinyin/phrase
 刨根儿
 - 子 は 末尾だと zǐ になる？
 
+これの軽声はいらない？、とりあえず、今回は除外
+差不多: chà/bu/duō
+差不离: chà/bu/lí
+
 一致せず、考慮の余地がある箇所の記録
 not match
 pypintin   : 藏掖, ['cáng', 'yè']
@@ -82,11 +86,7 @@ not match
 pypintin   : 中兴, ['zhōng', 'xìng']
 baidu-hanzi: 中兴, ['zhōng', 'xīng']
 
-果实累累
-intput:léi, 
- pypinyi:['guǒ', 'shí', 'lěi', 'lěi']
 
-颤颤巍巍 これって変換できるのかな
 
 全然違うけどベトナムの漢字サイトがある。
 https://hvdic.thivien.net/
