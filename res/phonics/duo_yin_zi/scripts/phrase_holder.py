@@ -4,11 +4,13 @@
 import pinyin_getter
 import phrase as p
 
+PINYIN_MAPPING_TABLE = pinyin_getter.get_pinyin_table_with_mapping_table()
+
 class PhraseHolder:
     def __init__(self, PHRASE_TABLE_FILE):
-        self.pinyin_table = pinyin_getter.get_pinyin_table_with_mapping_table()
+        self.PINYIN_MAPPING_TABLE = pinyin_getter.get_pinyin_table_with_mapping_table()
         self.phrases = []
-        with open(PHRASE_TABLE_FILE) as read_file:
+        with open(PHRASE_TABLE_FILE, mode='r', encoding='utf-8') as read_file:
             for line in read_file:
                 [word, string_pinyin] = line.rstrip('\n').split(': ')                
                 default_pinyins = []
@@ -23,7 +25,7 @@ class PhraseHolder:
         del self.phrases[phrase]
 
     def __get_default_pinyin(self, hanzi=""):
-        return self.pinyin_table[hanzi][0] if (hanzi in self.pinyin_table) else ""
+        return self.PINYIN_MAPPING_TABLE[hanzi][0] if (hanzi in self.PINYIN_MAPPING_TABLE) else ""
 
     def get_list_instance_phrases(self):
         return self.phrases

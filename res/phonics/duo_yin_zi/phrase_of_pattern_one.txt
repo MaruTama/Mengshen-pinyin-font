@@ -184,6 +184,7 @@
 朝夕: zhāo/xī
 朝霞: zhāo/xiá
 朝阳: zhāo/yáng
+朝日: zhāo/rì
 称号: chēng/hào
 称呼: chēng/hū
 称强: chēng/qiáng
@@ -1378,6 +1379,7 @@
 相思: xiāng/sī
 相象: xiāng/xiàng
 相依: xiāng/yī
+相声: xiàng/shēng
 相公: xiàng/gōng
 相机: xiàng/jī
 相貌: xiàng/mào
@@ -1701,9 +1703,11 @@
 作弊: zuò/bì
 作对: zuò/duì
 作死: zuò/sǐ
+做作: zuò/zuo
+作坊: zuō/fāng
 作弄: zuō/nòng
 作揖: zuō/yī
-做作: zuò/zuo
+作料: zuó/liào
 划拨: huà/bō
 划策: huà/cè
 划定: huà/dìng

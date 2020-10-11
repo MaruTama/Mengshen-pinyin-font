@@ -9,7 +9,7 @@ DEFALT_READING = 0
 # 重複している単語（単純な記述ミス）を返す
 def get_duplicate_phrase(PHRASE_TABLE_FILE):
     phrases = []
-    with open(PHRASE_TABLE_FILE) as read_file:
+    with open(PHRASE_TABLE_FILE, mode='r', encoding='utf-8') as read_file:
         for line in read_file:
             [phrase, _] = line.rstrip('\n').split(': ')
             phrases.append(phrase)
@@ -21,7 +21,7 @@ def get_duplicate_phrase(PHRASE_TABLE_FILE):
 def get_duplicate_pattern_of_phrase(PHRASE_TABLE_FILE):
     phrases = []
     str_consolidated_phrases = ""
-    with open(PHRASE_TABLE_FILE) as read_file:
+    with open(PHRASE_TABLE_FILE, mode='r', encoding='utf-8') as read_file:
         for line in read_file:
             [phrase, _] = line.rstrip('\n').split(': ')
             str_consolidated_phrases += phrase + "/"
@@ -38,7 +38,7 @@ def get_duplicate_pattern_of_phrase(PHRASE_TABLE_FILE):
 # 単語中に置き換わる文字(多音字)が複数ある単語を返す
 def get_multiple_replacement_by_duoyinzi(PHRASE_TABLE_FILE):
     list_multiple_replacement_by_duoyinzi = []
-    with open(PHRASE_TABLE_FILE) as read_file:
+    with open(PHRASE_TABLE_FILE, mode='r', encoding='utf-8') as read_file:
         for line in read_file:
             [phrase, pinyin_of_phrase] = line.rstrip('\n').split(': ')
             if 2 <= count_variational_pinyin(phrase, pinyin_of_phrase):
@@ -56,7 +56,7 @@ def count_variational_pinyin(phrase, pinyin_of_phrase):
 
 def get_phrase_dict(PHRASE_TABLE_FILE):
     phrase_dict = {}
-    with open(PHRASE_TABLE_FILE) as read_file:
+    with open(PHRASE_TABLE_FILE, mode='r', encoding='utf-8') as read_file:
         for line in read_file:
             [phrase, pinyin_of_phrase] = line.rstrip('\n').split(': ')
             phrase_dict.update( {phrase : pinyin_of_phrase} )
@@ -139,7 +139,7 @@ def pattern_two(PHRASE_TABLE_FILE):
         print("Nothing duplicate phrase.")
         print()
 
-    # すべての単語が単語中に異読字が２個以上あるか
+    # すべての単語が単語中に異読字が 2個以上あるか
     """
     参差: cēn/cī
     参: cān -> cēn
