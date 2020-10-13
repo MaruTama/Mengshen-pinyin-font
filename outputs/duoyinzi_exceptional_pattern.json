@@ -1,49 +1,49 @@
 {
-  "lookup_table": {
-    "lookup_20": {
-      "着": "着.ss02",
-      "轴": "轴.ss02"
-    }
-  },
-  "patterns": {
-    "着手": {
-      "ignore": "背 着' 手",
-      "pattern": [
-        {
-          "着": "lookup_20"
-        },
-        {
-          "手": null
+    "lookup_table": {
+        "lookup_20": {
+            "着": "着.ss02",
+            "轴": "轴.ss02"
         }
-      ]
     },
-    "大轴子": {
-      "ignore": null,
-      "pattern": [
-        {
-          "大": null
+    "patterns": {
+        "着手": {
+            "ignore": "背 着' 手",
+            "pattern": [
+                {
+                    "着": "lookup_20"
+                },
+                {
+                    "手": null
+                }
+            ]
         },
-        {
-          "轴": "lookup_20"
+        "大轴子": {
+            "ignore": null,
+            "pattern": [
+                {
+                    "大": null
+                },
+                {
+                    "轴": "lookup_20"
+                },
+                {
+                    "子": null
+                }
+            ]
         },
-        {
-          "子": null
+        "压轴子": {
+            "ignore": null,
+            "pattern": [
+                {
+                    "压": null
+                },
+                {
+                    "轴": "lookup_20"
+                },
+                {
+                    "子": null
+                }
+            ]
         }
-      ]
-    },
-    "压轴子": {
-      "ignore": null,
-      "pattern": [
-        {
-          "压": null
-        },
-        {
-          "轴": "lookup_20"
-        },
-        {
-          "子": null
-        }
-      ]
     }
-  }
 }
