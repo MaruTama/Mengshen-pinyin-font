@@ -97,7 +97,6 @@ def compress_pattern_one_table(pattern_table):
                             # replace で置き換えると　累累: lěi/lèi　のpatternが ~~ になるので手動で置換する
                             pattern = replace_str(phrase, i, "~")
                             add_pattern_one_table( pattern_table_4_work, new_charactor, pinyin, pattern )
-    
             pattern_table_4_work.pop(charactor)
 
     return pattern_table_4_work
@@ -175,32 +174,6 @@ def make_pattern_one(phrase_holder, PATTERN_ONE_TABLE_FILE):
 """
 ここから pattern_two のための関数
 """
-"""
-    {
-        "lookup_table": {
-            # 異読的なピンイン
-            # 数字の並びは、marged-mapping-table.txt の配列の添字順にする。
-            "lookup_10": {
-                "占" : "占.ss02",
-                "卜" : "卜.ss02",
-                "少" : "少.ss02",
-                "更" : "更.ss02"
-            }
-        },
-        "pattern": {
-            "占卜" : [
-                {"占" : "lookup_10"}, 
-                {"卜" : "lookup_10"}
-            ],
-            "少不更事" : [
-                {"少" : "lookup_10"},
-                {"不" : ""},
-                {"更" : "lookup_10"},
-                {"事" : ""}
-            ]
-        }
-    }
-"""
 # lookup table の番号にする
 def get_pinyin_priority(charactor, pinyin):
     # index = 0 は標準の読みなので、必ず "1" 以上になる. なので、- 1 をして添字を0から開始にする
@@ -244,22 +217,12 @@ def make_pattern_two(phrase_holder, OUTPUT_PATTERN_TWO_TABLE_FILE):
         dict_base["patterns"].update( {phrase_instance.get_name() : pattern} )
     
     with open(OUTPUT_PATTERN_TWO_TABLE_FILE, mode='w', encoding='utf-8') as f:
-        json.dump(dict_base, f, indent=2, ensure_ascii=False)
+        json.dump(dict_base, f, indent=4, ensure_ascii=False)
 
 """
 ここから exceptional_pattern のための関数
 """
 # 特別なのでこれは手動で作成する。
-"""
-lookup calt2 {
-    ignore sub uni80CC uni7740' uni624B;
-    sub uni7740' uni624B by d;
-} calt2;
-
-着手: zhuó/shǒu, 背着手: bèi/zhe/shǒu
-轴子 は zhóu が標準的なピンインなので、ingone にしない
-轴子: zhóu/zi, 大轴子: dà/zhòu/zi, 压轴子: yā/zhòu/zi
-"""
 def make_exceptional_pattern(OUTPUT_EXCEPTION_PATTERN_TABLE_FILE):
     dict_base = {
         "lookup_table": {
@@ -295,7 +258,7 @@ def make_exceptional_pattern(OUTPUT_EXCEPTION_PATTERN_TABLE_FILE):
         }
     }
     with open(OUTPUT_EXCEPTION_PATTERN_TABLE_FILE, mode='w', encoding='utf-8') as f:
-        json.dump(dict_base, f, indent=2, ensure_ascii=False)
+        json.dump(dict_base, f, indent=4, ensure_ascii=False)
 
 def main():
     PHRASE_ONE_TABLE = "phrase_of_pattern_one.txt"
@@ -421,8 +384,8 @@ def main():
 
 
     # 特殊なパターンを作る
-    # 着手 と 背着手 のパターンができるかどうか確認しない
-    #できた
+    # [5.f.ii. Specifying exceptions to the Chain Sub rule](http://adobe-type-tools.github.io/afdko/OpenTypeFeatureFileSpecification.html#5fii-specifying-exceptions-to-the-chain-sub-rule)
+    # を利用する
     """
     着手: [背着手]
     轴子: [大轴子,压轴子]
@@ -432,6 +395,10 @@ def main():
         ignore sub uni80CC uni7740' uni624B;
         sub uni7740' uni624B by d;
     } calt2;
+
+    着手: zhuó/shǒu, 背着手: bèi/zhe/shǒu
+    轴子 は zhóu が標準的なピンインなので、ingone にしない
+    轴子: zhóu/zi, 大轴子: dà/zhòu/zi, 压轴子: yā/zhòu/zi
     """
     make_exceptional_pattern(OUTPUT_EXCEPTION_PATTERN_TABLE_FILE)
     print("========================================================================")
