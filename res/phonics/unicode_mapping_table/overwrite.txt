@@ -7,15 +7,19 @@ U+513F: ér,rén,r  #儿
 U+5159: shí,kè  #兙
 U+5161: bǎi,kè  #兡
 U+5174: xīng,xìng  # 兴
+U+5463: ḿ,móu  #呣
 U+548C: hé,hè,huò,huó,huo,hú  #和
 U+54BD: yān,yàn,yè,yuān  # 咽
 U+55E7: jiālún  #嗧
+U+5638: fǔ,wǔ,ḿ  #嘸
 U+5B9E: shí,shi  #实
 U+62D3: tuò,tà,zhí  # 拓
+U+6B38: éi,xī,yì,ěi,èi,ēi  #欸
 U+6F02: piāo,piào,piǎo,biāo  # 漂
 U+7CCA: hú,hū,hù,hu  #糊
 U+7ED3: jié,jiē,jie  #结
 U+820D: shè,shě,shì  # 舍
+U+8A92: éi,xī,yì,ěi,èi,ēi  #誒
 U+957F: cháng,zhǎng  # 长
 U+95E8: mén,mēn  #门
 U+96BE: nán,nàn,nan  #难
@@ -70,6 +74,7 @@ U+2CB76: hēi  #𬭶
 U+2CB78: ín  #𬭸
 U+2CB7C: suì  #𬭼
 U+2CBB1: yīn  #𬮱
+U+2CBBF: gāi,ái,qí  #𬮿
 U+2CBC0: jī  #𬯀
 U+2CBCE: tuí  #𬯎
 U+2CC56: dí  #𬱖
@@ -116,7 +121,6 @@ U+2CB31: jīn,yǐn,yín  #𬬱
 U+2CB39: huán,hén,shēn  #𬬹
 U+2CB6C: wèi  #𬭬
 U+2CB6F: piě  #𬭯
-U+2CBBF: gāi,ái,qí­  #𬮿
 U+2CCFF: tú  #𬳿
 U+2CD02: fēi  #𬴂
 U+2CD03: huō  #𬴃
