@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-# python3 retrieve_alphabet_glyf4pinyin.py ./res/fonts/mplus-1m-medium.ttf
+# python3 retrieve_latin_alphabet.py ./res/fonts/mplus-1m-medium.ttf
 import os
 import sys
 import argparse
@@ -24,7 +24,8 @@ DIR_FONT = "./res/fonts/"
 OUTPUT_JSON = "output.json"
 DIR_TEMP = "./tmp"
 
-ALPHABET = ["a","ā","á","ǎ","à","b","c","d","e","ē","é","ě","è","f","g","h","i","ī","í","ǐ","ì","j","k","l","m","ḿ","n","ń","o","ō","ó","ǒ","ò","p","q","r","s","t","u","ū","ú","ǔ","ù","ü","ǖ","ǘ","ǚ","ǜ","v","w","x","y","z"]
+# 呣 m̀, 嘸 m̄ を使うが、これは unicode ではないので除外する。グリフが収録されていない事が多い。
+ALPHABET = ["a","ā","á","ǎ","à","b","c","d","e","ē","é","ě","è","f","g","h","i","ī","í","ǐ","ì","j","k","l","m","ḿ","n","ń","ň","ǹ","o","ō","ó","ǒ","ò","p","q","r","s","t","u","ū","ú","ǔ","ù","ü","ǖ","ǘ","ǚ","ǜ","v","w","x","y","z"]
 
 SIMPLED_ALPHABET = {
     "a":"a", "ā":"a1", "á":"a2", "ǎ":"a3", "à":"a4",
@@ -39,21 +40,22 @@ SIMPLED_ALPHABET = {
     "j":"j",
     "k":"k",
     "l":"l",
-    "m":"m", "ḿ":"m2",
-    "n":"n", "ń":"n2",
+    "m":"m", "m̄":"m1", "ḿ":"m2", "m̀":"m4",
+    "n":"n",           "ń":"n2", "ň":"n3", "ǹ":"n4",
     "o":"o", "ō":"o1", "ó":"o2", "ǒ":"o3", "ò":"o4",
     "p":"p",
     "q":"q",
     "r":"r",
     "s":"s",
     "t":"t",
-    "u":"u", "ū":"u1", "ú":"u2" ,"ǔ":"u3", "ù":"4", "ü":"v", "ǖ":"v1", "ǘ":"v2", "ǚ":"v3", "ǜ":"v4",
+    "u":"u", "ū":"u1", "ú":"u2" ,"ǔ":"u3", "ù":"u4", "ü":"v", "ǖ":"v1", "ǘ":"v2", "ǚ":"v3", "ǜ":"v4",
     "v":"v",
     "w":"w",
     "x":"x",
     "y":"y",
     "z":"z"
 }
+
 UNICODE_ALPHABET = [ord(c) for c in ALPHABET]
 
 def process_shell(cmd=""):
@@ -95,7 +97,7 @@ def get_reversed_cmap_table():
     reversed_cmap_table = {}
     for ucode in UNICODE_ALPHABET:
         cid = cmap_table[str(ucode)]
-        reversed_cmap_table.update( { cid : SIMPLED_ALPHABET[chr(ucode)] } )
+        reversed_cmap_table.update( { cid : "py_" + SIMPLED_ALPHABET[chr(ucode)] } )
 
     return reversed_cmap_table
 
