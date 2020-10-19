@@ -1,4 +1,8 @@
-# python3 make_template_json.py SawarabiMincho-Regular.ttf
+# -*- coding: utf-8 -*-
+#!/usr/bin/env python
+
+# python3 make_template_jsons.py ./res/fonts/SourceHanSerifCN-Regular.ttf
+# python3 make_template_jsons.py ./res/fonts/SawarabiMincho-Regular.ttf
 
 # Note
 # glyf を出力
@@ -16,35 +20,31 @@ import os
 import sys
 import argparse
 import subprocess
+import shell
 
 TAMPLATE_TEMP_JSON = "template_temp.json"
 TAMPLATE_MAIN_JSON = "template_main.json"
 TAMPLATE_GLYF_JSON = "template_glyf.json"
 DIR_JSON = "./tmp/json"
 
-def process_shell(cmd=""):
-    result = (subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True).communicate()[0]).decode('utf-8')
-    if not ("" == result):
-        print(result)
-
 def convert_otf2json(source_font_name):
     template_temp_json_path = os.path.join(DIR_JSON, TAMPLATE_TEMP_JSON)
     cmd = "otfccdump -o {} --pretty {}".format(template_temp_json_path, source_font_name)
-    process_shell(cmd)
+    shell.process(cmd)
 
 # TAMPLATE_MAIN_JSON の glyf table を別ファイルに分離する
 def make_new_glyf_table_json():
     template_temp_json_path = os.path.join(DIR_JSON, TAMPLATE_TEMP_JSON)
     template_glyf_json_path = os.path.join(DIR_JSON, TAMPLATE_GLYF_JSON)
     cmd = "cat {} | jq '.glyf' > {}".format(template_temp_json_path, template_glyf_json_path)
-    process_shell(cmd)
+    shell.process(cmd)
 
 # TAMPLATE_MAIN_JSON の glyf のグリフ情報（contours）を削除する。これをビルドすると空のフォントができる。
 def delete_glyf_table_on_main_json():
     template_temp_json_path = os.path.join(DIR_JSON, TAMPLATE_TEMP_JSON)
     template_main_json_path = os.path.join(DIR_JSON, TAMPLATE_MAIN_JSON)
     cmd = "cat {} | jq '.glyf |= map_values( (select(1).contours |= []) // .)' > {}".format(template_temp_json_path, template_main_json_path)
-    process_shell(cmd)
+    shell.process(cmd)
 
 def make_template(source_font_name):
     convert_otf2json(source_font_name)
