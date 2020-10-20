@@ -2,10 +2,10 @@
 #!/usr/bin/env python
 
 class Phrase:
-    def __init__(self, phrase, string_pinyin, default_pinyins=[]):
+    def __init__(self, phrase, string_pinyin, normal_pronunciations=[]):
         self.phrase          = phrase
         self.string_pinyin   = string_pinyin.rstrip('\n')
-        self.default_pinyins = default_pinyins
+        self.normal_pronunciations = normal_pronunciations
 
     def get_name(self):
         return self.phrase
@@ -16,5 +16,5 @@ class Phrase:
     def get_list_pinyin(self):
         return self.string_pinyin.split('/')
 
-    def get_default_pinyins(self):
-        return self.default_pinyins
+    def get_normal_pronunciations(self):
+        return self.normal_pronunciations

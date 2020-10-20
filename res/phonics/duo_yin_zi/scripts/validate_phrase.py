@@ -49,8 +49,8 @@ def count_variational_pinyin(phrase, pinyin_of_phrase):
     variational_pinyin_count = 0
     for i in range(len(phrase)):
         charactor = phrase[i]
-        default_pinyin = PINYIN_MAPPING_TABLE[charactor][DEFALT_READING]
-        if default_pinyin != pinyin_of_phrase.split('/')[i]:
+        normal_pinyin = PINYIN_MAPPING_TABLE[charactor][DEFALT_READING]
+        if normal_pinyin != pinyin_of_phrase.split('/')[i]:
             variational_pinyin_count += 1
     return variational_pinyin_count
 
