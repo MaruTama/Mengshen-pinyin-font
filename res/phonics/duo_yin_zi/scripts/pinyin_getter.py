@@ -59,7 +59,7 @@ def get_pinyin_table_with_mapping_table():
             pinyin_table[hanzi] = pinyins
     return pinyin_table
 
-def get_default_pinyin():
+def get_normal_pinyin():
     pass
 # U+4E3A: wéi,wèi  # 为
 # U+5174: xīng,xìng  # 兴

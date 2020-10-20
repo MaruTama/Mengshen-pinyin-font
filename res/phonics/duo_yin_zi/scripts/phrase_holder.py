@@ -13,10 +13,10 @@ class PhraseHolder:
         with open(PHRASE_TABLE_FILE, mode='r', encoding='utf-8') as read_file:
             for line in read_file:
                 [word, string_pinyin] = line.rstrip('\n').split(': ')                
-                default_pinyins = []
+                normal_pronunciations = []
                 for charactor in word:
-                    default_pinyins.append( self.__get_default_pinyin(charactor) )
-                self.add_phrase( p.Phrase(word, string_pinyin, default_pinyins) )
+                    normal_pronunciations.append( self.__get_normal_pronunciation(charactor) )
+                self.add_phrase( p.Phrase(word, string_pinyin, normal_pronunciations) )
 
     def add_phrase(self, p):
         self.phrases.append(p)
@@ -24,7 +24,7 @@ class PhraseHolder:
     def remove_phrase(self, phrase):
         del self.phrases[phrase]
 
-    def __get_default_pinyin(self, hanzi=""):
+    def __get_normal_pronunciation(self, hanzi=""):
         return self.PINYIN_MAPPING_TABLE[hanzi][0] if (hanzi in self.PINYIN_MAPPING_TABLE) else ""
 
     def get_list_instance_phrases(self):
