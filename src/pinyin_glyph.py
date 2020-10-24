@@ -1,41 +1,11 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
 
-# python3 make_pinyin_glyph.py
-
-import os
-import json
+import orjson
 import pinyin_getter as pg
-import subprocess
+import shell
+import utility
 
-SIMPLED_ALPHABET = {
-    "a":"a", "ā":"a1", "á":"a2", "ǎ":"a3", "à":"a4",
-    "b":"b",
-    "c":"c",
-    "d":"d",
-    "e":"e", "ē":"e1", "é":"e2", "ě":"e3", "è":"e4",
-    "f":"f",
-    "g":"g",
-    "h":"h",
-    "i":"i", "ī":"i1", "í":"i2", "ǐ":"i3", "ì":"i4",
-    "j":"j",
-    "k":"k",
-    "l":"l",
-    "m":"m", "m̄":"m1", "ḿ":"m2", "m̀":"m4",
-    "n":"n",           "ń":"n2", "ň":"n3", "ǹ":"n4",
-    "o":"o", "ō":"o1", "ó":"o2", "ǒ":"o3", "ò":"o4",
-    "p":"p",
-    "q":"q",
-    "r":"r",
-    "s":"s",
-    "t":"t",
-    "u":"u", "ū":"u1", "ú":"u2" ,"ǔ":"u3", "ù":"u4", "ü":"v", "ǖ":"v1", "ǘ":"v2", "ǚ":"v3", "ǜ":"v4",
-    "v":"v",
-    "w":"w",
-    "x":"x",
-    "y":"y",
-    "z":"z"
-}
 
 class PinyinGlyph():
     # 想定する漢字のサイズに対するピンイン表示部のサイズ
@@ -56,15 +26,14 @@ class PinyinGlyph():
     # マージ先のフォントのメインjson（フォントサイズを取得するため）, ピンイン表示に使うためのglyfのjson, ピンインのグリフを追加したjson(出力ファイル)
     def __init__(self, TAMPLATE_MAIN_JSON, ALPHABET_FOR_PINYIN_JSON):
         self.PINYIN_MAPPING_TABLE = pg.get_pinyin_table_with_mapping_table()
-        with open(TAMPLATE_MAIN_JSON, mode='r', encoding='utf-8') as read_file:
-            self.font_main = json.load(read_file)
-            self.cmap_table = self.font_main["cmap"]
-        with open(ALPHABET_FOR_PINYIN_JSON, mode='r', encoding='utf-8') as read_file:
-            self.pinyin_glyf = json.load(read_file)
 
-    # ピンイン表記の簡略化、e.g.: wěi -> we3i
-    def __simplification_pinyin(self, pinyin):
-        return  "".join( [SIMPLED_ALPHABET[c] for c in pinyin] )
+        with open(TAMPLATE_MAIN_JSON, "rb") as read_file:
+            self.font_main = orjson.loads(read_file.read())
+            self.cmap_table = self.font_main["cmap"]
+        with open(ALPHABET_FOR_PINYIN_JSON, "rb") as read_file:
+            self.pinyin_glyf = orjson.loads(read_file.read())
+
+    
     
     # マージ先のフォントの漢字サイズを返す
     def __get_advance_size_of_hanzi(self):
@@ -84,7 +53,7 @@ class PinyinGlyph():
         return pronunciations
 
     # pinyin の発音をマージ先の大きさを取得して調整、追加する
-    def marge_pronunciations_to_glyf_table(self):
+    def add_pronunciations_to_glyf_table(self):
         (target_advance_width_of_hanzi, target_advance_height_of_hanzi) = self.__get_advance_size_of_hanzi()
         pronunciations = self.__get_pronunciations()
 
@@ -170,10 +139,10 @@ class PinyinGlyph():
                             target_pinyin_canvas_base_line ): # 基準点からピンイン表示部までの高さ
         references = []
         for i in range(len(pronunciation)):
-            alphabet = self.__simplification_pinyin( pronunciation[i] )
+            simpled_alphabet = utility.simplification_pronunciation( pronunciation[i] )
             x = width_positions[ i ]
             references.append( 
-                {"glyph":"py_{}".format(alphabet),
+                {"glyph":"py_{}".format(simpled_alphabet),
                                 "x": x,             "y": target_pinyin_canvas_base_line,
                                 "a": pinyin_scale, "b": 0, 
                                 "c": 0,            "d": pinyin_scale + 0.001}
@@ -181,8 +150,9 @@ class PinyinGlyph():
 
         # arranged_ と名前を変えているのは、一文字の発音のときに同じ名前のグリフができないようにするため。
         # 同じ名前のグリフがあると参照エラーになる。
+        simpled_pronunciation = utility.simplification_pronunciation(pronunciation)
         pronunciation = {
-            "arranged_" + self.__simplification_pinyin(pronunciation): {
+            "arranged_{}".format(simpled_pronunciation) : {
                 "advanceWidth"  : target_advance_width_of_hanzi,
                 "advanceHeight" : target_pinyin_canvas_height,
                 "verticalOrigin": 0, # 漢字へのマージ時に変更するから、今は 0 
@@ -193,81 +163,10 @@ class PinyinGlyph():
 
 
     def save(self, OUTPUT_JSON):
-        with open(OUTPUT_JSON, mode='w', encoding='utf-8') as write_file:
-            json.dump(self.pinyin_glyf, write_file, indent=4, ensure_ascii=False)
+        with open(OUTPUT_JSON, "wb") as write_file:
+            serialized_glyf = orjson.dumps(self.pinyin_glyf, option=orjson.OPT_INDENT_2)
+            write_file.write(serialized_glyf)
+
+    def get_pronunciations_to_glyf_table(self):
+        return self.pinyin_glyf
     
-
-
-
-class Font():
-    def __init__(self, TAMPLATE_MAIN_JSON, ALPHABET_FOR_PINYIN_JSON):
-
-        self.TAMPLATE_JSON = "./tmp/json/template.json"
-
-        with open(TAMPLATE_MAIN_JSON, mode='r', encoding='utf-8') as read_file:
-            self.font_main = json.load(read_file)
-        with open(ALPHABET_FOR_PINYIN_JSON, mode='r', encoding='utf-8') as read_file:
-            self.pinyin_glyf = json.load(read_file)
-        self.cmap_table = self.font_main["cmap"]
-        self.pinyin_mapping_table = pg.get_pinyin_table_with_mapping_table()
-
-    # とりあえず、ピンインだけ追加
-    def add_glyph_order(self):
-        # ピンインのグリフを追加 
-        set_glyph_order = set(self.font_main["glyph_order"]) | set(self.pinyin_glyf.keys())
-        new_glyph_order = list(set_glyph_order)
-        new_glyph_order.sort()
-        self.font_main["glyph_order"] = new_glyph_order
-        print( len(self.font_main["glyph_order"]) )
-
-    # とりあえず、ピンインだけ追加
-    def add_glyf(self):
-        new_glyf = self.font_main["glyf"]
-        new_glyf.update( self.pinyin_glyf )
-        self.font_main["glyf"] = new_glyf
-        
-        # ss00 - 0n をマージする
-
-    def __save_tamplate_json(self, TAMPLATE_JSON):
-        with open(TAMPLATE_JSON, mode='w', encoding='utf-8') as f:
-            json.dump(self.font_main, f, indent=4, ensure_ascii=False)
-
-    def build(self):
-        self.add_glyph_order()
-        self.add_glyf()
-        self.__save_tamplate_json( self.TAMPLATE_JSON )
-        self.convert_json2otf( self.TAMPLATE_JSON, "./pinyin_sample.otf" )
-    
-    # 以下、make_json2otf からコピペ
-    def process_shell(self, cmd=""):
-        print(cmd)
-        completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-        if b'' != completed_process.stderr:
-            raise Exception(completed_process.stderr)
-        return completed_process.stdout
-
-    def convert_json2otf(self, template_json, output_font):
-        cmd = "otfccbuild {} -o {}".format(template_json, output_font)
-        self.process_shell(cmd)
-
-
-if __name__ == "__main__":
-    DIR_OUTPUT = "./outputs/"
-    DIR_JSON   = "./res/fonts/"
-    DIR_TMP    = "./tmp/json"
-
-    ALPHABET_FOR_PINYIN_JSON = os.path.join(DIR_JSON, "alphabet4pinyin.json")
-    TAMPLATE_MAIN_JSON       = os.path.join(DIR_TMP, "template_main.json")
-    TAMPLATE_GLYF_JSON       = os.path.join(DIR_TMP, "template_glyf.json")
-
-    # build の前に ALPHABET_FOR_PINYIN_JSON に発音を入れる
-    pinyin_glyph = PinyinGlyph(TAMPLATE_MAIN_JSON, ALPHABET_FOR_PINYIN_JSON)
-    pinyin_glyph.marge_pronunciations_to_glyf_table()
-    
-    OUTPUT_JSON = "./tmp/json/template.json"
-    pinyin_glyph.save(OUTPUT_JSON)
-
-    font = Font(TAMPLATE_MAIN_JSON, OUTPUT_JSON)
-    # font = Font(TAMPLATE_MAIN_JSON, ALPHABET_FOR_PINYIN_JSON)
-    # # glyf に追加するpinyin の種類は、mapping_table に完全に依存する
-    font.build()
