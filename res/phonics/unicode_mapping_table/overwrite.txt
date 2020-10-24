@@ -10,6 +10,7 @@ U+5174: xīng,xìng  # 兴
 U+5463: ḿ,móu  #呣
 U+548C: hé,hè,huò,huó,huo,hú  #和
 U+54BD: yān,yàn,yè,yuān  # 咽
+U+55C0: hù,huò  #嗀
 U+55E7: jiālún  #嗧
 U+5638: fǔ,wǔ,ḿ  #嘸
 U+5B9E: shí,shi  #实
@@ -23,7 +24,7 @@ U+8A92: éi,xī,yì,ěi,èi,ēi  #誒
 U+957F: cháng,zhǎng  # 长
 U+95E8: mén,mēn  #门
 U+96BE: nán,nàn,nan  #难
-U+FA0C: wù  #兀
+U+FA0C: wù,wū  #兀
 U+FA0D: hù,huò  #嗀
 U+2B8B8: dàn  #𫢸
 U+2BAC7: ě  #𫫇
