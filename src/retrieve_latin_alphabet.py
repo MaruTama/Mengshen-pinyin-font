@@ -1,11 +1,14 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
+#!/usr/bin/env python
 
-# python3 retrieve_latin_alphabet.py ./res/fonts/mplus-1m-medium.ttf
+# python3 src/retrieve_latin_alphabet.py ./res/fonts/mplus-1m-medium.ttf
 import os
 import sys
 import argparse
 import subprocess
 import json
+import utility
+import path as p
 
 # できた
 # cat alphabet4pinyin.json | jq '.glyf | with_entries(select(.key|match("^a$|^b$")))' > out.json
@@ -19,42 +22,10 @@ import json
 """
 
 ALPHABET_FOR_PINYIN_JSON = "alphabet4pinyin.json"
-
-DIR_FONT = "./res/fonts/"
 OUTPUT_JSON = "output.json"
-DIR_TEMP = "./tmp"
 
 # 呣 m̀, 嘸 m̄ を使うが、これは unicode ではないので除外する。グリフが収録されていない事が多い。
 ALPHABET = ["a","ā","á","ǎ","à","b","c","d","e","ē","é","ě","è","f","g","h","i","ī","í","ǐ","ì","j","k","l","m","ḿ","n","ń","ň","ǹ","o","ō","ó","ǒ","ò","p","q","r","s","t","u","ū","ú","ǔ","ù","ü","ǖ","ǘ","ǚ","ǜ","v","w","x","y","z"]
-
-SIMPLED_ALPHABET = {
-    "a":"a", "ā":"a1", "á":"a2", "ǎ":"a3", "à":"a4",
-    "b":"b",
-    "c":"c",
-    "d":"d",
-    "e":"e", "ē":"e1", "é":"e2", "ě":"e3", "è":"e4",
-    "f":"f",
-    "g":"g",
-    "h":"h",
-    "i":"i", "ī":"i1", "í":"i2", "ǐ":"i3", "ì":"i4",
-    "j":"j",
-    "k":"k",
-    "l":"l",
-    "m":"m", "m̄":"m1", "ḿ":"m2", "m̀":"m4",
-    "n":"n",           "ń":"n2", "ň":"n3", "ǹ":"n4",
-    "o":"o", "ō":"o1", "ó":"o2", "ǒ":"o3", "ò":"o4",
-    "p":"p",
-    "q":"q",
-    "r":"r",
-    "s":"s",
-    "t":"t",
-    "u":"u", "ū":"u1", "ú":"u2" ,"ǔ":"u3", "ù":"u4", "ü":"v", "ǖ":"v1", "ǘ":"v2", "ǚ":"v3", "ǜ":"v4",
-    "v":"v",
-    "w":"w",
-    "x":"x",
-    "y":"y",
-    "z":"z"
-}
 
 UNICODE_ALPHABET = [ord(c) for c in ALPHABET]
 
@@ -91,13 +62,13 @@ def expand_pattern_list2match_pattern(ALPHABET):
     return ' "{}" '.format(match_pattern)
 
 def get_reversed_cmap_table():
-    output_json = os.path.join(DIR_TEMP, OUTPUT_JSON)
+    output_json = os.path.join(p.DIR_TEMP, OUTPUT_JSON)
     cmap_table = get_cmap_table( output_json )
 
     reversed_cmap_table = {}
     for ucode in UNICODE_ALPHABET:
         cid = cmap_table[str(ucode)]
-        reversed_cmap_table.update( { cid : "py_" + SIMPLED_ALPHABET[chr(ucode)] } )
+        reversed_cmap_table.update( { cid : "py_" + utility.SIMPLED_ALPHABET[chr(ucode)] } )
 
     return reversed_cmap_table
 
@@ -115,13 +86,13 @@ def rename_cid_of_alphabet_for_pinyin(alphabet_glyf4pinyin_json):
         json.dump(new_glyf_json, write_file, indent=4, ensure_ascii=False)
 
 def make_alphabet_glyf_json(source_font_name):
-    output_json = os.path.join(DIR_TEMP, OUTPUT_JSON)
+    output_json = os.path.join(p.DIR_TEMP, OUTPUT_JSON)
     convert_otf2json( source_font_name, output_json )
     cmap_table = get_cmap_table( output_json )
     cid_table_of_alphabet  = [cmap_table[str(ucode)] for ucode in UNICODE_ALPHABET]
     match_pattern = expand_pattern_list2match_pattern( cid_table_of_alphabet )
     
-    alphabet_glyf4pinyin_json = os.path.join(DIR_FONT, ALPHABET_FOR_PINYIN_JSON)
+    alphabet_glyf4pinyin_json = os.path.join(p.DIR_TEMP, ALPHABET_FOR_PINYIN_JSON)
     # match_pattern = ' "^a$|^b$" ' 
     cmd = "cat {} | jq '.glyf | with_entries(select(.key|match({})))' > {}".format(output_json, match_pattern, alphabet_glyf4pinyin_json)
     try:
@@ -147,8 +118,8 @@ def main(args=None):
     extension = os.path.splitext(source_font_name)[-1]
 
     if (".otf" == extension or ".ttf" == extension):
-        if not os.path.exists(DIR_FONT):
-            os.makedirs(DIR_FONT)
+        if not os.path.exists(p.DIR_TEMP):
+            os.makedirs(p.DIR_TEMP)
         make_alphabet_glyf_json(source_font_name)
         
     else:

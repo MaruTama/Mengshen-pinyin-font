@@ -10,7 +10,7 @@ import phrase_holder as ph
 import validate_phrase as validate
 
 PINYIN_MAPPING_TABLE = pinyin_getter.get_pinyin_table_with_mapping_table()
-DEFALT_READING = 0
+NORMAL_PRONUNCIATION = 0
 
 # ss0X の番号振り
 # [Tag: 'ss01' - 'ss20'](https://docs.microsoft.com/en-us/typography/opentype/spec/features_pt#-tag-ss01---ss20)
@@ -20,8 +20,8 @@ DEFALT_READING = 0
 # uni4E0D.ss01　以降、異読
 # uni4E0D.ss02　
 
-SS_WITHOUT_PINYIN     = 0
-SS_VARIATIONAL_PINYIN = 1
+SS_WITHOUT_PRONUNCIATION     = 0
+SS_VARIATIONAL_PRONUNCIATION = 1
 
 # [階層構造のあるdictをupdateする](https://www.greptips.com/posts/1242/)
 def deepupdate(dict_base, other):
@@ -96,7 +96,7 @@ def compress_pattern_one_table(pattern_table):
                     new_charactor = phrase[i]
                     if new_charactor != charactor and new_charactor in pattern_table_4_work:
                         if len(pattern_table_4_work[new_charactor]["patterns"]) > 1:
-                            pinyin = PINYIN_MAPPING_TABLE[new_charactor][DEFALT_READING]
+                            pinyin = PINYIN_MAPPING_TABLE[new_charactor][NORMAL_PRONUNCIATION]
                             # replace で置き換えると　累累: lěi/lèi　のpatternが ~~ になるので手動で置換する
                             pattern = replace_chr(phrase, i, "~")
                             add_pattern_one_table( pattern_table_4_work, new_charactor, pinyin, pattern )
@@ -124,7 +124,7 @@ def seek_variational_pronunciation_in_phrase(phrase_instance):
     for i in range(len(phrase)):
         charactor = phrase[i]
         charactor_pinyin = phrase_instance.get_list_pinyin()[i]
-        charactor_normal_pronunciation = PINYIN_MAPPING_TABLE[charactor][DEFALT_READING]
+        charactor_normal_pronunciation = PINYIN_MAPPING_TABLE[charactor][NORMAL_PRONUNCIATION]
         if charactor_pinyin != charactor_normal_pronunciation:
             count_variational_pronunciation += 1
             target_hanzes.append( (i, charactor) )
@@ -195,7 +195,7 @@ def add_lookup4pattern_two(lookup_table_dict, phrase_instance):
             lookup_table_dict.update( {lookup_name:{}} )
         # set
         if not (target_charactor in lookup_table_dict[lookup_name]):
-            lookup_table_dict[lookup_name].update( { target_charactor : "{0}.ss0{1}".format( target_charactor, (SS_VARIATIONAL_PINYIN + priority) ) } )
+            lookup_table_dict[lookup_name].update( { target_charactor : "{0}.ss0{1}".format( target_charactor, (SS_VARIATIONAL_PRONUNCIATION + priority) ) } )
 
 def get_pattern4pattern_two(phrase_instance):
     phrase_value = []
