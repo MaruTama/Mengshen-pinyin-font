@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
-# 通用规范汉字表 Big5-2003 から必要な文字コードを生成する
+# python3 create_unicode_pinyin_map_table.py 
+
+# 通用规范汉字表 と Big5-2003 から必要な文字コードを生成する
 
 # Reference
 # [PythonでUnicodeコードポイントと文字を相互変換（chr, ord, \x, \u, \U）](https://note.nkmk.me/python-chr-ord-unicode-code-point/)

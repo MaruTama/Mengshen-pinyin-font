@@ -1513,7 +1513,7 @@ U+55BB: yù,yú  #喻
 U+55BD: lóu,lou  #喽
 U+55BE: kù  #喾
 U+55BF: zào,qiāo  #喿
-U+55C0: hù  #嗀
+U+55C0: hù,huò  #嗀
 U+55C2: yáo  #嗂
 U+55C3: hè,xiāo,xiào,hù  #嗃
 U+55C4: á,shà,a,xià  #嗄
@@ -15828,7 +15828,7 @@ U+9FA4: xié  #龤
 U+9FCD: gàng  #鿍
 U+9FCE: tǎ  #鿎
 U+9FCF: mài  #鿏
-U+FA0C: wù  #兀
+U+FA0C: wù,wū  #兀
 U+FA0D: hù,huò  #嗀
 U+20164: xí  #𠅤
 U+20676: ǒu  #𠙶
