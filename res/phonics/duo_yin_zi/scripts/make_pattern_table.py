@@ -17,12 +17,13 @@ VARIATIONAL_PRONUNCIATION = 1
 # [Tag: 'ss01' - 'ss20'](https://docs.microsoft.com/en-us/typography/opentype/spec/features_pt#-tag-ss01---ss20)
 # グリフの名前は、'ss01' - 'ss20' にする。
 # uni4E0D　　　　標準の読みの拼音
-# uni4E0D.ss00　無印の漢字グリフ。設定を変更するだけで拼音を変更できる
-# uni4E0D.ss01　以降、異読
-# uni4E0D.ss02　
+# uni4E0D.ss00　ピンインの無い漢字グリフ。設定を変更するだけで拼音を変更できる
+# uni4E0D.ss01　標準の読みの拼音（uni4E0D と重複しているが GSUB の置換（多音字のパターン）を無効にして強制的に置き換えるため）
+# uni4E0D.ss02　以降、異読　
 
 SS_WITHOUT_PRONUNCIATION     = 0
-SS_VARIATIONAL_PRONUNCIATION = 1
+SS_NORMAL_PRONUNCIATION      = 1
+SS_VARIATIONAL_PRONUNCIATION = 2
 
 # [階層構造のあるdictをupdateする](https://www.greptips.com/posts/1242/)
 def deepupdate(dict_base, other):
@@ -109,7 +110,7 @@ def compress_pattern_one_table(pattern_table):
 def export_pattern_one_table(pattern_table, PATTERN_ONE_TABLE_FILE):
     with open(PATTERN_ONE_TABLE_FILE, mode='w', encoding='utf-8') as write_file:
         for charactor in pattern_table:
-            order = NORMAL_PRONUNCIATION
+            order = SS_NORMAL_PRONUNCIATION
             for pinyin in PINYIN_MAPPING_TABLE[charactor]:
                 if pinyin in list( pattern_table[charactor]["patterns"].keys() ):
                     str_patterns = expand_pattern_list2str( pattern_table[charactor]["patterns"][pinyin] )
@@ -233,8 +234,8 @@ def make_exceptional_pattern(OUTPUT_EXCEPTION_PATTERN_TABLE_FILE):
     dict_base = {
         "lookup_table": {
             "lookup_20": {
-                "着" : "着.ss01",
-                "轴" : "轴.ss01"
+                "着" : "着.ss02",
+                "轴" : "轴.ss02"
             }
         },
         "patterns": {

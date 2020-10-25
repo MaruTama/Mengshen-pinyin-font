@@ -37,6 +37,9 @@ class Font():
         }
         self.is_added_glyf = [False, False]
 
+    def get_has_single_pinyin_hanzi(self):
+        return [(ord(hanzi), pinyins) for hanzi, pinyins in self.PINYIN_MAPPING_TABLE.items() if 1 == len(pinyins)]
+
     def get_has_multiple_pinyin_hanzi(self):
         return [(ord(hanzi), pinyins) for hanzi, pinyins in self.PINYIN_MAPPING_TABLE.items() if 1 < len(pinyins)]
 
@@ -48,28 +51,33 @@ class Font():
         verticalOrigin = self.marged_font["glyf"][cid]["verticalOrigin"]
         return (advanceWidth, advanceHeight, verticalOrigin)
 
-    # GSUB の置換と cmap_uvs の置換はどっちが後？
+    
     def add_cmap_uvs(self):
         IVS = 0xE01E0 #917984
         """
-        e.g.: 
-        "19981 917984": "uni4E0D",      => 標準的なピンイン
-        "19981 917985": "uni4E0D.ss00", => ピンインのないグリフ
-        "19981 917986": "uni4E0D.ss01", => 以降、異読のピンイン
-        "19981 917987": "uni4E0D.ss02",
+        e.g.:
+        hanzi_glyf　　　　標準の読みの拼音
+        hanzi_glyf.ss00　ピンインの無い漢字グリフ。設定を変更するだけで拼音を変更できる
+        hanzi_glyf.ss01　（異読のピンインがあるとき）標準の読みの拼音（uni4E0D と重複しているが GSUB の置換（多音字のパターン）を無効にして強制的に置き換えるため）
+        hanzi_glyf.ss02　（異読のピンインがあるとき）以降、異読
         ...
         """
 
-        for (hanzi, pinyins) in self.PINYIN_MAPPING_TABLE.items():
-            str_unicode = str(ord(hanzi))
+        for (ucode, pinyins) in self.get_has_single_pinyin_hanzi():
+            str_unicode = str(ucode)
             if not (str_unicode in self.cmap_table):
                 raise Exception("グリフが見つかりません.\n  unicode: {}".format(str_unicode))
             cid = self.cmap_table[str_unicode]
-            offset = 1
-            self.marged_font["cmap_uvs"]["{0} {1}".format(str_unicode, IVS)         ] = cid
-            self.marged_font["cmap_uvs"]["{0} {1}".format(str_unicode, IVS + offset)] = "{}.ss00".format(cid)
-            for i in range( offset, len(pinyins) ):
-                self.marged_font["cmap_uvs"]["{0} {1}".format(str_unicode, IVS + offset + i)] = "{}.ss{:02}".format(cid, i)
+            self.marged_font["cmap_uvs"]["{0} {1}".format(str_unicode, IVS)] = "{}.ss00".format(cid)
+        
+        for (ucode, pinyins) in self.get_has_multiple_pinyin_hanzi():
+            str_unicode = str(ucode)
+            if not (str_unicode in self.cmap_table):
+                raise Exception("グリフが見つかりません.\n  unicode: {}".format(str_unicode))
+            cid = self.cmap_table[str_unicode]
+            # ss00 は ピンインのないグリフ なので、ピンインのグリフは "ss{:02}".format(len) まで
+            for i in range( len(pinyins)+1 ):
+                self.marged_font["cmap_uvs"]["{0} {1}".format(str_unicode, IVS + i)] = "{}.ss{:02}".format(cid, i)
 
     def add_glyph_order(self):
         """
@@ -80,13 +88,21 @@ class Font():
             ...
         ]
         """
-        # 異読の漢字グリフ追加
+        # 漢字グリフ追加
         set_glyph_order = set(self.marged_font["glyph_order"])
+        for (ucode, pinyins) in self.get_has_single_pinyin_hanzi():
+            str_unicode = str(ucode)
+            if not (str_unicode in self.cmap_table):
+                raise Exception("グリフが見つかりません.\n  unicode: {}".format(str_unicode))
+            cid = self.cmap_table[str_unicode]
+            set_glyph_order.add("{}.ss00".format(cid))
+
         for (ucode, pinyins) in self.get_has_multiple_pinyin_hanzi():
             str_unicode = str(ucode)
             if not (str_unicode in self.cmap_table):
                 raise Exception("グリフが見つかりません.\n  unicode: {}".format(str_unicode))
-            for i in range(len(pinyins)):
+            # ss00 は ピンインのないグリフ なので、ピンインのグリフは "ss{:02}".format(len) まで
+            for i in range( len(pinyins)+1 ):
                 cid = self.cmap_table[str_unicode]
                 set_glyph_order.add("{}.ss{:02}".format(cid, i))
         
@@ -96,7 +112,19 @@ class Font():
         new_glyph_order.sort()
         self.marged_font["glyph_order"] = new_glyph_order
         # print(self.marged_font["glyph_order"])
-    
+
+    def generate_hanzi_glyf_with_normal_pinyin(self, cid):
+        (advanceWidth, advanceHeight, verticalOrigin) = self.get_advance_size_of_hanzi()
+        hanzi_glyf = {
+                         "advanceWidth": advanceWidth,
+                         "advanceHeight": advanceHeight,
+                         "verticalOrigin": verticalOrigin,
+                         "references": [
+                             {"glyph":"{}.ss01".format(cid),"x":0, "y":0, "a":1, "b":0, "c":0, "d":1}
+                         ]
+                     }
+        return hanzi_glyf
+
     def generate_hanzi_glyf_with_pinyin(self, cid, pronunciation):
         (advanceWidth, advanceHeight, verticalOrigin) = self.get_advance_size_of_hanzi()
         simpled_pronunciation = utility.simplification_pronunciation( pronunciation )
@@ -110,6 +138,7 @@ class Font():
                          ]
                      }
         return hanzi_glyf
+    
     
     # unicode 上に定義が重複している漢字があるとエラーになるので判定を入れる
     # Exception: otfccbuild : Build : [WARNING] [Stat] Circular glyph reference found in gid 11663 to gid 11664. The reference will be dropped.
@@ -129,10 +158,10 @@ class Font():
     def add_glyf(self):
         """
         e.g.: 
-        uni4E0D　　　　標準の読みの拼音
-        uni4E0D.ss00　無印のグリフ。設定を変更するだけで拼音を変更できる。
-        uni4E0D.ss01　以降、異読
-        uni4E0D.ss02　
+        hanzi_glyf　　　　標準の読みの拼音
+        hanzi_glyf.ss00　ピンインの無い漢字グリフ。設定を変更するだけで拼音を変更できる
+        hanzi_glyf.ss01　（異読のピンインがあるとき）標準の読みの拼音（uni4E0D と重複しているが GSUB の置換（多音字のパターン）を無効にして強制的に置き換えるため）
+        hanzi_glyf.ss02　（異読のピンインがあるとき）以降、異読
         """
         """
         Sawarabi
@@ -141,13 +170,30 @@ class Font():
             "advanceHeight": 1000,
             "verticalOrigin": 952,
         """
-        # e.g.:
-        # uni4E00 -> uni4E00.ss00
-        # uni4E00 = uni4E00.ss00 + normal pronunciation
-        # if uni4E00 has variational pronunciation
-        # uni4E00.ss01 = uni4E00.ss00 + variational pronunciation
-        for (hanzi, pinyins) in self.PINYIN_MAPPING_TABLE.items():
-            str_unicode = str(ord(hanzi))
+        # グリフ数削減のために最低限のグリフのみを作成する
+        # if "hanzi_glyf" has normal pronunciation only
+        # hanzi_glyf -> hanzi_glyf.ss00
+        # hanzi_glyf = hanzi_glyf.ss00 + normal pronunciation
+        for (ucode, pinyins) in self.get_has_single_pinyin_hanzi():
+            str_unicode = str(ucode)
+            if not (str_unicode in self.cmap_table):
+                raise Exception("グリフが見つかりません.\n  unicode: {}".format(str_unicode))
+            if self.is_added_glyf_4_duplicate_definition_of_hanzi(str_unicode):
+                continue
+            cid = self.cmap_table[str_unicode]
+            glyf_data = self.font_glyf_table[cid]
+            self.font_glyf_table.update( { "{}.ss00".format(cid) : glyf_data } )
+            normal_pronunciation = pinyins[pg.NORMAL_PRONUNCIATION]
+            glyf_data = self.generate_hanzi_glyf_with_pinyin(cid, normal_pronunciation)
+            self.font_glyf_table.update( { cid : glyf_data } )
+
+        # if "hanzi_glyf" has variational pronunciation
+        # hanzi_glyf -> hanzi_glyf.ss00
+        # hanzi_glyf.ss01 = hanzi_glyf.ss00 + normal pronunciation
+        # hanzi_glyf = hanzi_glyf.ss01
+        # hanzi_glyf.ss02 = hanzi_glyf.ss00 + variational pronunciation
+        for (ucode, pinyins) in self.get_has_multiple_pinyin_hanzi():
+            str_unicode = str(ucode)
             if not (str_unicode in self.cmap_table):
                 raise Exception("グリフが見つかりません.\n  unicode: {}".format(str_unicode))
             if self.is_added_glyf_4_duplicate_definition_of_hanzi(str_unicode):
@@ -156,31 +202,48 @@ class Font():
             glyf_data = self.font_glyf_table[cid]
             # hanzi_glyf -> hanzi_glyf.ss00
             self.font_glyf_table.update( { "{}.ss00".format(cid) : glyf_data } )
-            # hanzi_glyf = hanzi_glyf.ss00 + normal pronunciation
+            # hanzi_glyf.ss01 = hanzi_glyf.ss00 + normal pronunciation
             normal_pronunciation = pinyins[pg.NORMAL_PRONUNCIATION]
             glyf_data = self.generate_hanzi_glyf_with_pinyin(cid, normal_pronunciation)
+            self.font_glyf_table.update( { "{}.ss01".format(cid) : glyf_data } )
+            # hanzi_glyf = hanzi_glyf.ss01
+            glyf_data = self.generate_hanzi_glyf_with_normal_pinyin(cid)
             self.font_glyf_table.update( { cid : glyf_data } )
             # if hanzi_glyf has variational pronunciation
             # hanzi_glyf.ss01 = hanzi_glyf.ss00 + variational pronunciation
             for i in range( 1,len(pinyins) ):
                 variational_pronunciation = pinyins[i]
                 glyf_data = self.generate_hanzi_glyf_with_pinyin(cid, variational_pronunciation)
-                self.font_glyf_table.update( { "{}.ss{:02}".format(cid, i) : glyf_data } )
+                self.font_glyf_table.update( { "{}.ss{:02}".format(cid, pg.VARIATIONAL_PRONUNCIATION + i) : glyf_data } )
             self.update_status_is_added_glyf_4_duplicate_definition_of_hanzi(str_unicode)
-
 
         new_glyf = self.marged_font["glyf"]
         new_glyf.update( self.pinyin_glyf )
         new_glyf.update( self.font_glyf_table )
         self.marged_font["glyf"] = new_glyf
+        print("  ==> glyf num : {}".format(len(self.marged_font["glyf"])))
+        if len(self.marged_font["glyf"]) > 65536:
+            raise Exception("glyf は 65536 個以上格納できません。")
 
-
+    # calt も rclt も featute の数が多いと有効にならない。 feature には上限がある？
+    # rclt は calt と似ていて、かつ無効にできないタグ [Tag:'rclt'](https://docs.microsoft.com/en-us/typography/opentype/spec/features_pt#-tag-rclt)
     # 代替文字の指定、置換条件の指定
     def add_GSUB(self):
-        self.PATTERN_ONE_TXT
-        self.PATTERN_TWO_JSON
-        self.EXCEPTION_PATTERN_JSON
-
+        lookup_order = set()
+        self.marged_font["GSUB"] = {
+            "languages": {
+                "DFLT_DFLT": {
+                    "features": []
+                },
+            },
+            "lookups": {},
+            "features": {
+                "aalt_00000": ["lookup_aalt_0","lookup_aalt_1"],
+            },
+            "lookupOrder": []
+        }
+        
+        # aalt は出来てる
         # lookups の aalt
         # aalt_0 は拼音が一つのみの漢字 + 記号とか。置き換え対象が一つのみのとき
         # aalt_1 は拼音が複数の漢字
@@ -220,18 +283,61 @@ class Font():
             }
         }
         """
-        self.marged_font["GSUB"]["lookups"]
         
+        lookup_tables = self.marged_font["GSUB"]["lookups"]
+        if not ("lookup_aalt_0" in lookup_tables):
+            lookup_tables.update( 
+                {
+                    "lookup_aalt_0" : {
+                        "type": "gsub_single",
+                        "flags": {},
+                        "subtables": [{}]
+                    }
+                } 
+            )
+        if not ("lookup_aalt_1" in lookup_tables):
+            lookup_tables.update( 
+                {
+                    "lookup_aalt_1" : {
+                        "type": "gsub_alternate",
+                        "flags": {},
+                        "subtables": [{}]
+                    }
+                } 
+            )
+        aalt_0_subtables = lookup_tables["lookup_aalt_0"]["subtables"][0]
+        aalt_1_subtables = lookup_tables["lookup_aalt_1"]["subtables"][0]
 
-        # lookups の catl
+        for (ucode, _) in self.get_has_single_pinyin_hanzi():
+            str_unicode = str(ucode)
+            cid = self.cmap_table[str_unicode]
+            aalt_0_subtables.update( {cid : "{}.ss00".format(cid) } )
+        lookup_order.add( "lookup_aalt_0" )
+
+        for (ucode, pinyins) in self.get_has_multiple_pinyin_hanzi():
+            str_unicode = str(ucode)
+            cid = self.cmap_table[str_unicode]
+            alternate_list = []
+            # ss00 は ピンインのないグリフ なので、ピンインのグリフは "ss{:02}".format(len) まで
+            for i in range( len(pinyins)+1 ):
+                alternate_list.append("{}.ss{:02}".format(cid, i))
+            aalt_1_subtables.update( {cid : alternate_list } )
+        lookup_order.add( "lookup_aalt_1" )
+
+
+
+        # lookups の rclt
         """
-        lookup calt0 {
+        e.g.:
+        adobe version
+        lookup rclt0 {
             sub [uni4E0D uni9280] uni884C' lookup lookup_0 ;
-        } calt0;
+        } rclt0;
         """
         """
+        json version
         "lookups": {
-            "lookup_calt_0": {
+            "lookup_rclt_0": {
                 "type": "gsub_chaining",
                 "flags": {},
                 "subtables": [
@@ -254,16 +360,142 @@ class Font():
             ...
         }
         """
+        pattern_one = [{}]
+        pattern_two = {}
+        exception_pattern = {}
+        with open(self.PATTERN_ONE_TXT, mode='r', encoding='utf-8') as read_file:
+            for line in read_file:
+                [str_order, hanzi, pinyin, patterns] = line.rstrip('\n').split(', ')
+                order = int(str_order)
+                # self.PATTERN_ONE_TXT の order = 1 は標準的なピンインなので無視する
+                if 1 == order:
+                    continue
+                # 2 から異読のピンイン。添字に使うために -2 して 0 にする。
+                idx = order-2
+                if len(pattern_one) <= idx:
+                    pattern_one.append({})
+                tmp = pattern_one[idx]
+                tmp.update(
+                    {
+                        hanzi:{
+                            "variational_pronunciation": pinyin,
+                            "patterns": patterns
+                        }
+                    }
+                )
+        with open(self.PATTERN_TWO_JSON, "rb") as read_file:
+            pattern_two = orjson.loads(read_file.read())
+        with open(self.EXCEPTION_PATTERN_JSON, "rb") as read_file:
+            exception_pattern = orjson.loads(read_file.read())
 
-        # lookup order
+        max_num_of_variational_pinyin = len(pattern_one)
         """
-        "lookupOrder": [
-            "lookup_calt_0",
-            "lookup_calt_1",
-            "lookup_ccmp_2",
-            "lookup_11_3"
+        pattern_one の中身
+        e.g.:
+        [
+            {
+                "行":{
+                    "variational_pronunciation":"háng",
+                    "patterns":"[~当|~家|~间|~列|~情|~业|发~|同~|外~|银~|~话|~会|~距]"
+                },
+                "作":{
+                    "variational_pronunciation":"zuō",
+                    "patterns":"[~坊|~弄|~揖]"
+                }
+            },
+            {
+                "行":{
+                    "variational_pronunciation":"hàng",
+                    "patterns":"[树~子]"
+                },
+                "作":{
+                    "variational_pronunciation":"zuó",
+                    "patterns":"[~料]"
+                }
+            },
+            {
+                "行":{
+                    "variational_pronunciation":"héng",
+                    "patterns":"[道~]"
+                },
+                "作":{
+                    "variational_pronunciation":"zuo",
+                    "patterns":"[做~]"
+                }
+            }
         ]
         """
+        lookup_tables = self.marged_font["GSUB"]["lookups"]
+        for inx in range(1):
+        # for inx in range(max_num_of_variational_pinyin):
+            # rclt feature init
+            if not ("lookup_rclt_{}".format(inx) in lookup_tables):
+                lookup_tables.update( 
+                    {
+                        "lookup_rclt_{}".format(inx): {
+                            "type": "gsub_chaining",
+                            "flags": {},
+                            "subtables":[
+                                {
+                                    "match":[[],[]],
+                                    "apply":[{}],
+                                    "inputBegins":-1,
+                                    "inputEnds":-1
+                                }
+                            ]
+                        }
+                    } 
+                )
+            # add feature
+            # for hanzi in pattern_one[idx].keys():
+            #     pattern_one[idx]["variational_pronunciation"]
+            #     pattern_one[idx]["patterns"]
+        
+        rclt_0_subtables = lookup_tables["lookup_rclt_0"]["subtables"][0]
+        apply_hanzi_cid = self.cmap_table[str(ord("行"))]
+        context_hanzi_cids = []
+        for hanzi in ["不", "银"]:
+            context_hanzi_cids.append( self.cmap_table[str(ord(hanzi))] )
+        rclt_0_subtables["match"] = [ context_hanzi_cids, [apply_hanzi_cid] ]
+        rclt_0_subtables["apply"] = [ { "at": 1, "lookup": "lookup_11_3" } ]
+        rclt_0_subtables["inputBegins"] = 1
+        rclt_0_subtables["inputEnds"]   = 2
+        lookup_order.add( "lookup_rclt_0" )
+
+        refer_lookup_table = {
+                "type": "gsub_single",
+                "flags": {},
+                "subtables": [
+                    {
+                        apply_hanzi_cid: "{}.ss02".format(apply_hanzi_cid)
+                    }
+                ]
+        }
+        lookup_tables.update( {"lookup_11_3":refer_lookup_table} )
+        lookup_order.add( "lookup_11_3" )
+
+
+
+        # feature ごとに使用する lookup table を指定する
+        """
+        "features": {
+            "aalt_00000": [
+                "lookup_aalt_0",
+                "lookup_aalt_1"
+            ],
+            "rclt_00000": [
+                "lookup_rclt_0",
+                "lookup_rclt_1",
+            ]
+            ...
+        }
+        """
+        features_table = self.marged_font["GSUB"]["features"]
+        if not ("rclt_00000" in features_table):
+            features_table.update( {"rclt_00000":[]} )
+        feature_rclt = features_table["rclt_00000"]
+        feature_rclt.append("lookup_rclt_0")
+        features_table.update( {"rclt_00000":feature_rclt} )
 
         # 文字体系 ごとに使用する feature を指定する
         # 'hani' = CJK (中国語/日本語/韓国語)
@@ -285,18 +517,50 @@ class Font():
             ...
         }
         """
+        languages = self.marged_font["GSUB"]["languages"]
+        if not ("DFLT_DFLT" in languages):
+            languages.update( 
+                {
+                    "DFLT_DFLT": {
+                        "features": []
+                    }
+                } 
+            )
+        # if not ("hani_DFLT" in languages):
+        #     languages.update( 
+        #         {
+        #             "hani_DFLT": {
+        #                 "features": []
+        #             }
+        #         } 
+        #     )
 
-        # feature ごとに使用する lookup table を指定する
+        features = languages["DFLT_DFLT"]["features"]
+        features.append("rclt_00000")
+        languages["DFLT_DFLT"]["features"] = features
+
+
+
+        # lookup order
         """
-        "features": {
-            "aalt_00000": [
-                "lookup_aalt_0",
-                "lookup_aalt_1"
-            ],
-            ...
-        }
+        "lookupOrder": [
+            "lookup_rclt_0",
+            "lookup_rclt_1",
+            "lookup_ccmp_2",
+            "lookup_11_3"
+        ]
         """
-        pass
+        union_lookup_order = set(self.marged_font["GSUB"]["lookupOrder"]) | lookup_order
+        list_lookup_order = list(union_lookup_order)
+        list_lookup_order.sort()
+        gsub_table = self.marged_font["GSUB"]
+        gsub_table.update( {"lookupOrder" : list_lookup_order} )
+        self.marged_font["GSUB"] = gsub_table
+
+        # 保存して確認する
+        with open("GSUB.json", "wb") as f:
+            serialized_glyf = orjson.dumps(self.marged_font["GSUB"], option=orjson.OPT_INDENT_2)
+            f.write(serialized_glyf)
 
     def load_json(self):
         with open(self.TAMPLATE_MAIN_JSON, "rb") as read_file:
@@ -311,6 +575,7 @@ class Font():
     
     def convert_json2otf(self, TAMPLATE_JSON, OUTPUT_FONT):
         cmd = "otfccbuild {} -o {}".format(TAMPLATE_JSON, OUTPUT_FONT)
+        print(cmd)
         shell.process(cmd)
 
     def build(self, OUTPUT_FONT):
@@ -320,9 +585,8 @@ class Font():
         print("glyph_order table を追加完了")
         self.add_glyf()
         print("glyf table を追加完了")
-        # self.add_GSUB()
-        # print("GSUB table を追加完了")
+        self.add_GSUB()
+        print("GSUB table を追加完了")
         TAMPLATE_MARGED_JSON = os.path.join(p.DIR_TEMP, "template.json")
         self.save_as_json(TAMPLATE_MARGED_JSON)
-        cmd = "otfccbuild {} -o {}".format(TAMPLATE_MARGED_JSON, OUTPUT_FONT)
-        shell.process(cmd)
+        self.convert_json2otf(TAMPLATE_MARGED_JSON, OUTPUT_FONT)
