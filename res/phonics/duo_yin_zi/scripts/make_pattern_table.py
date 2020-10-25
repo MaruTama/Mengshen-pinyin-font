@@ -10,7 +10,8 @@ import phrase_holder as ph
 import validate_phrase as validate
 
 PINYIN_MAPPING_TABLE = pinyin_getter.get_pinyin_table_with_mapping_table()
-NORMAL_PRONUNCIATION = 0
+NORMAL_PRONUNCIATION      = 0
+VARIATIONAL_PRONUNCIATION = 1
 
 # ss0X の番号振り
 # [Tag: 'ss01' - 'ss20'](https://docs.microsoft.com/en-us/typography/opentype/spec/features_pt#-tag-ss01---ss20)
@@ -108,7 +109,7 @@ def compress_pattern_one_table(pattern_table):
 def export_pattern_one_table(pattern_table, PATTERN_ONE_TABLE_FILE):
     with open(PATTERN_ONE_TABLE_FILE, mode='w', encoding='utf-8') as write_file:
         for charactor in pattern_table:
-            order = 1
+            order = NORMAL_PRONUNCIATION
             for pinyin in PINYIN_MAPPING_TABLE[charactor]:
                 if pinyin in list( pattern_table[charactor]["patterns"].keys() ):
                     str_patterns = expand_pattern_list2str( pattern_table[charactor]["patterns"][pinyin] )
@@ -284,13 +285,13 @@ def main():
     
 
     """
-    1, 阿, ā, [~托品]
-    2, 阿, ē, [~谀]
-    1, 差, chà, [~劲]
-    2, 差, chā, [~别|~额|~距|~价|~错|~异|~数|偏~|误~|逆~]
-    3, 差, chāi, [~遣|~使|~事|出~|公~|交~|钦~|当~]
-    1, 藏, cáng, [~匿|~书|~拙|暗~|保~|躲~|库~|收~|窝~|蕴~|珍~|贮~|掩~|捉迷~]
-    2, 藏, zàng, [~蓝|~历|~族|~红花|宝~]
+    0, 阿, ā, [~托品]
+    1, 阿, ē, [~谀]
+    0, 差, chà, [~劲]
+    1, 差, chā, [~别|~额|~距|~价|~错|~异|~数|偏~|误~|逆~]
+    2, 差, chāi, [~遣|~使|~事|出~|公~|交~|钦~|当~]
+    0, 藏, cáng, [~匿|~书|~拙|暗~|保~|躲~|库~|收~|窝~|蕴~|珍~|贮~|掩~|捉迷~]
+    1, 藏, zàng, [~蓝|~历|~族|~红花|宝~]
     """
     """
     lookup calt0 {
