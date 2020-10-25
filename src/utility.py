@@ -34,3 +34,12 @@ SIMPLED_ALPHABET = {
 # ピンイン表記の簡略化、e.g.: wěi -> we3i
 def simplification_pronunciation(pronunciation):
     return  "".join( [SIMPLED_ALPHABET[c] for c in pronunciation] )
+
+
+# [階層構造のあるdictをupdateする](https://www.greptips.com/posts/1242/)
+def deepupdate(dict_base, other):
+    for k, v in other.items():
+        if isinstance(v, dict) and k in dict_base:
+            deepupdate(dict_base[k], v)
+        else:
+            dict_base[k] = v

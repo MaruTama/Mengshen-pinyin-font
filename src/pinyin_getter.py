@@ -14,7 +14,8 @@ ZDIC_URL   = "https://www.zdic.net/hans/{}"
 MARGED_MAPPING_TABLE = "marged-mapping-table.txt"
 
 
-NORMAL_PRONUNCIATION = 0
+NORMAL_PRONUNCIATION      = 0
+VARIATIONAL_PRONUNCIATION = 1
 
 
 def get_pinyin_with_baidu(hanzi):
