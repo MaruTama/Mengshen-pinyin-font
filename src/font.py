@@ -225,28 +225,107 @@ class Font():
         if len(self.marged_font["glyf"]) > 65536:
             raise Exception("glyf は 65536 個以上格納できません。")
 
+    def convert_str_hanzi_2_cid(self, str_hanzi):
+        return self.cmap_table[ str(ord(str_hanzi)) ]
+
     # calt も rclt も featute の数が多いと有効にならない。 feature には上限がある？
     # rclt は calt と似ていて、かつ無効にできないタグ [Tag:'rclt'](https://docs.microsoft.com/en-us/typography/opentype/spec/features_pt#-tag-rclt)
     # 代替文字の指定、置換条件の指定
     def add_GSUB(self):
-        lookup_order = set()
+        # 初期化
         self.marged_font["GSUB"] = {
             "languages": {
                 "DFLT_DFLT": {
-                    "features": []
+                    "features": [
+                        "aalt_00000",
+                        "rclt_00000"
+                    ]
+                },
+                "hani_DFLT": {
+                    "features": [
+                        "aalt_00001",
+                        "rclt_00001"
+                    ]
                 },
             },
-            "lookups": {},
+            "lookups": {
+                # aalt_0 は拼音が一つのみの漢字 + 記号とか。置き換え対象が一つのみのとき
+                "lookup_aalt_0" : {
+                    "type": "gsub_single",
+                    "flags": {},
+                    "subtables": [{}]
+                },
+                # aalt_1 は拼音が複数の漢字
+                "lookup_aalt_1" : {
+                    "type": "gsub_alternate",
+                    "flags": {},
+                    "subtables": [{}]
+                },
+                # pattern one
+                "lookup_rclt_0": {
+                    "type": "gsub_chaining",
+                    "flags": {},
+                    "subtables": [
+                        # {
+                        #     "match": [[],[]],
+                        #     "apply": [
+                        #         {
+                        #             "at": -1, 
+                        #             "lookup": ""
+                        #         }
+                        #     ],
+                        #     "inputBegins": -1,
+                        #     "inputEnds": -1
+                        # }
+                    ]
+                },
+                # pattern two
+                "lookup_rclt_1": {
+                    "type": "gsub_chaining",
+                    "flags": {},
+                    "subtables": [
+                        # {
+                        #     "match": [[],[]],
+                        #     "apply": [
+                        #         {
+                        #             "at": -1, 
+                        #             "lookup": ""
+                        #         }
+                        #     ],
+                        #     "inputBegins": -1,
+                        #     "inputEnds": -1
+                        # }
+                    ]
+                },
+                # exception pattern
+                "lookup_rclt_2": {
+                    "type": "gsub_chaining",
+                    "flags": {},
+                    "subtables": [
+                        # {
+                        #     "match": [[],[]],
+                        #     "apply": [
+                        #         {
+                        #             "at": -1, 
+                        #             "lookup": ""
+                        #         }
+                        #     ],
+                        #     "inputBegins": -1,
+                        #     "inputEnds": -1
+                        # }
+                    ]
+                },
+            },
             "features": {
                 "aalt_00000": ["lookup_aalt_0","lookup_aalt_1"],
-            },
-            "lookupOrder": []
+                "aalt_00001": ["lookup_aalt_0","lookup_aalt_1"],
+                "rclt_00000": ["lookup_rclt_0","lookup_rclt_1","lookup_rclt_2"],
+                "rclt_00001": ["lookup_rclt_0","lookup_rclt_1","lookup_rclt_2"]
+            }, 
+            "lookupOrder": ["lookup_aalt_0","lookup_aalt_1","lookup_rclt_0","lookup_rclt_1","lookup_rclt_2"]
         }
+        lookup_order = set()
         
-        # aalt は出来てる
-        # lookups の aalt
-        # aalt_0 は拼音が一つのみの漢字 + 記号とか。置き換え対象が一つのみのとき
-        # aalt_1 は拼音が複数の漢字
         """
         e.g.:
         "lookups": {
@@ -285,29 +364,10 @@ class Font():
         """
         
         lookup_tables = self.marged_font["GSUB"]["lookups"]
-        if not ("lookup_aalt_0" in lookup_tables):
-            lookup_tables.update( 
-                {
-                    "lookup_aalt_0" : {
-                        "type": "gsub_single",
-                        "flags": {},
-                        "subtables": [{}]
-                    }
-                } 
-            )
-        if not ("lookup_aalt_1" in lookup_tables):
-            lookup_tables.update( 
-                {
-                    "lookup_aalt_1" : {
-                        "type": "gsub_alternate",
-                        "flags": {},
-                        "subtables": [{}]
-                    }
-                } 
-            )
         aalt_0_subtables = lookup_tables["lookup_aalt_0"]["subtables"][0]
         aalt_1_subtables = lookup_tables["lookup_aalt_1"]["subtables"][0]
 
+        # add
         for (ucode, _) in self.get_has_single_pinyin_hanzi():
             str_unicode = str(ucode)
             cid = self.cmap_table[str_unicode]
@@ -425,119 +485,168 @@ class Font():
             }
         ]
         """
-        lookup_tables = self.marged_font["GSUB"]["lookups"]
-        for inx in range(1):
-        # for inx in range(max_num_of_variational_pinyin):
-            # rclt feature init
-            if not ("lookup_rclt_{}".format(inx) in lookup_tables):
-                lookup_tables.update( 
-                    {
-                        "lookup_rclt_{}".format(inx): {
-                            "type": "gsub_chaining",
-                            "flags": {},
-                            "subtables":[
-                                {
-                                    "match":[[],[]],
-                                    "apply":[{}],
-                                    "inputBegins":-1,
-                                    "inputEnds":-1
-                                }
-                            ]
-                        }
-                    } 
-                )
-            # add feature
-            # for hanzi in pattern_one[idx].keys():
-            #     pattern_one[idx]["variational_pronunciation"]
-            #     pattern_one[idx]["patterns"]
-        
-        rclt_0_subtables = lookup_tables["lookup_rclt_0"]["subtables"][0]
-        apply_hanzi_cid = self.cmap_table[str(ord("行"))]
-        context_hanzi_cids = []
-        for hanzi in ["不", "银"]:
-            context_hanzi_cids.append( self.cmap_table[str(ord(hanzi))] )
-        rclt_0_subtables["match"] = [ context_hanzi_cids, [apply_hanzi_cid] ]
-        rclt_0_subtables["apply"] = [ { "at": 1, "lookup": "lookup_11_3" } ]
-        rclt_0_subtables["inputBegins"] = 1
-        rclt_0_subtables["inputEnds"]   = 2
-        lookup_order.add( "lookup_rclt_0" )
-
-        refer_lookup_table = {
-                "type": "gsub_single",
-                "flags": {},
-                "subtables": [
-                    {
-                        apply_hanzi_cid: "{}.ss02".format(apply_hanzi_cid)
-                    }
-                ]
-        }
-        lookup_tables.update( {"lookup_11_3":refer_lookup_table} )
-        lookup_order.add( "lookup_11_3" )
-
-
-
-        # feature ごとに使用する lookup table を指定する
-        """
-        "features": {
-            "aalt_00000": [
-                "lookup_aalt_0",
-                "lookup_aalt_1"
-            ],
-            "rclt_00000": [
-                "lookup_rclt_0",
-                "lookup_rclt_1",
-            ]
-            ...
-        }
-        """
-        features_table = self.marged_font["GSUB"]["features"]
-        if not ("rclt_00000" in features_table):
-            features_table.update( {"rclt_00000":[]} )
-        feature_rclt = features_table["rclt_00000"]
-        feature_rclt.append("lookup_rclt_0")
-        features_table.update( {"rclt_00000":feature_rclt} )
-
-        # 文字体系 ごとに使用する feature を指定する
-        # 'hani' = CJK (中国語/日本語/韓国語)
-        # 'kana' = ひらがな/カタカナ -> 使わない
-        """
-        "languages": {
-            "DFLT_DFLT": {
-                "features": [
-                    "aalt_00000",
-                    "ccmp_00007",
-                ]
-            },
-            "hani_DFLT": {
-                "features": [
-                    "aalt_00003",
-                    "ccmp_00010",
-                ]
-            },
-            ...
-        }
-        """
-        languages = self.marged_font["GSUB"]["languages"]
-        if not ("DFLT_DFLT" in languages):
-            languages.update( 
-                {
-                    "DFLT_DFLT": {
-                        "features": []
+        lookup_tables    = self.marged_font["GSUB"]["lookups"]
+        # for inx in range(1):
+        # init 
+        if max_num_of_variational_pinyin > 10:
+            raise Exception("ピンインは10通りまでしか対応していません")
+        for idx in range(max_num_of_variational_pinyin):
+            lookup_tables.update( 
+                { 
+                    "lookup_pattern_0{}".format(idx) : {
+                        "type": "gsub_single",
+                        "flags": {},
+                        "subtables": [{}]
                     }
                 } 
             )
-        # if not ("hani_DFLT" in languages):
-        #     languages.update( 
-        #         {
-        #             "hani_DFLT": {
-        #                 "features": []
-        #             }
-        #         } 
-        #     )
+            lookup_order.add( "lookup_pattern_0{}".format(idx) )
+        # add
+        list_rclt_0_subtables = lookup_tables["lookup_rclt_0"]["subtables"]
+        for idx in range(max_num_of_variational_pinyin):
+            lookup_table_subtables = lookup_tables["lookup_pattern_0{}".format(idx)]["subtables"][0]
+            for apply_hanzi in pattern_one[idx].keys():
+                apply_hanzi_cid = self.convert_str_hanzi_2_cid(apply_hanzi)
+                lookup_table_subtables.update( { apply_hanzi_cid : "{}.ss{:02}".format(apply_hanzi_cid, pg.SS_VARIATIONAL_PRONUNCIATION + idx) } )
+                str_patterns = pattern_one[idx][apply_hanzi]["patterns"]
+                import re
+                patterns = str_patterns.strip("[]").split('|') 
+                # まとめて記述できる
+                # sub [uni4E0D uni9280] uni884C' lookup lookup_0 ;
+                # sub uni884C' lookup lookup_0　[uni4E0D uni9280] ;
+                left_match  = [s for s in patterns if re.match("^~.$", s)]
+                right_match = [s for s in patterns if re.match("^.~$", s)]
+                # 一つ一つ記述する
+                # 
+                other_match = [s for s in patterns if not (s in (left_match + right_match))]
 
-        features = languages["DFLT_DFLT"]["features"]
-        features.append("rclt_00000")
-        languages["DFLT_DFLT"]["features"] = features
+                if len(left_match) > 0:
+                    context_hanzi_cids = [ self.convert_str_hanzi_2_cid(context_hanzi) for context_hanzi in [context_hanzi.replace("~","") for context_hanzi in left_match] ]
+                    list_rclt_0_subtables.append(
+                        {
+                            "match": [ [apply_hanzi_cid], context_hanzi_cids ],
+                            "apply": [
+                                {
+                                "at": 0,
+                                "lookup": "lookup_pattern_0{}".format(idx)
+                                }
+                            ],
+                            "inputBegins": 0,
+                            "inputEnds": 1
+                        }
+                    )
+                
+                if len(right_match) > 0:
+                    context_hanzi_cids = [ self.convert_str_hanzi_2_cid(context_hanzi) for context_hanzi in [context_hanzi.replace("~","") for context_hanzi in right_match] ]
+                    list_rclt_0_subtables.append(
+                        {
+                            "match": [ context_hanzi_cids, [apply_hanzi_cid] ],
+                            "apply": [
+                                {
+                                "at": 1,
+                                "lookup": "lookup_pattern_0{}".format(idx)
+                                }
+                            ],
+                            "inputBegins": 1,
+                            "inputEnds": 2
+                        }
+                    )
+
+                for match_pattern in other_match:
+                    at = match_pattern.index("~")
+                    list_rclt_0_subtables.append(
+                        {
+                            "match": [ [self.convert_str_hanzi_2_cid(hanzi)] for hanzi in match_pattern.replace("~", apply_hanzi) ],
+                            "apply": [
+                                {
+                                "at": at,
+                                "lookup": "lookup_pattern_0{}".format(idx)
+                                }
+                            ],
+                            "inputBegins": at,
+                            "inputEnds": at + 1
+                        }
+                    )
+        
+        
+        # rclt_0_subtables = lookup_tables["lookup_rclt_0"]["subtables"][0]
+        # apply_hanzi_cid = self.cmap_table[str(ord("行"))]
+        # context_hanzi_cids = []
+        # for hanzi in ["不", "银"]:
+        #     context_hanzi_cids.append( self.cmap_table[str(ord(hanzi))] )
+        # rclt_0_subtables["match"] = [ context_hanzi_cids, [apply_hanzi_cid] ]
+        # rclt_0_subtables["apply"] = [ { "at": 1, "lookup": "lookup_11_3" } ]
+        
+        # # 
+        # rclt_0_subtables["inputBegins"] = 1
+        # rclt_0_subtables["inputEnds"]   = 2
+        # lookup_order.add( "lookup_rclt_0" )
+
+
+        # refer_lookup_table = {
+        #         "type": "gsub_single",
+        #         "flags": {},
+        #         "subtables": [
+        #             {
+        #                 apply_hanzi_cid: "{}.ss02".format(apply_hanzi_cid)
+        #             }
+        #         ]
+        # }
+        # lookup_tables.update( {"lookup_11_3":refer_lookup_table} )
+        # lookup_order.add( "lookup_11_3" )
+
+        pattern_two
+        exception_pattern
+        
+
+
+
+        # # feature ごとに使用する lookup table を指定する
+        # """
+        # "features": {
+        #     "aalt_00000": [
+        #         "lookup_aalt_0",
+        #         "lookup_aalt_1"
+        #     ],
+        #     "rclt_00000": [
+        #         "lookup_rclt_0",
+        #         "lookup_rclt_1",
+        #     ]
+        #     ...
+        # }
+        # """
+        # features_table = self.marged_font["GSUB"]["features"]
+        # if not ("rclt_00000" in features_table):
+        #     features_table.update( {"rclt_00000":[]} )
+        # feature_rclt = features_table["rclt_00000"]
+        # feature_rclt.append("lookup_rclt_0")
+        # features_table.update( {"rclt_00000":feature_rclt} )
+
+        # # 文字体系 ごとに使用する feature を指定する
+        # # 'hani' = CJK (中国語/日本語/韓国語)
+        # # 'kana' = ひらがな/カタカナ -> 使わない
+        # """
+        # "languages": {
+        #     "DFLT_DFLT": {
+        #         "features": [
+        #             "aalt_00000",
+        #             "ccmp_00007",
+        #         ]
+        #     },
+        #     "hani_DFLT": {
+        #         "features": [
+        #             "aalt_00003",
+        #             "ccmp_00010",
+        #         ]
+        #     },
+        #     ...
+        # }
+        # """
+        # languages = self.marged_font["GSUB"]["languages"]
+
+        # features = languages["DFLT_DFLT"]["features"]
+        # features.append("rclt_00000")
+        # languages["DFLT_DFLT"]["features"] = features
 
 
 
@@ -558,9 +667,9 @@ class Font():
         self.marged_font["GSUB"] = gsub_table
 
         # 保存して確認する
-        with open("GSUB.json", "wb") as f:
-            serialized_glyf = orjson.dumps(self.marged_font["GSUB"], option=orjson.OPT_INDENT_2)
-            f.write(serialized_glyf)
+        # with open("GSUB.json", "wb") as f:
+        #     serialized_glyf = orjson.dumps(self.marged_font["GSUB"], option=orjson.OPT_INDENT_2)
+        #     f.write(serialized_glyf)
 
     def load_json(self):
         with open(self.TAMPLATE_MAIN_JSON, "rb") as read_file:
