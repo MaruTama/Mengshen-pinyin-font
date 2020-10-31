@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
 
+import os
+import orjson
+import pinyin_getter as pg
+import path as p
+
 SIMPLED_ALPHABET = {
     "a":"a", "ā":"a1", "á":"a2", "ǎ":"a3", "à":"a4",
     "b":"b",
@@ -30,11 +35,28 @@ SIMPLED_ALPHABET = {
     "z":"z"
 }
 
+TAMPLATE_MAIN_JSON = os.path.join(p.DIR_TEMP, "template_main.json")
+with open(TAMPLATE_MAIN_JSON, "rb") as read_file:
+    marged_font = orjson.loads(read_file.read())
+cmap_table = marged_font["cmap"]
+
+PINYIN_MAPPING_TABLE = pg.get_pinyin_table_with_mapping_table()
 
 # ピンイン表記の簡略化、e.g.: wěi -> we3i
 def simplification_pronunciation(pronunciation):
     return  "".join( [SIMPLED_ALPHABET[c] for c in pronunciation] )
 
+# ピンインが一つだけの漢字をすべて取得する
+def get_has_single_pinyin_hanzi():
+    return [(hanzi, pinyins) for hanzi, pinyins in PINYIN_MAPPING_TABLE.items() if 1 == len(pinyins)]
+
+# ピンインが2つ以上の漢字をすべて取得する
+def get_has_multiple_pinyin_hanzi():
+    return [(hanzi, pinyins) for hanzi, pinyins in PINYIN_MAPPING_TABLE.items() if 1 < len(pinyins)]
+
+# 漢字から cid を取得する
+def convert_str_hanzi_2_cid(str_hanzi):
+        return cmap_table[ str(ord(str_hanzi)) ]
 
 # [階層構造のあるdictをupdateする](https://www.greptips.com/posts/1242/)
 def deepupdate(dict_base, other):
