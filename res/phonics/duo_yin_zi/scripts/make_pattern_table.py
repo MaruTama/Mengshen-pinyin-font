@@ -191,7 +191,7 @@ def add_lookup4pattern_two(lookup_table_dict, phrase_instance):
     for (idx, target_charactor) in has_variational_pronunciation_hanzes:
         pinyin = phrase_instance.get_list_pinyin()[idx]
         priority = get_pinyin_priority(target_charactor, pinyin)
-        lookup_name = "lookup_1{}".format( priority )
+        lookup_name = "lookup_pattern_1{}".format( priority )
         # init
         if not (lookup_name in lookup_table_dict):
             lookup_table_dict.update( {lookup_name:{}} )
@@ -212,7 +212,7 @@ def get_pattern4pattern_two(phrase_instance):
         priority = get_pinyin_priority(target_charactor, pinyin)
         phrase_value[idx] = \
             {
-                target_charactor: "lookup_1{}".format( priority )
+                target_charactor: "lookup_pattern_1{}".format( priority )
             }
     return phrase_value
 

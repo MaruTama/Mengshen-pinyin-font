@@ -448,6 +448,7 @@ class Font():
         with open(self.EXCEPTION_PATTERN_JSON, "rb") as read_file:
             exception_pattern = orjson.loads(read_file.read())
 
+        # pattern one
         max_num_of_variational_pinyin = len(pattern_one)
         """
         pattern_one の中身
@@ -485,29 +486,32 @@ class Font():
             }
         ]
         """
-        lookup_tables    = self.marged_font["GSUB"]["lookups"]
-        # for inx in range(1):
+        lookup_tables = self.marged_font["GSUB"]["lookups"]
         # init 
         if max_num_of_variational_pinyin > 10:
             raise Exception("ピンインは10通りまでしか対応していません")
         for idx in range(max_num_of_variational_pinyin):
+            lookup_name = "lookup_pattern_0{}".format(idx)
             lookup_tables.update( 
                 { 
-                    "lookup_pattern_0{}".format(idx) : {
+                    lookup_name : {
                         "type": "gsub_single",
                         "flags": {},
                         "subtables": [{}]
                     }
                 } 
             )
-            lookup_order.add( "lookup_pattern_0{}".format(idx) )
+            lookup_order.add( lookup_name )
         # add
         list_rclt_0_subtables = lookup_tables["lookup_rclt_0"]["subtables"]
         for idx in range(max_num_of_variational_pinyin):
-            lookup_table_subtables = lookup_tables["lookup_pattern_0{}".format(idx)]["subtables"][0]
+            # to lookup table for replacing
+            lookup_name = "lookup_pattern_0{}".format(idx)
+            lookup_table_subtables = lookup_tables[lookup_name]["subtables"][0]
             for apply_hanzi in pattern_one[idx].keys():
                 apply_hanzi_cid = self.convert_str_hanzi_2_cid(apply_hanzi)
                 lookup_table_subtables.update( { apply_hanzi_cid : "{}.ss{:02}".format(apply_hanzi_cid, pg.SS_VARIATIONAL_PRONUNCIATION + idx) } )
+                # to rclt0
                 str_patterns = pattern_one[idx][apply_hanzi]["patterns"]
                 import re
                 patterns = str_patterns.strip("[]").split('|') 
@@ -528,7 +532,7 @@ class Font():
                             "apply": [
                                 {
                                 "at": 0,
-                                "lookup": "lookup_pattern_0{}".format(idx)
+                                "lookup": lookup_name
                                 }
                             ],
                             "inputBegins": 0,
@@ -568,34 +572,52 @@ class Font():
                         }
                     )
         
-        
-        # rclt_0_subtables = lookup_tables["lookup_rclt_0"]["subtables"][0]
-        # apply_hanzi_cid = self.cmap_table[str(ord("行"))]
-        # context_hanzi_cids = []
-        # for hanzi in ["不", "银"]:
-        #     context_hanzi_cids.append( self.cmap_table[str(ord(hanzi))] )
-        # rclt_0_subtables["match"] = [ context_hanzi_cids, [apply_hanzi_cid] ]
-        # rclt_0_subtables["apply"] = [ { "at": 1, "lookup": "lookup_11_3" } ]
-        
-        # # 
-        # rclt_0_subtables["inputBegins"] = 1
-        # rclt_0_subtables["inputEnds"]   = 2
-        # lookup_order.add( "lookup_rclt_0" )
+        # pattern two
+        lookup_tables = self.marged_font["GSUB"]["lookups"]
+        # to lookup table for replacing
+        for lookup_name, table in pattern_two["lookup_table"].items():
+            # init
+            lookup_tables.update( 
+                { 
+                    lookup_name : {
+                        "type": "gsub_single",
+                        "flags": {},
+                        "subtables": [{}]
+                    }
+                } 
+            )
+            # add
+            lookup_table_subtables = lookup_tables[lookup_name]["subtables"][0]
+            # e,g. "差": "差.ss05", -> "cid16957": "cid16957.ss05"
+            lookup_table_subtables.update( { self.convert_str_hanzi_2_cid(k): v.replace(k,self.convert_str_hanzi_2_cid(k)) for k,v in table.items() } )
+            lookup_order.add( lookup_name )
+        # to rclt1
+        list_rclt_1_subtables = lookup_tables["lookup_rclt_1"]["subtables"]
+        for phrase, list_table in pattern_two["patterns"].items():
+            applies = [] 
+            ats = [] 
+            for i in range(len(list_table)):
+                table = list_table[i]
+                # 要素は一つしかない. ほかに綺麗に取り出す方法が思いつかない.
+                lookup_name = list(table.values())[0]
+                if lookup_name != None:
+                    ats.append(i)
+                    applies.append(
+                        {
+                            "at": i,
+                            "lookup": lookup_name
+                        }
+                    )
+            
+            list_rclt_1_subtables.append(
+                        {
+                            "match": [ [self.convert_str_hanzi_2_cid(hanzi)] for hanzi in phrase ],
+                            "apply": applies,
+                            "inputBegins": min(ats),
+                            "inputEnds": max(ats) + 1
+                        }
+                    )
 
-
-        # refer_lookup_table = {
-        #         "type": "gsub_single",
-        #         "flags": {},
-        #         "subtables": [
-        #             {
-        #                 apply_hanzi_cid: "{}.ss02".format(apply_hanzi_cid)
-        #             }
-        #         ]
-        # }
-        # lookup_tables.update( {"lookup_11_3":refer_lookup_table} )
-        # lookup_order.add( "lookup_11_3" )
-
-        pattern_two
         exception_pattern
         
 
