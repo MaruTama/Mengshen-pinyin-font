@@ -4,6 +4,7 @@
 import shell
 import orjson
 import os
+import re
 import pinyin_getter as pg
 import pinyin_glyph as py_glyph
 import utility
@@ -234,6 +235,7 @@ class Font():
     def add_GSUB(self):
         # 初期化
         self.marged_font["GSUB"] = {
+            # 文字体系 ごとに使用する feature を指定する
             "languages": {
                 "DFLT_DFLT": {
                     "features": [
@@ -241,6 +243,7 @@ class Font():
                         "rclt_00000"
                     ]
                 },
+                # 'hani' = CJK (中国語/日本語/韓国語)
                 "hani_DFLT": {
                     "features": [
                         "aalt_00001",
@@ -316,6 +319,7 @@ class Font():
                     ]
                 },
             },
+            # feature ごとに使用する lookup table を指定する
             "features": {
                 "aalt_00000": ["lookup_aalt_0","lookup_aalt_1"],
                 "aalt_00001": ["lookup_aalt_0","lookup_aalt_1"],
@@ -513,15 +517,17 @@ class Font():
                 lookup_table_subtables.update( { apply_hanzi_cid : "{}.ss{:02}".format(apply_hanzi_cid, pg.SS_VARIATIONAL_PRONUNCIATION + idx) } )
                 # to rclt0
                 str_patterns = pattern_one[idx][apply_hanzi]["patterns"]
-                import re
+                
                 patterns = str_patterns.strip("[]").split('|') 
-                # まとめて記述できる
+                # まとめて記述できるもの
+                # e.g.:
                 # sub [uni4E0D uni9280] uni884C' lookup lookup_0 ;
                 # sub uni884C' lookup lookup_0　[uni4E0D uni9280] ;
                 left_match  = [s for s in patterns if re.match("^~.$", s)]
                 right_match = [s for s in patterns if re.match("^.~$", s)]
-                # 一つ一つ記述する
-                # 
+                # 一つ一つ記述するもの
+                # e.g.:
+                # sub uni85CF' lookup lookup_0 uni7D05 uni82B1 ;
                 other_match = [s for s in patterns if not (s in (left_match + right_match))]
 
                 if len(left_match) > 0:
@@ -593,11 +599,11 @@ class Font():
             lookup_order.add( lookup_name )
         # to rclt1
         list_rclt_1_subtables = lookup_tables["lookup_rclt_1"]["subtables"]
-        for phrase, list_table in pattern_two["patterns"].items():
+        for phrase, list_pattern_table in pattern_two["patterns"].items():
             applies = [] 
             ats = [] 
-            for i in range(len(list_table)):
-                table = list_table[i]
+            for i in range(len(list_pattern_table)):
+                table = list_pattern_table[i]
                 # 要素は一つしかない. ほかに綺麗に取り出す方法が思いつかない.
                 lookup_name = list(table.values())[0]
                 if lookup_name != None:
@@ -618,62 +624,82 @@ class Font():
                         }
                     )
 
-        exception_pattern
         
+        # exception pattern
+        lookup_tables = self.marged_font["GSUB"]["lookups"]
+        # to lookup table for replacing
+        for lookup_name, table in exception_pattern["lookup_table"].items():
+            # init
+            lookup_tables.update( 
+                { 
+                    lookup_name : {
+                        "type": "gsub_single",
+                        "flags": {},
+                        "subtables": [{}]
+                    }
+                } 
+            )
+            # add
+            lookup_table_subtables = lookup_tables[lookup_name]["subtables"][0]
+            # e,g. "着": "着.ss02",, -> "cid28651": "cid28651.ss05"
+            lookup_table_subtables.update( { self.convert_str_hanzi_2_cid(k): v.replace(k,self.convert_str_hanzi_2_cid(k)) for k,v in table.items() } )
+            lookup_order.add( lookup_name )
+        # to rclt2
+        list_rclt_2_subtables = lookup_tables["lookup_rclt_2"]["subtables"]
+        for phrase, setting_of_phrase in exception_pattern["patterns"].items():
+            ignore_pattern     = setting_of_phrase["ignore"]
+            list_pattern_table = setting_of_phrase["pattern"]
 
+            # ignore のパターンがあれば記述する
+            if ignore_pattern != None:
+                list_ignore_pattern = ignore_pattern.split(' ')
+                tmp = [ hanzi for hanzi in list_ignore_pattern if re.match(".'", hanzi) ]
+                if len(tmp) == 1:
+                    apply_hanzi = tmp[0]
+                else:
+                    # 現在は、対象('がある)漢字はひとつだけと想定している
+                    raise Exception("exception pattern の ignore 記述が間違っています。: \n {}".format(ignore_pattern))
+                # 空白とシングルコートを削除
+                ignore_phrase = ignore_pattern.replace(" ", "").replace("'", "")
+                print(ignore_phrase)
+                at     = list_ignore_pattern.index(apply_hanzi)
+                list_rclt_2_subtables.append(
+                        {
+                            "match": [ [self.convert_str_hanzi_2_cid(hanzi)] for hanzi in ignore_phrase ],
+                            "apply": [],
+                            "inputBegins": at,
+                            "inputEnds": at + 1
+                        }
+                    )
+            # 期待する普通のパターン
+            applies = [] 
+            ats = [] 
+            for i in range(len(list_pattern_table)):
+                table = list_pattern_table[i]
+                # 要素は一つしかない. ほかに綺麗に取り出す方法が思いつかない.
+                lookup_name = list(table.values())[0]
+                if lookup_name != None:
+                    ats.append(i)
+                    applies.append(
+                        {
+                            "at": i,
+                            "lookup": lookup_name
+                        }
+                    )
+            list_rclt_2_subtables.append(
+                        {
+                            "match": [ [self.convert_str_hanzi_2_cid(hanzi)] for hanzi in phrase ],
+                            "apply": applies,
+                            "inputBegins": min(ats),
+                            "inputEnds": max(ats) + 1
+                        }
+                    )
 
-
-        # # feature ごとに使用する lookup table を指定する
-        # """
-        # "features": {
-        #     "aalt_00000": [
-        #         "lookup_aalt_0",
-        #         "lookup_aalt_1"
-        #     ],
-        #     "rclt_00000": [
-        #         "lookup_rclt_0",
-        #         "lookup_rclt_1",
-        #     ]
-        #     ...
-        # }
-        # """
-        # features_table = self.marged_font["GSUB"]["features"]
-        # if not ("rclt_00000" in features_table):
-        #     features_table.update( {"rclt_00000":[]} )
-        # feature_rclt = features_table["rclt_00000"]
-        # feature_rclt.append("lookup_rclt_0")
-        # features_table.update( {"rclt_00000":feature_rclt} )
-
-        # # 文字体系 ごとに使用する feature を指定する
-        # # 'hani' = CJK (中国語/日本語/韓国語)
-        # # 'kana' = ひらがな/カタカナ -> 使わない
-        # """
-        # "languages": {
-        #     "DFLT_DFLT": {
-        #         "features": [
-        #             "aalt_00000",
-        #             "ccmp_00007",
-        #         ]
-        #     },
-        #     "hani_DFLT": {
-        #         "features": [
-        #             "aalt_00003",
-        #             "ccmp_00010",
-        #         ]
-        #     },
-        #     ...
-        # }
-        # """
-        # languages = self.marged_font["GSUB"]["languages"]
-
-        # features = languages["DFLT_DFLT"]["features"]
-        # features.append("rclt_00000")
-        # languages["DFLT_DFLT"]["features"] = features
-
-
+        
 
         # lookup order
         """
+        e.g.:
         "lookupOrder": [
             "lookup_rclt_0",
             "lookup_rclt_1",

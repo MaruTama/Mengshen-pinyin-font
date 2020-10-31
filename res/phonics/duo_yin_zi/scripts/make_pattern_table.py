@@ -233,7 +233,7 @@ def make_pattern_two(phrase_holder, OUTPUT_PATTERN_TWO_TABLE_FILE):
 def make_exceptional_pattern(OUTPUT_EXCEPTION_PATTERN_TABLE_FILE):
     dict_base = {
         "lookup_table": {
-            "lookup_20": {
+            "lookup_pattern_20": {
                 "着" : "着.ss02",
                 "轴" : "轴.ss02"
             }
@@ -242,7 +242,7 @@ def make_exceptional_pattern(OUTPUT_EXCEPTION_PATTERN_TABLE_FILE):
             "着手" : {
                 "ignore" : "背 着' 手",
                 "pattern" :[
-                    {"着" : "lookup_20"}, 
+                    {"着" : "lookup_pattern_20"}, 
                     {"手" : None}
                 ]
             },
@@ -250,7 +250,7 @@ def make_exceptional_pattern(OUTPUT_EXCEPTION_PATTERN_TABLE_FILE):
                 "ignore" : None,
                 "pattern" :[
                     {"大" : None}, 
-                    {"轴" : "lookup_20"},
+                    {"轴" : "lookup_pattern_20"},
                     {"子" : None}
                 ]
             },
@@ -258,7 +258,7 @@ def make_exceptional_pattern(OUTPUT_EXCEPTION_PATTERN_TABLE_FILE):
                 "ignore" : None,
                 "pattern" :[
                     {"压" : None}, 
-                    {"轴" : "lookup_20"},
+                    {"轴" : "lookup_pattern_20"},
                     {"子" : None}
                 ]
             }
