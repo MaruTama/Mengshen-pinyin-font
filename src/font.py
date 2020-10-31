@@ -9,6 +9,7 @@ import pinyin_glyph as py_glyph
 import utility
 import path as p
 import GSUB_table as gt
+import name_table as nt
 
 class Font():
     def __init__(self, TAMPLATE_MAIN_JSON, TAMPLATE_GLYF_JSON, ALPHABET_FOR_PINYIN_JSON, \
@@ -46,6 +47,11 @@ class Font():
         verticalOrigin = self.marged_font["glyf"][cid]["verticalOrigin"]
         return (advanceWidth, advanceHeight, verticalOrigin)
 
+    def get_advance_size_of_pinyin_glyf(self):
+        # なんでもいいが、とりあえず「yi1」でサイズを取得する
+        advanceWidth  = self.pinyin_glyf["arranged_yi1"]["advanceWidth"]
+        advanceHeight = self.pinyin_glyf["arranged_yi1"]["advanceHeight"]
+        return (advanceWidth, advanceHeight)
     
     def add_cmap_uvs(self):
         IVS = 0xE01E0 #917984
@@ -109,10 +115,11 @@ class Font():
         # print(self.marged_font["glyph_order"])
 
     def generate_hanzi_glyf_with_normal_pinyin(self, cid):
-        (advanceWidth, advanceHeight, verticalOrigin) = self.get_advance_size_of_hanzi()
+        (advanceWidth, _, verticalOrigin) = self.get_advance_size_of_hanzi()
+        (_, advanceAddedPinyinHeight) = self.get_advance_size_of_pinyin_glyf()
         hanzi_glyf = {
                          "advanceWidth": advanceWidth,
-                         "advanceHeight": advanceHeight,
+                         "advanceHeight": advanceAddedPinyinHeight,
                          "verticalOrigin": verticalOrigin,
                          "references": [
                              {"glyph":"{}.ss01".format(cid),"x":0, "y":0, "a":1, "b":0, "c":0, "d":1}
@@ -121,11 +128,12 @@ class Font():
         return hanzi_glyf
 
     def generate_hanzi_glyf_with_pinyin(self, cid, pronunciation):
-        (advanceWidth, advanceHeight, verticalOrigin) = self.get_advance_size_of_hanzi()
+        (advanceWidth, _, verticalOrigin) = self.get_advance_size_of_hanzi()
+        (_, advanceAddedPinyinHeight) = self.get_advance_size_of_pinyin_glyf()
         simpled_pronunciation = utility.simplification_pronunciation( pronunciation )
         hanzi_glyf = {
                          "advanceWidth": advanceWidth,
-                         "advanceHeight": advanceHeight,
+                         "advanceHeight": advanceAddedPinyinHeight,
                          "verticalOrigin": verticalOrigin,
                          "references": [
                              {"glyph":"arranged_{}".format(simpled_pronunciation),"x":0, "y":0, "a":1, "b":0, "c":0, "d":1},
@@ -225,6 +233,30 @@ class Font():
         GSUB = gt.GSUBTable(self.marged_font["GSUB"], self.PATTERN_ONE_TXT, self.PATTERN_TWO_JSON, self.EXCEPTION_PATTERN_JSON)
         self.marged_font["GSUB"] = GSUB.get_GSUB_table()
 
+    def set_about_size(self):
+        (_, advanceAddedPinyinHeight) = self.get_advance_size_of_pinyin_glyf()
+        if advanceAddedPinyinHeight > self.marged_font["head"]["yMax"]:
+            # すべてのグリフの輪郭を含む範囲
+            self.marged_font["head"]["yMax"] = advanceAddedPinyinHeight
+        if advanceAddedPinyinHeight > self.marged_font["hhea"]["ascender"]:
+            # 原点からグリフの上端までの距離
+            self.marged_font["hhea"]["ascender"] = advanceAddedPinyinHeight
+        # 特定の言語のベースライン
+        # self.marged_font["BASE"]["hani"]
+
+    def set_copyright(self):
+        # フォント製作者によるバージョン
+        self.marged_font["head"]["fontRevision"] = nt.VISION
+        # 作成日(基準日：1904/01/01 00:00 GMT)
+        from datetime import datetime
+        base_date = datetime.strptime("1904/01/01 00:00", "%Y/%m/%d %H:%M")
+        base_time = base_date.timestamp()
+        now_time  = datetime.now().timestamp() 
+        self.marged_font["head"]["created"] = round( now_time - base_time )
+        # フォント名等を設定
+        self.marged_font["name"] = nt.name_table
+
+
     def load_json(self):
         with open(self.TAMPLATE_MAIN_JSON, "rb") as read_file:
             self.marged_font = orjson.loads(read_file.read())
@@ -250,6 +282,8 @@ class Font():
         print("glyf table を追加完了")
         self.add_GSUB()
         print("GSUB table を追加完了")
+        self.set_about_size()
+        self.set_copyright()
         TAMPLATE_MARGED_JSON = os.path.join(p.DIR_TEMP, "template.json")
         self.save_as_json(TAMPLATE_MARGED_JSON)
         self.convert_json2otf(TAMPLATE_MARGED_JSON, OUTPUT_FONT)

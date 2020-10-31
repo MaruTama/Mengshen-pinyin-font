@@ -148,13 +148,14 @@ class PinyinGlyph():
                                 "c": 0,            "d": pinyin_scale + 0.001}
             )
 
+        (_, target_advance_height_of_hanzi) = self.__get_advance_size_of_hanzi()
         # arranged_ と名前を変えているのは、一文字の発音のときに同じ名前のグリフができないようにするため。
         # 同じ名前のグリフがあると参照エラーになる。
         simpled_pronunciation = utility.simplification_pronunciation(pronunciation)
         pronunciation = {
             "arranged_{}".format(simpled_pronunciation) : {
                 "advanceWidth"  : target_advance_width_of_hanzi,
-                "advanceHeight" : target_pinyin_canvas_height,
+                "advanceHeight" : round( target_advance_height_of_hanzi + target_pinyin_canvas_height, 2 ),
                 "verticalOrigin": 0, # 漢字へのマージ時に変更するから、今は 0 
                 "references": references
             }
