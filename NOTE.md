@@ -30,6 +30,7 @@
        ```
 - lookup rclt は、読みのパターンごとにまとめる。 rclt0 は pattern one。 rclt1 は pattern two。 rclt2 は exception pattern.
 - pattern.json はGraphs like
+- 横書きのみ想定
 
 # error:
 
