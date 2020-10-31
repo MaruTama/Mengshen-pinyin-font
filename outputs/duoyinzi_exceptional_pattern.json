@@ -1,6 +1,6 @@
 {
     "lookup_table": {
-        "lookup_20": {
+        "lookup_pattern_20": {
             "着": "着.ss02",
             "轴": "轴.ss02"
         }
@@ -10,7 +10,7 @@
             "ignore": "背 着' 手",
             "pattern": [
                 {
-                    "着": "lookup_20"
+                    "着": "lookup_pattern_20"
                 },
                 {
                     "手": null
@@ -24,7 +24,7 @@
                     "大": null
                 },
                 {
-                    "轴": "lookup_20"
+                    "轴": "lookup_pattern_20"
                 },
                 {
                     "子": null
@@ -38,7 +38,7 @@
                     "压": null
                 },
                 {
-                    "轴": "lookup_20"
+                    "轴": "lookup_pattern_20"
                 },
                 {
                     "子": null
