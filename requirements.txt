@@ -1,3 +1,9 @@
-fonttools
-cairosvg
+orjson
 pypinyin
+requests
+beautifulsoup4
+urllib3
+jq
+defcon
+ufo-extractor
+ufo2ft

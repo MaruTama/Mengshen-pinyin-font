@@ -1,0 +1,357 @@
+{
+  "languages": {
+    "DFLT_DFLT": {
+      "features": [
+        "rclt_00000"
+      ]
+    },
+    "latn_DFLT": {
+      "features": [
+        "rclt_00001"
+      ]
+    }
+  },
+  "features": {
+    "rclt_00000": [
+      "lookup_rclt_0",
+      "lookup_rclt_1",
+      "lookup_rclt_2"
+    ],
+    "rclt_00001": [
+      "lookup_rclt_0",
+      "lookup_rclt_1",
+      "lookup_rclt_2"
+    ]
+  },
+  "lookups": {
+    "lookup_11_0": {
+      "type": "gsub_single",
+      "flags": {},
+      "subtables": [
+        {
+          "C": "P",
+          "uni884C": "uni8846"
+        }
+      ]
+    },
+    "lookup_11_1": {
+      "type": "gsub_single",
+      "flags": {},
+      "subtables": [
+        {
+          "A": "X"
+        }
+      ]
+    },
+    "lookup_11_2": {
+      "type": "gsub_single",
+      "flags": {},
+      "subtables": [
+        {
+          "A": "Y"
+        }
+      ]
+    },
+    "lookup_rclt_0": {
+      "type": "gsub_chaining",
+      "flags": {},
+      "subtables": [
+        {
+          "match": [
+            [
+              "uni4E0D",
+              "uni9280"
+            ],
+            [
+              "uni884C"
+            ]
+          ],
+          "apply": [
+            {
+              "at": 1,
+              "lookup": "lookup_11_0"
+            }
+          ],
+          "inputBegins": 1,
+          "inputEnds": 2
+        },
+        {
+          "match": [
+            [
+              "uni4E0D"
+            ],
+            [
+              "uni884C"
+            ],
+            [
+              "uni9280"
+            ]
+          ],
+          "apply": [
+            {
+              "at": 1,
+              "lookup": "lookup_11_0"
+            }
+          ],
+          "inputBegins": 1,
+          "inputEnds": 2
+        },
+        {
+          "match": [
+            [
+              "uni884C"
+            ],
+            [
+              "uni4F1A",
+              "uni8A71"
+            ]
+          ],
+          "apply": [
+            {
+              "at": 0,
+              "lookup": "lookup_11_0"
+            }
+          ],
+          "inputBegins": 0,
+          "inputEnds": 1
+        }
+      ]
+    },
+    "lookup_rclt_1": {
+      "type": "gsub_chaining",
+      "flags": {},
+      "subtables": [
+        {
+          "match": [
+            [
+              "A"
+            ],
+            [
+              "A"
+            ],
+            [
+              "F"
+            ]
+          ],
+          "apply": [
+            {
+              "at": 0,
+              "lookup": "lookup_11_1"
+            },
+            {
+              "at": 1,
+              "lookup": "lookup_11_2"
+            }
+          ],
+          "inputBegins": 0,
+          "inputEnds": 2
+        },
+        {
+          "match": [
+            [
+              "A",
+              "B",
+              "C"
+            ],
+            [
+              "A"
+            ],
+            [
+              "A"
+            ],
+            [
+              "F"
+            ]
+          ],
+          "apply": [
+            {
+              "at": 1,
+              "lookup": "lookup_11_1"
+            },
+            {
+              "at": 2,
+              "lookup": "lookup_11_2"
+            }
+          ],
+          "inputBegins": 1,
+          "inputEnds": 3
+        },
+        {
+          "match": [
+            [
+              "A"
+            ],
+            [
+              "A"
+            ],
+            [
+              "F",
+              "G",
+              "H"
+            ]
+          ],
+          "apply": [
+            {
+              "at": 0,
+              "lookup": "lookup_11_1"
+            },
+            {
+              "at": 1,
+              "lookup": "lookup_11_2"
+            }
+          ],
+          "inputBegins": 0,
+          "inputEnds": 2
+        },
+        {
+          "match": [
+            [
+              "A"
+            ],
+            [
+              "A"
+            ],
+            [
+              "F",
+              "G",
+              "H"
+            ],
+            [
+              "I"
+            ]
+          ],
+          "apply": [
+            {
+              "at": 0,
+              "lookup": "lookup_11_1"
+            },
+            {
+              "at": 1,
+              "lookup": "lookup_11_2"
+            }
+          ],
+          "inputBegins": 0,
+          "inputEnds": 2
+        },
+        {
+          "match": [
+            [
+              "A",
+              "B",
+              "C"
+            ],
+            [
+              "D"
+            ],
+            [
+              "A"
+            ],
+            [
+              "A"
+            ]
+          ],
+          "apply": [
+            {
+              "at": 2,
+              "lookup": "lookup_11_1"
+            },
+            {
+              "at": 3,
+              "lookup": "lookup_11_2"
+            }
+          ],
+          "inputBegins": 2,
+          "inputEnds": 4
+        },
+        {
+          "match": [
+            [
+              "A",
+              "B",
+              "C"
+            ],
+            [
+              "A"
+            ],
+            [
+              "D"
+            ],
+            [
+              "A"
+            ]
+          ],
+          "apply": [
+            {
+              "at": 1,
+              "lookup": "lookup_11_1"
+            },
+            {
+              "at": 3,
+              "lookup": "lookup_11_2"
+            }
+          ],
+          "inputBegins": 1,
+          "inputEnds": 4
+        }
+      ]
+    },
+    "lookup_rclt_2": {
+      "type": "gsub_chaining",
+      "flags": {},
+      "subtables": [
+        {
+          "match": [
+            [
+              "uni80CC"
+            ],
+            [
+              "uni7740"
+            ],
+            [
+              "uni624B"
+            ]
+          ],
+          "apply": [],
+          "inputBegins": 1,
+          "inputEnds": 2
+        },
+        {
+          "match": [
+            [
+              "uni7740"
+            ],
+            [
+              "uni624B"
+            ]
+          ],
+          "apply": [
+            {
+              "at": 0,
+              "lookup": "lookup_11_6"
+            }
+          ],
+          "inputBegins": 0,
+          "inputEnds": 1
+        }
+      ]
+    },
+    "lookup_11_6": {
+      "type": "gsub_single",
+      "flags": {},
+      "subtables": [
+        {
+          "uni7740": "d"
+        }
+      ]
+    }
+  },
+  "lookupOrder": [
+    "lookup_11_0",
+    "lookup_11_1",
+    "lookup_11_2",
+    "lookup_rclt_0",
+    "lookup_rclt_1",
+    "lookup_rclt_2",
+    "lookup_11_6"
+  ]
+}
