@@ -1,5 +1,5 @@
 # Mengshen(萌神)-pinyin(拼音)-font
-OSS の拼音フォント及び作成ツールです / OpenSource Pinyin Font and that is created tools.
+OSS の多音字に対応した拼音フォント及びその作成ツールです。 / OpenSource Pinyin font and creation tool that supports homograph (多音字).
 
 [Download](https://github.com/MaruTama/pinyin-font-tools/releases)  
 ![screenshot](./imgs/ss.png)
@@ -29,6 +29,19 @@ Subtitles are shown Chinese characters and pinyin.
 [Language Learning with Netflix](https://chrome.google.com/webstore/detail/language-learning-with-ne/hoombieeljmmljlkjmnheibnpciblicm?hl=en)  
 ![An-example-of-how-to-use](./imgs/An-example-of-how-to-use.png)
 
+# 技術的要素 / Technical elements
+多音字をサポートするためにコンテキスト置換(feature tag of "rclt" at GSUB)を実装しました。
+また、Unicode IVS（表意文字バリアントセレクター）を使用して、異なる拼音に切り替えることもできます。/
+Implemented contextual replacing to support homograph (多音字).
+You can also use Unicode IVS (ideographic variant selector) to switch other different pinyin.  
+![](./imgs/2020-10-25-19.17.04.gif)
+
 # 生成方法 / How to make fonts
 - [日本語](./HOW_TO_MAKE_JP.md)  
 - [English](./HOW_TO_MAKE_EN.md)
+
+
+# 謝辞 / Acknowledgments
+Thank you to the following people and repositories. 
+- NFSL2001 (@NightFurySL2001) - san
+- [BPMF IVS](https://github.com/ButTaiwan/bpmfvs)

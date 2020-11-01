@@ -6,194 +6,131 @@
 - 繁体字の対象範囲は [Big5( 大五碼 )-2003](https://moztw.org/docs/big5/) に準拠する
 - 日本の漢字は[当用漢字字体表（新字体）](https://kotobank.jp/word/%E6%96%B0%E5%AD%97%E4%BD%93-537633)に準拠する
 - 新字体は[常用漢字](https://kanji.jitenon.jp/cat/joyo.html)が表示できる程度の範囲とする
-- 「ひらがな」「カタカナ」を表示できる
+- 「ひらがな」「カタカナ」を表示できる  
 
 
-拼音を表示する対象は16026個ある。
+拼音を表示する対象は16026個ある。  
 
-ベースにしたフォント  
-ttfだし容量が削減されている。ピンインを表示する漢字に関しては削減されてない。
+ベースにしたフォント   
+ttfだし容量が削減されている。拼音を表示する漢字に関しては削減されてない。  
 - [Source-Han-TrueType](https://github.com/Pal3love/Source-Han-TrueType)
 
-Source-Han-TrueType の基のフォント
-- [source-han-serif(源ノ明朝) otf](https://github.com/adobe-fonts/source-han-serif/tree/release/OTF)
-- [source-han-sans(源ノ角ゴシック) otf](https://github.com/adobe-fonts/source-han-sans/tree/release/OTF)
+Source-Han-TrueType の基のフォント  
+- [source-han-serif(思源宋体) otf](https://github.com/adobe-fonts/source-han-serif/tree/release/OTF)
 
 
-<!-- # 変換方法
-
+## 依存関係の解消
+### otfcc
+[otfcc](https://github.com/caryll/otfcc) は軽量で IVS にも対応している。  
 ```
-#ttf -> ttx
-$ ttx SourceHanSerif-Regular.ttf
-#ttx -> ttf #n の名前をつけてくれるので、上書きされない
-$ ttx SourceHanSerif-Regular.ttx
-#テーブルを指定して変換
-ttx -t GSUB SourceHanSerif-Regular.otf
+# Xcode をインストールしておく
+$ mas install 497799835
+# Xcode は最初は [Command line Tools:] リストボックスが空欄になっているため、error になってしまう。
+# 以下の対処をすると直る。
+# [エラー：xcode-select: error: tool 'xcodebuild' requires Xcode, but active developer directory '/Library/Developer/CommandLineTools' is a command line tools instance](https://qiita.com/eytyet/items/59c5bad1c167d5addc68)
+
+$ brew tap caryll/tap 
+$ brew install otfcc-mac64
 ```
 
+### python
 ```
-#ttc -> ttx の場合 n はttxにしたい番号
-ttx -y n ./NotoSansCJK-Regular.ttc
-``` -->
-
-## 依存関係
-```
-$ pyenv global 3.7.2
+$ pyenv global 3.8.2
 $ pip install -r requirements.txt
 ```
 
+## 生成手順
+1. 多音字の辞書を作る  
+[詳細へ](./res/phonics/duo_yin_zi/README.md)  
 ```
-#GUI で使う
-$ brew cask install xquartz
-#fontforgeのインストール
-$ brew install fontforge
-#fontforgeコマンドが動かないとき
-$ brew link fontforge
-#GUI 版のインストール
-$ brew cask install fontforge
+cd <PROJECT-ROOT>/res/phonics/duo_yin_zi/scripts/
+python make_pattern_table.py
 ```
 
-## 設定ファイルの生成
+2. 対象の漢字の unicode テーブルを作る  
+[詳細へ](./res/phonics/unicode_mapping_table/README.md)  
 ```
-# 中国語の漢字の一覧を作る
-$ python createHanziUnicodeJson.py
-# CMAP テーブルからunicodeとcidのマッピングテーブルを作る.
-$ python createUnicode2cidJson.py fonts/SourceHanSerifCN-Regular.ttf
+cd <PROJECT-ROOT>/res/phonics/unicode_mapping_table/
+python make_unicode_pinyin_map_table.py 
 ```
 
-## 拼音表示のための文字を抽出する
+3. ベースにするフォントを編集可能の状態（json）にダンプする  
+glyf table はサイズが大きく閲覧のときに不便なので他のテーブルと分離する。  
+```
+cd <PROJECT-ROOT>
+python src/make_template_jsons.py <BASE-FONT-NAME>
+# e,g.:
+# python src/make_template_jsons.py ./res/fonts/SourceHanSerifCN-Regular.ttf
+```
+
+4. 拼音表示のための文字を抽出する  
 固定幅の英字フォントのみ対応  
-fonts/pinyin_alphbets に保存する
 ```
-$ python getPinyinAlphbets.py fonts/mplus-1m-medium.ttf
+cd <PROJECT-ROOT>
+python src/retrieve_latin_alphabet.py <FONT-NAME-FOR-PINYIN>
+# e,g.:
+# python src/retrieve_latin_alphabet.py ./res/fonts/mplus-1m-medium.ttf
 ```
 
-|文字|ファイル名|変更名|
-|:--:|:-----:|:-----:|
-|a| A.svg | a.svg |
-|ā| Amacron.svg | ā.svg |
-|á| Aacute.svg  | á.svg |
-|ǎ| uni01CE.svg | ǎ.svg |
-|à| Agrave.svg  | à.svg |
-|b| B.svg | b.svg |
-|c| C.svg | c.svg |
-|d| D.svg | d.svg |
-|e| E.svg | e.svg |
-|ē| Emacron.svg | ē.svg |
-|é| Eacute.svg  | é.svg |
-|ě| Ecaron.svg  | ě.svg |
-|è| Egrave.svg  | è.svg |
-|f| F.svg | f.svg |
-|g| G.svg | g.svg |
-|h| H.svg | h.svg |
-|i| I.svg | i.svg |
-|ī| Imacron.svg | ī.svg |
-|í| Iacute.svg  | í.svg |
-|ǐ| uni01D0.svg | ǐ.svg |
-|ì| Igrave.svg  | ì.svg |
-|j| J.svg | j.svg |
-|k| K.svg | k.svg |
-|l| L.svg | l.svg |
-|m| M.svg | m.svg |
-|ḿ| uni1E3F.svg | ḿ.svg |
-|n| N.svg | n.svg |
-|ń| Nacute.svg  | ń.svg |
-|o| O.svg | o.svg |
-|ō| Omacron.svg | ō.svg |
-|ó| Oacute.svg  | ó.svg |
-|ǒ| uni01D2.svg | ǒ.svg |
-|ò| Ograve.svg  | ò.svg |
-|ở| uni1EDF.svg | ở.svg |
-|p| P.svg | p.svg |
-|q| Q.svg | q.svg |
-|r| R.svg | r.svg |
-|s| S.svg | s.svg |
-|t| T.svg | t.svg |
-|u| U.svg | u.svg |
-|ū| Umacron.svg   | ū.svg |
-|ú| Uacute.svg    | ú.svg |
-|ǔ| uni01D4.svg   | ǔ.svg |
-|ù| Ugrave.svg    | ù.svg |
-|ü| Udieresis.svg | ü.svg |
-|ǖ| uni01D6.svg   | ǖ.svg |
-|ǘ| uni01D8.svg   | ǘ.svg |
-|ǚ| uni01DA.svg   | ǚ.svg |
-|ǜ| uni01DC.svg   | ǜ.svg |
-|v| V.svg | v.svg |
-|w| W.svg | w.svg |
-|x| X.svg | x.svg |
-|y| Y.svg | y.svg |
-|z| Z.svg | z.svg |
+5. ビルドする  
+cd <PROJECT ROOT>
+time python3 src/main.py
+おおよそ 20 ~ 30 秒で生成できる
 
 
-metadata-for-pinyin.json を制作する。  
+
+
+## 技術的メモ
+### pinyin表示部のサイズ設定方法
+
 ![outline](./imgs/outline.png)  
 
 ```
-{
-  "AI":{
-    "Canvas":{
-      <!-- Canvasの横幅 -->
-      "Width": 722.489,
-      "Pinyin":{
-        <!-- 拼音表示部分のcanvasの横・縦幅 -->
-        "Width":614.4,
-        "Height":204.8,
-        <!-- Canvas下部から拼音表示部分までの高さ -->
-        "BaseLine":675.84,
-        <!-- 拼音表示のアルファベットの字間 -->
-        "DefaultTracking":16
-      }
+    METADATA_FOR_PINYIN = {
+        "pinyin_canvas":{
+            "width"    : 850,   # 拼音表示部の幅
+            "height"   : 283.3, # 拼音表示部の高さ
+            "base_line": 935,   # ベースラインからの高さ
+            "tracking" : 22.145 # 拼音の標準空白幅： Tracking is about uniform spacing across a text selection.
+        },
+        "expected_hanzi_canvas":{
+            "width" : 1000, # 基準にする漢字の表示部の幅
+            "height": 1000, # 基準にする漢字の表示部の高さ
+        }
+    }
+```
+refer to [pinyin_glyph.py](./res/phonics/duo_yin_zi/scripts/pinyin_glyph.py)
+
+### グリフのコンポーネント化
+グリフはコンポーネント化して参照することができる。
+再利用によって容量を減らすことができ、アフィン変換で配置するのでサイズ・位置を簡単に設定できる。
+
+参照の利用例：
+```
+"cid48219": {
+  "advanceWidth": 2048,
+  "advanceHeight": 2628.2,
+  "verticalOrigin": 1803,
+  "references": [
+    {
+      "glyph": "arranged_ji1", "x": 0, "y": 0, "a": 1, "b": 0, "c": 0, "d": 1
     },
-    "Alphbet":{
-      <!-- 拼音表示に使うアルファベットのcanvasの横幅 -->
-      "Width":176.389,
-      <!-- 拼音表示に使うアルファベットで最も高いの(多分 ǘ ǚ ǜ)の高さ -->
-      "MaxHeight":319.264
+    {
+      "glyph": "cid48219.ss00", "x": 0, "y": 0, "a": 1, "b": 0, "c": 0, "d": 1
     }
-  },
-  "SVG":{
-    <!-- viewBoxの横幅 -->
-    "Width":2048,
-    <!-- 漢字の伸縮率 -->
-    "Hanzi":{
-      "Scale":{
-        "X":1,
-        "Y":1
-      },
-      <!-- 漢字の移動量 -->
-      "Translate":{
-        "X":0,
-        "Y":0
-      }
-    }
-  }
-}
-```
-## 拼音を書き込む漢字のSVGを抽出する
-漢字のSVGを取り出す
-```
-$ python font2svgs.py fonts/SourceHanSerifCN-Regular.ttf
+  ]
+},
 ```
 
-## 漢字に拼音を書き込む
-```
-$ python pinyinFont.py fonts/SVGs fonts/pinyin_alphbets jsons/unicode-cid-mapping.json jsons/hanzi-and-pinyin-mapping.json jsons/metadata-for-pinyin.json
-```
+# [Apple-The 'glyf' table](https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6glyf.html)
+> The transformation entries determine the values of an affine transformation applied to the component prior to its being incorporated into the parent glyph. Given the component matrix [a b c d e f], the transformation applied to the component is:
 
-## 中国語の(拼音を書き込んだ)漢字以外のsvgを消す
-```
-$ python removeWithoutHanziSVG.py fonts/SVGs jsons/unicode-cid-mapping.json jsons/hanzi-and-pinyin-mapping.json
-```
+参照時に指定している a-d は、アフィン変換の値である。
+今回は、「拡大縮小」と「平行移動」を使うので、a,d (scale) と x,y (move) を指定して使っている。
 
-## SVGの最適化する
-transformが多重に掛かっているので、一つにまとめる.  
-簡単なので[SVGCleaner.app](https://github.com/RazrFalcon/svgcleaner-gui/releases)を使う。
+**注意：otfccbuild の仕様なのか opentype の仕様なのか分からないが a と d が同じ値だと、グリフが消失する。 少しでもサイズが違えば反映されるので、90% にするなら、a=0.9, d=0.91 とかにする。**  
+refer to [pinyin_glyph.py](./res/phonics/duo_yin_zi/scripts/pinyin_glyph.py)
 
-## SVG -> glif に置き換える
-ufoの中の各文字のアウトラインを持つのがglif  
-Ref.[extract rotation, scale values from 2d transformation matrix](https://stackoverflow.com/questions/4361242/extract-rotation-scale-values-from-2d-transformation-matrix)  
-Matrix can calculate the scale, rotation, and shift at one time by raising the dimension.  
 <!--
 \begin{align*}
   \begin{pmatrix}
@@ -213,65 +150,93 @@ Matrix can calculate the scale, rotation, and shift at one time by raising the d
 \end{align*}
  -->
 ![matrix](./imgs/texclip20190728183918.png)  
-Transformation matrix as a list of six. float values (e.g. -t "0.1 0 0 -0.1 -50 200", -t "a b c d e f")   
-```
-$ python svgs2glifs.py fonts/SVGs jsons/unicode-cid-mapping.json -w 2048 -H 2048 -t "1 0 0
-1 0 0"
-```
-<!-- ```
-$ python svg2glif.py fonts/SVGs/cid09502.svg out.glif -w 2048 -H 2048 -t "2 0 0 -2 0 0"
-``` -->
-<!-- ## otf -> ttf
-```
-$ python otf2ttf.py fonts/SourceHanSerifSC-Regular.otf
-``` -->
+<!-- Ref.[extract rotation, scale values from 2d transformation matrix](https://stackoverflow.com/questions/4361242/extract-rotation-scale-values-from-2d-transformation-matrix)  
+Matrix can calculate the scale, rotation, and shift at one time by raising the dimension.   -->
 
-## ttf -> UFO
-fontforge を用いて変換.
-<!-- ```
-$ fontforge -script ttf2ufo.pe fonts/SourceHanSerifCN-Regular.ttf
-``` -->
-![ttf-to-ufo-img0.png](./imgs/ttf-to-ufo-img0.png)
-![ttf-to-ufo-img1.png](./imgs/ttf-to-ufo-img1.png)
-![ttf-to-ufo-img2.png](./imgs/ttf-to-ufo-img2.png)
-![ttf-to-ufo-img3.png](./imgs/ttf-to-ufo-img3.png)
-![ttf-to-ufo-img4.png](./imgs/ttf-to-ufo-img4.png)
-![ttf-to-ufo-img5.png](./imgs/ttf-to-ufo-img5.png)
 
-## 各glifをufoに移動する
-先程、出力した glyphs/\*.glif を fonts/ufo/glyphs\*.glif の下に上書きする。  
-glyphs ごと上書きするとうまく行かない。なぜ？Finderのせい？なので、ファイル単位で移動またはコピーする。  
-16026個ある。
+### feature tag
+aalt は代替文字の表示のために設定している。  
+  aalt_0 は gsub_single. 拼音が一つのみの漢字 + 記号とか。置き換え対象が一つのみのとき
+  aalt_1 は gsub_alternate. 拼音が複数の漢字
 
-## ufo -> ttf
-<!-- ```
-$ fontforge -script ufo2ttf.pe fonts/SourceHanSerifCN-Regular.ufo
-``` -->
-![ufo-to-ttf-img0.png](./imgs/ufo-to-ttf-img0.png)
-![ufo-to-ttf-img1.png](./imgs/ufo-to-ttf-img1.png)
-![ufo-to-ttf-img2.png](./imgs/ufo-to-ttf-img2.png)
-![ufo-to-ttf-img3.png](./imgs/ufo-to-ttf-img3.png)
-![ufo-to-ttf-img4.png](./imgs/ufo-to-ttf-img4.png)
-![ufo-to-ttf-img5.png](./imgs/ufo-to-ttf-img5.png)
-![ufo-to-ttf-img6.png](./imgs/ufo-to-ttf-img6.png)
-![ufo-to-ttf-img7.png](./imgs/ufo-to-ttf-img7.png)
+rclt は多音字の置換に利用している。この feature は (文脈連鎖依存の置換、文脈依存の異体字) の表示のために利用できる。  
+  pattern one は 熟語の中で 1文字だけ拼音が変化するパターン  
+  pattern two は 熟語の中で 2文字以上拼音が変化するパターン  
+  exception pattern は 例外的なパターン  
+  [詳細へ](./res/phonics/duo_yin_zi/README.md)
+
+# 仕様（制約）
+- このフォントは横書きのみ想定  
+- glyf table は 65536 までしか格納できない  
+- 拼音のグリフとして使えるフォントは等幅英字のみ  
+- python の標準ライブラリの json は dict に変換すると肥大化して遅くなるので、 [orjson](https://github.com/ijl/orjson) を利用する  
+    refer to [Choosing a faster JSON library for Python](https://pythonspeed.com/articles/faster-json-library/), 
+    [PythonのJSONパーサのメモリ使用量と処理時間を比較してみる](https://postd.cc/memory-use-and-speed-of-json-parsers/)
+
+
+- ss00 - 20 まで  
+    [Tag: 'ss01' - 'ss20'](https://docs.microsoft.com/en-us/typography/opentype/spec/features_pt#-tag-ss01---ss20)
+- glyf table 内の 拼音 は簡易表記(yī -> yi1) にする  
+
+- 呣 m̀, 嘸 m̄　は unicode に含まれていないので除外  
+- [overwrite.txt](/res/phonics/unicode_mapping_table/overwrite.txt) は色々な目的のために追加している  
+    pypinyin で取得できない漢字  
+    発音の優先度の調整  
+    儿 の r の追加  
+    軽声の追加、重複する漢字は同じ発音にする  
+    呣 m̀, 嘸 m̄　を除外するため（追加してもいいが拼音グリフを作るのが面倒になる）  
+
+- IVS は  
+    0xE01E0 => 何もないグリフ
+    0xE01E1 => 標準的な拼音
+    0xE01E2 => 以降、異読の拼音
+    に対応させる
+
+- ssXX と拼音の対応は以下のようにする  
+    -> ssXX に標準的な拼音を入れないと cmap_uvs で標準の読みに戻す場合に、すぐにGSUBが効いて元に戻ってしまう。そのため、ss01 に標準的な拼音に戻す用のグリフを用意する.  
+    hanzi_glyf　　　　標準の読みの拼音  
+    hanzi_glyf.ss00　拼音の無い漢字グリフ。設定を変更するだけで拼音を変更できる  
+    hanzi_glyf.ss01　（異読の拼音があるとき）標準の読みの拼音（uni4E0D と重複しているが GSUB の置換（多音字のパターン）を無効にして強制的に置き換えるため）  
+    hanzi_glyf.ss02　（異読の拼音があるとき）以降、異読な拼音　
+
+- lookup table の名前は自由だけど、どこから参照しているか分かりやすくするために名前を以下のようにする  
+    lookup_pattern_0X <= pattern one  
+    lookup_pattern_1X <= pattern two  
+    lookup_pattern_2X <= exception pattern  
+
+- [duoyinzi_pattern_one.txt](./outputs/duoyinzi_pattern_one.txt) の 1~n の並びは、[marged-mapping-table.txt](./outputs/marged-mapping-table.txt) に従う。1 が標準的な読み. ss01 と合わせる  
+    ```
+    U+5F3A: qiáng,qiǎng,jiàng  #强
+    ```
+    ```
+    1, 强, qiáng, [~调|~暴|~度|~占|~攻|加~|~奸|~健|~项|~行|~硬|~壮|~盗|~权|~制|~盛|~烈|~化|~大|~劲]
+    2, 强, qiǎng, [~求|~人|~迫|~辩|~词夺理|~颜欢笑]
+    3, 强, jiàng, [~嘴|倔~]
+    ```
+
+- lookup rclt は、読みのパターンごとにまとめる。 rclt0 は pattern one。 rclt1 は pattern two。 rclt2 は exception pattern.  
+- [duoyinzi_pattern_two.json](./outputs/duoyinzi_pattern_two.json) と  は [duoyinzi_exceptional_pattern.json](./outputs/duoyinzi_exceptional_pattern.json) は Graphs like な記述  
+    [duoyinzi_exceptional_pattern.json](./outputs/duoyinzi_exceptional_pattern.json) の ignore は 影響する漢字に ' をつける
+
+# 利用している用語
+![](./imgs/terminology.png)
 
 # pypinyinで拼音が見つからない漢字まとめ
 [FIX_PINYIN.md](FIX_PINYIN.md)
 
-
-# ligatures
-- [OpenType Cookbook](http://opentypecookbook.com/)
-- [glyphs Ligatures](https://glyphsapp.com/tutorials/ligatures)
-- [github ligatures](https://github.com/topics/ligatures)
-- [kiliman/operator-mono-lig](https://github.com/kiliman/operator-mono-lig)
-- [【完全版】Ligature Symbols フォントセットの自作方法](https://kudakurage.hatenadiary.com/entry/20120720/1342749116)
-
-<!-- fontforge
-ctrl + Shift + F -> Lookups
-cid59875 -->
-
+# 参考資料
 ## 多音字
 - [中国語の多音字辞典（Chinese Duoyinzi Dictionary）](https://dokochina.com/duoyinzi.htm)
+- [ユーウェン中国語講座 - 多音字](https://yuwen.zaich.com/intermediate/duoyinzi)
 - [常用多音字表](http://xh.5156edu.com/page/18317.html)
 - [104个汉字多音字一句话总结](http://news.sina.com.cn/c/2017-03-19/doc-ifycnikk1155875.shtml)
+
+## 辞書サイト
+- [baidu汉语](https://hanyu.baidu.com/)
+- [汉典](https://www.zdic.net/)
+
+## 規格
+- [OpenType™ Feature File Specification](http://adobe-type-tools.github.io/afdko/OpenTypeFeatureFileSpecification.html#5f-gsub-lookuptype-6-chaining-contextual-substitution)
+- [西暦表記を元号による表記にするフォント](http://mottainaidtp.seesaa.net/article/425166883.html)
+- [IVD/IVSとは](https://mojikiban.ipa.go.jp/1292.html)
+- [OpenType フォント・フォーマット](https://aznote.jakou.com/prog/opentype/index.html)

@@ -98,7 +98,7 @@
 |U+2C361|𬍡|璗|dàng|[GlyphWiki](http://glyphwiki.org/wiki/u2c361),[Wiktionary zh](https://zh.wiktionary.org/wiki/%E7%92%97)|
 |U+2C364|𬍤|璕|xún|[GlyphWiki](http://glyphwiki.org/wiki/u2c364),[Wiktionary zh](https://zh.wiktionary.org/wiki/%E7%92%95)|
 |U+2C494|𬒔| |gěng|[Wiktionary](https://en.wiktionary.org/wiki/%F0%AC%92%94)|
-|U+2C497|𬒗|𥗽|lởm|[GlyphWiki](http://glyphwiki.org/wiki/u2c497),[Wiktionary zh](https://zh.wiktionary.org/wiki/%F0%A5%97%BD)|
+|U+2C497|𬒗|𥗽|lán|[GlyphWiki](http://glyphwiki.org/wiki/u2c497),[Wiktionary zh](https://zh.wiktionary.org/wiki/%F0%A5%97%BD)|
 |U+2C629|𬘩|綎|tīng|[GlyphWiki](http://glyphwiki.org/wiki/u2c629),[Wiktionary zh](https://zh.wiktionary.org/wiki/%E7%B6%8E)|
 |U+2C62B|𬘫|綄|huán, huàn, wàn|[GlyphWiki](http://glyphwiki.org/wiki/u2c62b),[Wiktionary zh](https://zh.wiktionary.org/wiki/%E7%B6%84)|
 |U+2C62F|𬘯|綧|zhǔn, zhùn|[GlyphWiki](http://glyphwiki.org/wiki/u2c62f),[Wiktionary zh](https://zh.wiktionary.org/wiki/%E7%B6%A7)|

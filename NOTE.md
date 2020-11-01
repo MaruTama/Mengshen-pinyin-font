@@ -1,39 +1,4 @@
-# 注意点
-- pinyin に使えるフォントは等幅のみ
-- ss00 - 20 まで
-- glyf table 内の ピンイン は簡易表記
-- 呣 m̀, 嘸 m̄　は unicode に含まれていないので除外
-- overwrite.txt は色々な目的のために追加している。pypinyin で取得できない漢字、発音の優先度の調整、儿 の r の追加、軽声の追加、重複する漢字は同じ発音にする。呣 m̀, 嘸 m̄　を除外するため（追加してもいいがピンイングリフを作るのが面倒になる）。
-- glyf table は 65536 までしか格納できない
-- IVS は 
-       0xE01E0 => 何もないグリフ
-       0xE01E1 => 標準的なピンイン
-       0xE01E2 => 以降、異読のピンイン
-- GSUB の置換と cmap_uvs の置換はどっちが後？
-       　-> cmap_uvs で標準の読みに戻すと、すぐにGSUBが効いて元に戻ってしまう。標準に戻す用のグリフを用意する.
-       hanzi_glyf　　　　標準の読みの拼音
-       hanzi_glyf.ss00　ピンインの無い漢字グリフ。設定を変更するだけで拼音を変更できる
-       hanzi_glyf.ss01　（異読のピンインがあるとき）標準の読みの拼音（uni4E0D と重複しているが GSUB の置換（多音字のパターン）を無効にして強制的に置き換えるため）
-       hanzi_glyf.ss02　（異読のピンインがあるとき）以降、異読　
-
-- lookup table の名前は自由
-       lookup_pattern_0X <= pattern one
-       lookup_pattern_1X <= pattern two
-       lookup_pattern_2X <= exception pattern
-       にする
-
-- duoyinzi_pattern_one.txt の並びは、marged-mapping-table.txt に従う。1 が標準的な読み. ss01 と合わせる
-       ```
-       1, 强, qiáng, [~调|~暴|~度|~占|~攻|加~|~奸|~健|~项|~行|~硬|~壮|~盗|~权|~制|~盛|~烈|~化|~大|~劲]
-       2, 强, qiǎng, [~求|~人|~迫|~辩|~词夺理|~颜欢笑]
-       3, 强, jiàng, [~嘴|倔~]
-       ```
-- lookup rclt は、読みのパターンごとにまとめる。 rclt0 は pattern one。 rclt1 は pattern two。 rclt2 は exception pattern.
-- pattern.json はGraphs like
-- 横書きのみ想定
-
 # error:
-
 このエラーがあったが、[de0090a43d8a6a359d85d45e26e7cfa17b4cf5d8] で解消した
 ```
 Exception: otfccbuild : Build : [WARNING] [Stat] Circular glyph reference found in gid 11663 to gid 11664. The reference will be dropped.
@@ -56,34 +21,104 @@ gid は glyph_order の添字
 
 
 
+# メモ
+## 文脈置換に利用する feature の調査
+salt  
+       -> Mac だと有効にならない  
 
-ttx で出力した => ChainContextSubst Format="3" -> overage-based Glyph Contexts　って書いてある。
-[6.3 Chaining Context Substitution Format 3](https://docs.microsoft.com/en-us/typography/opentype/spec/gsub#63-chaining-context-substitution-format-3-coverage-based-glyph-contexts)
-[5.f. [GSUB LookupType 6] Chaining contextual substitution](http://adobe-type-tools.github.io/afdko/OpenTypeFeatureFileSpecification.html#5f-gsub-lookuptype-6-chaining-contextual-substitution)
-[otfcc](https://github.com/caryll/otfcc/blob/master/lib/table/otl/subtables/chaining/read.c#L228)
+aalt  
+       -> ユーザーに代替文字を表示するので違う。  
+
+calt  
+       -> Macで有効になる。文脈での代替なので近い感。目的は合字ではないことも近い感じ。  
+       [GSUB LookupType 6] Chaining contextual substitution (文脈連鎖依存の置換、文脈依存の異体字)を使う（むしろこの記法じゃないと書けない）  
+
+       > Registered features - Tag: 'calt'
+       Script/language sensitivity: Not applicable to ideographic scripts.
+
+       って書いてあるけど、中国語はwikipadiaから  
+
+       > Chinese is often erroneously said to be ideographic
+
+       って書いてあるから利用できるはず。  
+       ideographic scripts は 表意文字 の意味  
+
+ccmp  
+       -> 有効になるけどタグの目的は合字と解字なので違う感じ.  
+       グリフ構成/分解。多くの環境で対応している。 
+       sub a-hira voicedcomb-kana by a_voicedcomb-kana-hira;  
+
+rclt  
+       -> calt に似ている。アラビア文字に使うことが本来の目的であるが、どの文字にも適用可能。この機能を切ることはできない。
 
 
-backtrack, input, and lookahead.
-a prefix (also known as backtrack) glyph sequence may be specified, as well as a suffix (also known as lookahead) glyph sequence
-接頭辞と、グリフシーケンス、および接尾辞
+![](./imgs/can_apply_calt_for_hanzi.png)
 
-"inputBegins", "inputEnds" は？
+Glyphs は afdko の [chaining-contextual-substitution](http://adobe-type-tools.github.io/afdko/OpenTypeFeatureFileSpecification.html#5f-gsub-lookuptype-6-chaining-contextual-substitution) の書き方ができる。  
 
+これで機能が使えるか調査した.　　
+Sawarabi Mincho は漢字が収録されているが、容量も小さくて、cid も unicode で扱いやすい。　　
+
+記述例：
+```
+lookup lookup_0 {
+	sub uni884C by uni8846;
+	sub C by P;
+} lookup_0;
+lookup lookup_1 {
+	sub A by X;
+} lookup_1;
+lookup lookup_2 {
+	sub A by Y;
+} lookup_2;
+
+lookup rclt0 {
+	sub [uni4E0D uni9280] uni884C' lookup lookup_0 ;
+} rclt0;
+lookup rclt1 {
+	sub A' lookup lookup_1 A' lookup lookup_2 F;
+} rclt1;
+lookup rclt2 {
+	ignore sub uni80CC uni7740' uni624B;
+	sub uni7740' uni624B by d;
+} rclt2;
+```
+
+
+
+## inputBegins, inputEnds の調査
+dump した json では feature の subtables に "inputBegins", "inputEnds" という要素がある。  
+これが何なのかの説明が見つからなかったので調べた。   
+
+ttx で出力した => ChainContextSubst Format="3" -> overage-based Glyph Contexts　って書いてある。  
+- [6.3 Chaining Context Substitution Format 3](https://docs.microsoft.com/en-us/typography/opentype/spec/gsub#63-chaining-context-substitution-format-3-coverage-based-glyph-contexts)
+- [5.f. [GSUB LookupType 6] Chaining contextual substitution](http://adobe-type-tools.github.io/afdko/OpenTypeFeatureFileSpecification.html#5f-gsub-lookuptype-6-chaining-contextual-substitution)
+- [otfcc](https://github.com/caryll/otfcc/blob/master/lib/table/otl/subtables/chaining/read.c#L228)
+
+backtrack, input, and lookahead は 接頭辞と、グリフシーケンス、および接尾辞  
+> backtrack, input, and lookahead. a prefix (also known as backtrack) glyph sequence may be specified, as well as a suffix (also known as lookahead) glyph sequence
+
+### 結果
 置換で影響する文字列のインデックスかな？
 inputBegins はシーケンスが開始される添字、inputEnds はシーケンスが終わる長さ
-inputBegins = min(at) 
-inputEnds   = max(at) + 1
 
-ignore のときは inputBegins,inputEnds を計算してから at を消す
+**inputBegins = min(at)**   
+**inputEnds   = max(at) + 1**  
 
-調査方法
-Glyphs で記述して、出力->otfcc で dump して取り出し
+ignore のときは inputBegins,inputEnds を計算してから at を消す  
+
+調査方法  
+Glyphs で記述して、出力->otfcc で dump して取り出し  
+
 ```
 otfccdump -o Sawarabi.json --pretty SawarabiMincho-Regular.otf
 cat Sawarabi.json | jq '.GSUB' > Sawarabi_GSUB.json
 ```
-詳しくは、tmp/json/Sawarabi_GSUB.json を参照
 
+### log
+詳しくは、[Sawarabi_GSUB.json](./tmp/json/Sawarabi_GSUB.json) を参照
+
+```
 lookup lookup_0 {
 	sub uni884C by uni8846;
 } lookup_0;
@@ -148,3 +183,4 @@ lookup rclt2 {
        　　　"inputBegins": 0,
        　　　"inputEnds": 1
 } rclt2;
+```
