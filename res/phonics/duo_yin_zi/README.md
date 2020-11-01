@@ -8,9 +8,10 @@ exception pattern は 例外的なパターン
 outputs
    ├── duoyinzi_pattern_one.txt          <- make_pattern_table.py によって生成される
    ├── duoyinzi_pattern_two.json         <- make_pattern_table.py によって生成される
-   └── duoyinzi_exceptional_pattern.json <- 特別なパターンのみで使う（現在は、[ここ](./scripts/make_pattern_table.py)で手動にて生成している）
+   └── duoyinzi_exceptional_pattern.json <- 特別なパターンのみで使う
 ```
-
+現在は、duoyinzi_exceptional_pattern.json の生成は手動にて生成している.
+-> [生成箇所](./scripts/make_pattern_table.py#L233)
 
 ```
 .
