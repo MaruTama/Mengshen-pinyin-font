@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 3508 2481" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;">
+    <g transform="matrix(1,0,0,1,80.4653,-227.79)">
+        <text x="139.126px" y="398.202px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:50px;">単語の重複がないか</text>
+        <text x="139.126px" y="449.838px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;">validate_phrase.get_duplicate_word()</text>
+    </g>
+    <g transform="matrix(1,0,0,0.245492,-1488.69,449.975)">
+        <path d="M2060.8,426.035L2060.8,1028.84L2034.47,854.906L2087.47,853.953L2060.8,1028.84" style="fill:none;stroke:black;stroke-width:3.72px;"/>
+    </g>
+    <g transform="matrix(1,0,0,0.245492,-1480.61,143.115)">
+        <path d="M2060.8,426.035L2060.8,1028.84L2034.47,854.906L2087.47,853.953L2060.8,1028.84" style="fill:none;stroke:black;stroke-width:3.72px;"/>
+    </g>
+    <g transform="matrix(1,0,0,0.245492,-1481.13,892.426)">
+        <path d="M2060.8,426.035L2060.8,1028.84L2034.47,854.906L2087.47,853.953L2060.8,1028.84" style="fill:none;stroke:black;stroke-width:3.72px;"/>
+    </g>
+    <g transform="matrix(1,0,0,0.245492,104.177,1605.28)">
+        <path d="M2060.8,426.035L2060.8,1028.84L2034.47,854.906L2087.47,853.953L2060.8,1028.84" style="fill:none;stroke:black;stroke-width:3.72px;"/>
+    </g>
+    <g transform="matrix(-0.00509131,-0.999987,0.245489,-0.00124987,2121.12,2565.46)">
+        <path d="M2064.93,-3155.45L2060.8,1028.84L2034.47,854.906L2087.47,853.953L2060.8,1028.84" style="fill:none;stroke:black;stroke-width:3.72px;"/>
+    </g>
+    <g transform="matrix(2.77556e-17,-1,0.245492,6.93889e-18,2112.18,2952.61)">
+        <path d="M2063.53,-2252.77L2060.8,1028.84L2034.47,854.906L2087.47,853.953L2060.8,1028.84" style="fill:none;stroke:black;stroke-width:3.72px;"/>
+    </g>
+    <g transform="matrix(1,0,0,1,74.3134,79.5956)">
+        <text x="139.126px" y="398.202px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:50px;">他の単語に影響するパターンはないか</text>
+        <text x="139.126px" y="449.838px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;">validate_phrase.get_duplicate_pattern_of_word()</text>
+    </g>
+    <g transform="matrix(1,0,0,1,48.3698,464.135)">
+        <text x="139.126px" y="398.202px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:50px;">単語中で置き換わる文字</text>
+        <text x="689.126px" y="398.202px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;">(</text>
+        <text x="705.776px" y="398.202px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:50px;">多音字</text>
+        <text x="855.776px" y="398.202px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;">)</text>
+        <text x="872.427px" y="398.202px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:50px;">は一文字のみか</text>
+        <text x="139.126px" y="449.838px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;">validate_phrase.get_multiple_replacement_by_duoyinzi()</text>
+    </g>
+    <g transform="matrix(1,0,0,1,13.4817,913.859)">
+        <text x="139.126px" y="398.202px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:50px;">置き換わる文字（多音字）に対して、パターンを作成する</text>
+        <text x="139.126px" y="449.838px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;">make_pattern_table.set_pattern_one()</text>
+        <text x="139.126px" y="574.838px" style="font-family:'Arial-BoldMT', 'Arial', sans-serif;font-weight:700;font-size:50px;">•</text>
+        <text x="214.126px" y="574.838px" style="font-family:'HiraKakuProN-W6', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:600;font-size:50px;">すべての文字が標準的なピンイン（多音字ではない）のみで構成される単語のとき</text>
+        <text x="214.126px" y="649.838px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:50px;">ピンインを複数持つ</text>
+        <text x="664.126px" y="649.838px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;">(</text>
+        <text x="680.776px" y="649.838px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:50px;">かつ今回は標準的なピンインで読む）漢字を見つけ次第入れる。先勝ちで詰めていく</text>
+        <text x="214.126px" y="724.838px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:50px;">もし、すべて単一の読みしか持たない漢字で構成される単語ならパターンテーブルから除外する</text>
+        <text x="139.126px" y="849.838px" style="font-family:'Arial-BoldMT', 'Arial', sans-serif;font-weight:700;font-size:50px;">•</text>
+        <text x="214.126px" y="849.838px" style="font-family:'HiraKakuProN-W6', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:600;font-size:50px;">単語中に置き換わる文字</text>
+        <text x="764.126px" y="849.838px" style="font-family:'Arial-BoldMT', 'Arial', sans-serif;font-weight:700;font-size:50px;">(</text>
+        <text x="780.776px" y="849.838px" style="font-family:'HiraKakuProN-W6', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:600;font-size:50px;">多音字</text>
+        <text x="930.776px" y="849.838px" style="font-family:'Arial-BoldMT', 'Arial', sans-serif;font-weight:700;font-size:50px;">)</text>
+        <text x="947.427px" y="849.838px" style="font-family:'HiraKakuProN-W6', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:600;font-size:50px;">が一文字のとき</text>
+        <text x="214.126px" y="924.838px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:50px;">対象の漢字のパターンに単語を入れる</text>
+    </g>
+    <g transform="matrix(1,0,0,1,1122.45,1587.67)">
+        <text x="214.126px" y="398.202px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;">pattern_table[</text>
+        <text x="519.912px" y="398.202px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:50px;">漢字</text>
+        <text x="619.912px" y="398.202px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;">][&quot;patterns&quot;]</text>
+        <text x="891.641px" y="398.202px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:50px;">が一つだけのときは不要なパターンなので移動・削除する</text>
+        <text x="189.126px" y="473.202px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:50px;">（標準的なピンインで構成された単語なので消してもいいが、</text>
+        <text x="239.126px" y="548.202px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:50px;">もったいないので他のパターンに入れる</text>
+        <text x="1139.13px" y="548.202px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;">.</text>
+        <text x="1166.91px" y="548.202px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:50px;">他のパターンが見つからないなら削除）</text>
+        <text x="189.126px" y="673.202px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;">e.g.:</text>
+        <text x="300.308px" y="673.202px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:50px;">辨</text>
+        <text x="364.199px" y="673.202px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;">{&apos;pinyin&apos;: [&apos;biàn&apos;, &apos;biǎn&apos;, &apos;bàn&apos;, &apos;piàn&apos;], &apos;patterns&apos;: {&apos;biàn&apos;: [&apos;~</text>
+        <text x="1578.99px" y="673.202px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:50px;">别</text>
+        <text x="1628.99px" y="673.202px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;">&apos;]}}</text>
+        <text x="189.126px" y="748.202px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:50px;">なら</text>
+        <text x="303.018px" y="748.202px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:50px;">别</text>
+        <text x="366.909px" y="748.202px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:50px;">のテーブルに移動する</text>
+    </g>
+    <g transform="matrix(1,0,0,1,2306.02,-209.288)">
+        <text x="139.126px" y="382.244px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:29.167px;">基本的に小さいパターンに合わせる</text>
+        <text x="139.126px" y="425.994px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:29.167px;">(e.g.:</text>
+        <text x="213.695px" y="425.994px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:29.167px;">阿</text>
+        <text x="242.861px" y="425.994px" style="font-family:'STHeitiTC-Medium', 'Heiti TC';font-size:29.167px;">谀</text>
+        <text x="272.028px" y="425.994px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:29.167px;">、</text>
+        <text x="301.195px" y="425.994px" style="font-family:'STHeitiTC-Medium', 'Heiti TC';font-size:29.167px;">胶</text>
+        <text x="330.361px" y="425.994px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:29.167px;">阿</text>
+        <text x="359.528px" y="425.994px" style="font-family:'STHeitiTC-Medium', 'Heiti TC';font-size:29.167px;">谀</text>
+        <text x="396.798px" y="425.994px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:29.167px;">なら阿</text>
+        <text x="484.298px" y="425.994px" style="font-family:'STHeitiTC-Medium', 'Heiti TC';font-size:29.167px;">谀</text>
+        <text x="513.465px" y="425.994px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:29.167px;">を残す</text>
+        <text x="600.965px" y="425.994px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:29.167px;">)</text>
+        <text x="139.126px" y="519.744px" style="font-family:'STHeitiTC-Medium', 'Heiti TC';font-size:29.167px;">轴</text>
+        <text x="168.293px" y="519.744px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:29.167px;">子</text>
+        <text x="205.563px" y="519.744px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:29.167px;">と</text>
+        <text x="242.833px" y="519.744px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:29.167px;">大</text>
+        <text x="272px" y="519.744px" style="font-family:'STHeitiTC-Medium', 'Heiti TC';font-size:29.167px;">轴</text>
+        <text x="301.166px" y="519.744px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:29.167px;">子、</text>
+        <text x="359.5px" y="519.744px" style="font-family:'STHeitiTC-Medium', 'Heiti TC';font-size:29.167px;">压轴</text>
+        <text x="417.833px" y="519.744px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:29.167px;">子</text>
+        <text x="139.126px" y="563.494px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:29.167px;">着手　と　背着手</text>
+        <text x="139.126px" y="607.244px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:29.167px;">は例外なので</text>
+        <text x="314.126px" y="607.244px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:29.167px;">exceptional</text>
+        <text x="461.683px" y="607.244px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:29.167px;">ファイルに記述している。</text>
+        <text x="139.126px" y="650.994px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:29.167px;">記述例</text>
+        <text x="234.729px" y="650.994px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:29.167px;">(</text>
+        <text x="252.546px" y="650.994px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:29.167px;">例外パターンを記述する</text>
+        <text x="573.379px" y="650.994px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:29.167px;">)</text>
+        <text x="139.126px" y="680.16px" style="font-family:'Menlo-Bold', 'Menlo', monospace;font-weight:700;font-size:29.167px;fill:rgb(0,161,229);">lookup</text>
+        <text x="262.045px" y="680.16px" style="font-family:'Menlo-Regular', 'Menlo', monospace;font-size:29.167px;">calt {</text>
+        <text x="289.126px" y="709.327px" style="font-family:'Menlo-Bold', 'Menlo', monospace;font-weight:700;font-size:29.167px;fill:rgb(0,161,229);">ignore</text>
+        <text x="412.045px" y="709.327px" style="font-family:'Menlo-Bold', 'Menlo', monospace;font-weight:700;font-size:29.167px;fill:rgb(0,161,229);">sub</text>
+        <text x="482.284px" y="709.327px" style="font-family:'Menlo-Regular', 'Menlo', monospace;font-size:29.167px;">uni80CC uni7740&apos; uni624B;</text>
+        <text x="289.126px" y="738.494px" style="font-family:'Menlo-Bold', 'Menlo', monospace;font-weight:700;font-size:29.167px;fill:rgb(0,161,229);">sub</text>
+        <text x="359.365px" y="738.494px" style="font-family:'Menlo-Regular', 'Menlo', monospace;font-size:29.167px;">uni7740&apos; uni624B</text>
+        <text x="657.882px" y="738.494px" style="font-family:'Menlo-Bold', 'Menlo', monospace;font-weight:700;font-size:29.167px;fill:rgb(0,161,229);">by</text>
+        <text x="710.562px" y="738.494px" style="font-family:'Menlo-Regular', 'Menlo', monospace;font-size:29.167px;">d;</text>
+        <text x="139.126px" y="767.66px" style="font-family:'Menlo-Regular', 'Menlo', monospace;font-size:29.167px;">} calt;</text>
+        <text x="139.126px" y="861.41px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:29.167px;">着手</text>
+        <text x="205.563px" y="861.41px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:29.167px;">-&gt;</text>
+        <text x="240.412px" y="861.41px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:29.167px;">着手</text>
+        <text x="139.126px" y="905.16px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:29.167px;">背着手</text>
+        <text x="234.729px" y="905.16px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:29.167px;">-&gt;</text>
+        <text x="269.578px" y="905.16px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:29.167px;">背</text>
+        <text x="298.745px" y="905.16px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:29.167px;">d</text>
+        <text x="314.966px" y="905.16px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:29.167px;">手</text>
+    </g>
+    <g transform="matrix(1,0,0,1,1639.42,-162.164)">
+        <text x="139.126px" y="382.244px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:29.167px;">重複を削除する</text>
+    </g>
+    <g transform="matrix(1,0,0,1,2336.19,580.646)">
+        <text x="139.126px" y="382.244px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:29.167px;">別ファイルへ移動する</text>
+        <text x="139.126px" y="425.994px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:29.167px;">(e.g.:</text>
+        <text x="213.695px" y="425.994px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:29.167px;">兴兴</text>
+        <text x="272.028px" y="425.994px" style="font-family:'STHeitiTC-Medium', 'Heiti TC';font-size:29.167px;">头头</text>
+        <text x="330.361px" y="425.994px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:29.167px;">: xīng/xìng/tou/tóu )</text>
+        <text x="139.126px" y="469.744px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:29.167px;">(e.g.:</text>
+        <text x="213.695px" y="469.744px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:29.167px;">占卜、吐血</text>
+        <text x="367.631px" y="469.744px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:29.167px;">)</text>
+        <text x="139.126px" y="543.614px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:29.167px;">記述例（</text>
+        <text x="255.793px" y="543.614px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:29.167px;">2</text>
+        <text x="272.014px" y="543.614px" style="font-family:'HiraKakuProN-W3', 'Hiragino Kaku Gothic ProN', sans-serif;font-weight:300;font-size:29.167px;">つ以上置き換える）</text>
+        <text x="139.126px" y="572.781px" style="font-family:'Menlo-Bold', 'Menlo', monospace;font-weight:700;font-size:29.167px;fill:rgb(0,161,229);">lookup</text>
+        <text x="262.045px" y="572.781px" style="font-family:'Menlo-Regular', 'Menlo', monospace;font-size:29.167px;">calt {</text>
+        <text x="289.126px" y="601.948px" style="font-family:'Menlo-Bold', 'Menlo', monospace;font-weight:700;font-size:29.167px;fill:rgb(0,161,229);">sub</text>
+        <text x="359.365px" y="601.948px" style="font-family:'Menlo-Regular', 'Menlo', monospace;font-size:29.167px;">A&apos;</text>
+        <text x="412.045px" y="601.948px" style="font-family:'Menlo-Bold', 'Menlo', monospace;font-weight:700;font-size:29.167px;fill:rgb(0,161,229);">lookup</text>
+        <text x="534.963px" y="601.948px" style="font-family:'Menlo-Regular', 'Menlo', monospace;font-size:29.167px;">lookup_0 A&apos;</text>
+        <text x="745.681px" y="601.948px" style="font-family:'Menlo-Bold', 'Menlo', monospace;font-weight:700;font-size:29.167px;fill:rgb(0,161,229);">lookup</text>
+        <text x="868.6px" y="601.948px" style="font-family:'Menlo-Regular', 'Menlo', monospace;font-size:29.167px;">lookup_0 F;</text>
+        <text x="139.126px" y="631.114px" style="font-family:'Menlo-Regular', 'Menlo', monospace;font-size:29.167px;">} calt;</text>
+        <text x="139.126px" y="660.281px" style="font-family:'Menlo-Bold', 'Menlo', monospace;font-weight:700;font-size:29.167px;fill:rgb(0,161,229);">lookup</text>
+        <text x="262.045px" y="660.281px" style="font-family:'Menlo-Regular', 'Menlo', monospace;font-size:29.167px;">lookup_0 {</text>
+        <text x="289.126px" y="689.448px" style="font-family:'Menlo-Bold', 'Menlo', monospace;font-weight:700;font-size:29.167px;fill:rgb(0,161,229);">sub</text>
+        <text x="359.365px" y="689.448px" style="font-family:'Menlo-Regular', 'Menlo', monospace;font-size:29.167px;">A</text>
+        <text x="394.485px" y="689.448px" style="font-family:'Menlo-Bold', 'Menlo', monospace;font-weight:700;font-size:29.167px;fill:rgb(0,161,229);">by</text>
+        <text x="447.164px" y="689.448px" style="font-family:'Menlo-Regular', 'Menlo', monospace;font-size:29.167px;">X;</text>
+        <text x="139.126px" y="718.614px" style="font-family:'Menlo-Regular', 'Menlo', monospace;font-size:29.167px;">} lookup_0;</text>
+        <text x="139.126px" y="797.781px" style="font-family:'Menlo-Regular', 'Menlo', monospace;font-size:29.167px;">AAF -&gt; XXF</text>
+    </g>
+    <g transform="matrix(1,0,0,1,260.411,-226.987)">
+        <text x="1574.41px" y="708.423px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;">N</text>
+    </g>
+    <g transform="matrix(1,0,0,1,203.376,138.571)">
+        <text x="1574.41px" y="708.423px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;">N</text>
+    </g>
+    <g transform="matrix(2.77556e-17,-1,0.245492,6.93889e-18,1501.72,2276.41)">
+        <path d="M2063.53,-1734.65L2060.8,1028.84L2034.47,854.906L2087.47,853.953L2060.8,1028.84" style="fill:none;stroke:black;stroke-width:3.72px;"/>
+    </g>
+    <g transform="matrix(1,0,0,1,-213.933,-540.125)">
+        <text x="1574.41px" y="708.423px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;">N</text>
+    </g>
+    <g transform="matrix(1,0,0,1,-930.644,-393.482)">
+        <text x="1574.41px" y="708.423px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;">Y</text>
+    </g>
+    <g transform="matrix(1,0,0,1,-957.275,-76.603)">
+        <text x="1574.41px" y="708.423px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;">Y</text>
+    </g>
+    <g transform="matrix(1,0,0,1,-954.122,358.224)">
+        <text x="1574.41px" y="708.423px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;">Y</text>
+    </g>
+    <g transform="matrix(1,0,0,1,132.725,1187.11)">
+        <text x="0px" y="35.815px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;">phrase_of_pattern_one.txt</text>
+    </g>
+    <g transform="matrix(1,0,0,1,2438.06,866.114)">
+        <text x="0px" y="35.815px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;">phrase_of_pattern_two.txt</text>
+    </g>
+</svg>
