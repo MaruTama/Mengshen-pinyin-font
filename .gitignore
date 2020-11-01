@@ -1,6 +1,7 @@
 __pycache__
 .DS_Store
-fonts/pinyin_alphbets/*
-fonts/SVGs/*
-fonts/ufo/*
-glyphs/*
+tmp/json/template.json
+tmp/json/template_glyf.json
+tools/SVGCleaner.app
+tools/ttf2ufo.pe
+tools/ufo2ttf.pe
