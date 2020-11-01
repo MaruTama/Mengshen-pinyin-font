@@ -43,22 +43,22 @@ $ pip install -r requirements.txt
 1. 多音字の辞書を作る  
 [詳細へ](./res/phonics/duo_yin_zi/README.md)  
 ```
-cd <PROJECT-ROOT>/res/phonics/duo_yin_zi/scripts/
-python make_pattern_table.py
+$ cd <PROJECT-ROOT>/res/phonics/duo_yin_zi/scripts/
+$ python make_pattern_table.py
 ```
 
 2. 対象の漢字の unicode テーブルを作る  
 [詳細へ](./res/phonics/unicode_mapping_table/README.md)  
 ```
-cd <PROJECT-ROOT>/res/phonics/unicode_mapping_table/
-python make_unicode_pinyin_map_table.py 
+$ cd <PROJECT-ROOT>/res/phonics/unicode_mapping_table/
+$ python make_unicode_pinyin_map_table.py 
 ```
 
 3. ベースにするフォントを編集可能の状態（json）にダンプする  
 glyf table はサイズが大きく閲覧のときに不便なので他のテーブルと分離する。  
 ```
-cd <PROJECT-ROOT>
-python src/make_template_jsons.py <BASE-FONT-NAME>
+$ cd <PROJECT-ROOT>
+$ python src/make_template_jsons.py <BASE-FONT-NAME>
 # e,g.:
 # python src/make_template_jsons.py ./res/fonts/SourceHanSerifCN-Regular.ttf
 ```
@@ -66,15 +66,17 @@ python src/make_template_jsons.py <BASE-FONT-NAME>
 4. 拼音表示のための文字を抽出する  
 固定幅の英字フォントのみ対応  
 ```
-cd <PROJECT-ROOT>
-python src/retrieve_latin_alphabet.py <FONT-NAME-FOR-PINYIN>
+$ cd <PROJECT-ROOT>
+$ python src/retrieve_latin_alphabet.py <FONT-NAME-FOR-PINYIN>
 # e,g.:
 # python src/retrieve_latin_alphabet.py ./res/fonts/mplus-1m-medium.ttf
 ```
 
 5. ビルドする  
-cd <PROJECT ROOT>
-time python3 src/main.py
+```
+$ cd <PROJECT ROOT>
+$ time python3 src/main.py
+```
 おおよそ 20 ~ 30 秒で生成できる
 
 
@@ -99,7 +101,7 @@ time python3 src/main.py
         }
     }
 ```
-refer to [pinyin_glyph.py](./res/phonics/duo_yin_zi/scripts/pinyin_glyph.py)
+refer to [pinyin_glyph.py](./src/pinyin_glyph.py#L13)
 
 ### グリフのコンポーネント化
 グリフはコンポーネント化して参照することができる。
@@ -122,14 +124,14 @@ refer to [pinyin_glyph.py](./res/phonics/duo_yin_zi/scripts/pinyin_glyph.py)
 },
 ```
 
-# [Apple-The 'glyf' table](https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6glyf.html)
+[Apple-The 'glyf' table](https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6glyf.html)
 > The transformation entries determine the values of an affine transformation applied to the component prior to its being incorporated into the parent glyph. Given the component matrix [a b c d e f], the transformation applied to the component is:
 
 参照時に指定している a-d は、アフィン変換の値である。
 今回は、「拡大縮小」と「平行移動」を使うので、a,d (scale) と x,y (move) を指定して使っている。
 
 **注意：otfccbuild の仕様なのか opentype の仕様なのか分からないが a と d が同じ値だと、グリフが消失する。 少しでもサイズが違えば反映されるので、90% にするなら、a=0.9, d=0.91 とかにする。**  
-refer to [pinyin_glyph.py](./res/phonics/duo_yin_zi/scripts/pinyin_glyph.py)
+refer to [pinyin_glyph.py](./src/pinyin_glyph.py#L148)
 
 <!--
 \begin{align*}

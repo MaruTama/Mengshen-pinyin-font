@@ -43,5 +43,5 @@ You can also use Unicode IVS (ideographic variant selector) to switch other diff
 
 # 謝辞 / Acknowledgments
 Thank you to the following people and repositories. 
-- NFSL2001 (@NightFurySL2001) - san
+- NFSL2001 ([@NightFurySL2001](https://github.com/NightFurySL2001)) - san
 - [BPMF IVS](https://github.com/ButTaiwan/bpmfvs)
