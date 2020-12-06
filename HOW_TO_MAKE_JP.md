@@ -77,9 +77,6 @@ $ python src/retrieve_latin_alphabet.py <FONT-NAME-FOR-PINYIN>
 $ cd <PROJECT ROOT>
 $ time python3 src/main.py
 ```
-おおよそ 20 ~ 30 秒で生成できる
-
-
 
 
 ## 技術的メモ
@@ -198,7 +195,7 @@ rclt は多音字の置換に利用している。この feature は (文脈連�
     -> ssXX に標準的な拼音を入れないと cmap_uvs で標準の読みに戻す場合に、すぐにGSUBが効いて元に戻ってしまう。そのため、ss01 に標準的な拼音に戻す用のグリフを用意する.  
     hanzi_glyf　　　　標準の読みの拼音  
     hanzi_glyf.ss00　拼音の無い漢字グリフ。設定を変更するだけで拼音を変更できる  
-    hanzi_glyf.ss01　（異読の拼音があるとき）標準の読みの拼音（uni4E0D と重複しているが GSUB の置換（多音字のパターン）を無効にして強制的に置き換えるため）  
+    hanzi_glyf.ss01　（異読の拼音があるとき）標準の読みの拼音（hanzi_glyf と重複するが GSUB の置換（多音字のパターン）を無効にして強制的に置き換えるため）  
     hanzi_glyf.ss02　（異読の拼音があるとき）以降、異読な拼音　
 
 - lookup table の名前は自由だけど、どこから参照しているか分かりやすくするために名前を以下のようにする  
@@ -217,8 +214,8 @@ rclt は多音字の置換に利用している。この feature は (文脈連�
     ```
 
 - lookup rclt は、読みのパターンごとにまとめる。 rclt0 は pattern one。 rclt1 は pattern two。 rclt2 は exception pattern.  
-- [duoyinzi_pattern_two.json](./outputs/duoyinzi_pattern_two.json) と  は [duoyinzi_exceptional_pattern.json](./outputs/duoyinzi_exceptional_pattern.json) は Graphs like な記述  
-    [duoyinzi_exceptional_pattern.json](./outputs/duoyinzi_exceptional_pattern.json) の ignore は 影響する漢字に ' をつける
+- [duoyinzi_pattern_two.json](./outputs/duoyinzi_pattern_two.json) と [duoyinzi_exceptional_pattern.json](./outputs/duoyinzi_exceptional_pattern.json) は Graphs like な記述  
+- [duoyinzi_exceptional_pattern.json](./outputs/duoyinzi_exceptional_pattern.json) の ignore tag では 影響する漢字に ' をつける
 
 # 利用している用語
 ![](./imgs/terminology.png)

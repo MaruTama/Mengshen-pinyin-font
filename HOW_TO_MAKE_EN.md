@@ -13,169 +13,123 @@ The font used here is based on [Source-Han-TrueType](https://github.com/Pal3love
 This is a TTF version of [Source Han Sans](https://github.com/adobe-fonts/source-han-sans)/[Source Han Serif](https://github.com/adobe-fonts/source-han-serif) with reduced file size. All required Chinese characters are included.
 
 ## Dependencies
+- macOS 10.15(Catalina)
+- python 3.7
+- otfcc
 
+### python
 ```
 $ pyenv global 3.7.2
 $ pip install -r requirements.txt
 ```
 
-```
-# Used in GUI
-$ brew cask install xquartz
-# fontforge installation
-$ brew install fontforge
-# When the fontforge command doesn't work
-$ brew link fontforge
-# GUI version installation
-$ brew cask install fontforge
-```
-
-## Generating configuration file
+### otfcc
+[otfcc](https://github.com/caryll/otfcc) is lightweight and support IVS
 
 ```
-# Make a list of target chinese characters
-$ python createHanziUnicodeJson.py
-# Create unicode and cid mapping table from a CMAP table.
-$ python createUnicode2cidJson.py fonts/SourceHanSerifCN-Regular.ttf
-```
+# Install Xcode by mas-cli
+$ mas install 497799835
+# Note: Xcode initially gets an error because the [Command line Tools:] list box is blank.
+# The following solutions will fix this problem.
+# Refer to [エラー：xcode-select: error: tool 'xcodebuild' requires Xcode, but active developer directory '/Library/Developer/CommandLineTools' is a command line tools instance](https://qiita.com/eytyet/items/59c5bad1c167d5addc68)
 
-## Extracting characters for pinyin
-Only fixed-width English fonts are supported.
-Save the font to "fonts/pinyin_alphabets"
-
-```
-$ python getPinyinAlphbets.py fonts/mplus-1m-medium.ttf
+# Install otfcc
+$ brew tap caryll/tap 
+$ brew install otfcc-mac64
 ```
 
 
-|Character|File name|Change name|
-|:--:|:-----:|:-----:|
-|a| A.svg | a.svg |
-|ā| Amacron.svg | ā.svg |
-|á| Aacute.svg  | á.svg |
-|ǎ| uni01CE.svg | ǎ.svg |
-|à| Agrave.svg  | à.svg |
-|b| B.svg | b.svg |
-|c| C.svg | c.svg |
-|d| D.svg | d.svg |
-|e| E.svg | e.svg |
-|ē| Emacron.svg | ē.svg |
-|é| Eacute.svg  | é.svg |
-|ě| Ecaron.svg  | ě.svg |
-|è| Egrave.svg  | è.svg |
-|f| F.svg | f.svg |
-|g| G.svg | g.svg |
-|h| H.svg | h.svg |
-|i| I.svg | i.svg |
-|ī| Imacron.svg | ī.svg |
-|í| Iacute.svg  | í.svg |
-|ǐ| uni01D0.svg | ǐ.svg |
-|ì| Igrave.svg  | ì.svg |
-|j| J.svg | j.svg |
-|k| K.svg | k.svg |
-|l| L.svg | l.svg |
-|m| M.svg | m.svg |
-|ḿ| uni1E3F.svg | ḿ.svg |
-|n| N.svg | n.svg |
-|ń| Nacute.svg  | ń.svg |
-|o| O.svg | o.svg |
-|ō| Omacron.svg | ō.svg |
-|ó| Oacute.svg  | ó.svg |
-|ǒ| uni01D2.svg | ǒ.svg |
-|ò| Ograve.svg  | ò.svg |
-|ở| uni1EDF.svg | ở.svg |
-|p| P.svg | p.svg |
-|q| Q.svg | q.svg |
-|r| R.svg | r.svg |
-|s| S.svg | s.svg |
-|t| T.svg | t.svg |
-|u| U.svg | u.svg |
-|ū| Umacron.svg   | ū.svg |
-|ú| Uacute.svg    | ú.svg |
-|ǔ| uni01D4.svg   | ǔ.svg |
-|ù| Ugrave.svg    | ù.svg |
-|ü| Udieresis.svg | ü.svg |
-|ǖ| uni01D6.svg   | ǖ.svg |
-|ǘ| uni01D8.svg   | ǘ.svg |
-|ǚ| uni01DA.svg   | ǚ.svg |
-|ǜ| uni01DC.svg   | ǜ.svg |
-|v| V.svg | v.svg |
-|w| W.svg | w.svg |
-|x| X.svg | x.svg |
-|y| Y.svg | y.svg |
-|z| Z.svg | z.svg |
+## Generation procedure
+1. Making a homograph dictionary  
+[to details](./res/phonics/duo_yin_zi/README.md)  
+```
+$ cd <PROJECT-ROOT>/res/phonics/duo_yin_zi/scripts/
+$ python make_pattern_table.py
+```
 
-Create "metadata-for-pinyin.json".
-![outline](./imgs/outline.png)
+2. Make an unicode table of the target Chinese characters 
+[to details](./res/phonics/unicode_mapping_table/README.md) 
+```
+$ cd <PROJECT-ROOT>/res/phonics/unicode_mapping_table/
+$ python make_unicode_pinyin_map_table.py 
+```
+
+3. Dump the base font to an editable file (json)
+The glyf table is too large and inconvenient to browse, so it should be separated from the other tables.  
+```
+$ cd <PROJECT-ROOT>
+$ python src/make_template_jsons.py <BASE-FONT-NAME>
+# e,g.:
+# python src/make_template_jsons.py ./res/fonts/SourceHanSerifCN-Regular.ttf
+```
+
+4. Extraction of latin characters for display at Pinyin
+**Note: Fixed-width latin alphabet fonts only**
+```
+$ cd <PROJECT-ROOT>
+$ python src/retrieve_latin_alphabet.py <FONT-NAME-FOR-PINYIN>
+# e,g.:
+# python src/retrieve_latin_alphabet.py ./res/fonts/mplus-1m-medium.ttf
+```
+
+5. Build the font
+```
+$ cd <PROJECT ROOT>
+$ time python3 src/main.py
+```
+
+## Technical Notes
+### How to set the canvas size of the pinyin display area
+
+![outline](./imgs/outline.png)  
 
 ```
-{
-  "AI":{
-    "Canvas":{
-      <!-- The width of the canvas -->
-      "Width": 722.489,
-      "Pinyin":{
-        <!-- Canvas size of the pinyin display area -->
-        "Width":614.4,
-        "Height":204.8,
-        <!-- The height from the botton of the canvas to the pinyin display area -->
-        "BaseLine":675.84,
-        <!-- Character spacing in the pinyin display area -->
-        "DefaultTracking":16
-      }
+    METADATA_FOR_PINYIN = {
+        "pinyin_canvas":{
+            "width"    : 850,   # The width of the canvas.
+            "height"   : 283.3, # The height of the canvas.
+            "base_line": 935,   # The height from the bottom of the Chinese character canvas to pinyin canvas.
+            "tracking" : 22.145 # Character spacing in the pinyin display area (Tracking is about uniform spacing across a text selection).
+        },
+        "expected_hanzi_canvas":{
+            "width" : 1000, # Expected Width of the Chinese character canvas.
+            "height": 1000, # Expected height of the Chinese character canvas.
+        }
+    }
+```
+refer to [pinyin_glyph.py](./src/pinyin_glyph.py#L13)
+
+
+### Componentization of the glyfs
+glyf can be componentized and referenced.
+You can reduce the volume by reusing them, and since they are placed by affine transformation, you can easily set their size and position.
+
+Reference usage examples:
+```
+"cid48219": {
+  "advanceWidth": 2048,
+  "advanceHeight": 2628.2,
+  "verticalOrigin": 1803,
+  "references": [
+    {
+      "glyph": "arranged_ji1", "x": 0, "y": 0, "a": 1, "b": 0, "c": 0, "d": 1
     },
-    "Alphbet":{
-      <!-- The width of the pinyin display area -->
-      "Width":176.389,
-      <!-- The height of highest character in pinyin (probably:ǘ ǚ ǜ) -->
-      "MaxHeight":319.264
+    {
+      "glyph": "cid48219.ss00", "x": 0, "y": 0, "a": 1, "b": 0, "c": 0, "d": 1
     }
-  },
-  "SVG":{
-    <!-- The width of viewBox -->
-    "Width":2048,
-    <!-- The scale of chinese character -->
-    "Hanzi":{
-      "Scale":{
-        "X":1,
-        "Y":1
-      },
-      <!-- The translation of chinese character  -->
-      "Translate":{
-        "X":0,
-        "Y":0
-      }
-    }
-  }
-}
+  ]
+},
 ```
 
-## Extract the target Chinese characters
-Extracting SVGs of Chinese characters from font
-```
-$ python font2svgs.py fonts/SourceHanSerifCN-Regular.ttf
-```
+[Apple-The 'glyf' table](https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6glyf.html)
+> The transformation entries determine the values of an affine transformation applied to the component prior to its being incorporated into the parent glyph. Given the component matrix [a b c d e f], the transformation applied to the component is:
 
-## Writing pinyin into Chinese characters
-```
-$ python pinyinFont.py fonts/SVGs fonts/pinyin_alphbets jsons/unicode-cid-mapping.json jsons/hanzi-and-pinyin-mapping.json jsons/metadata-for-pinyin.json
-```
+In the reference, a-d is the value of the affine transformation.
+In this tool, using a,d (scale) and x,y (move).
 
-## Delete characters that are not in the scope of project
-```
-$ python removeWithoutHanziSVG.py fonts/SVGs jsons/unicode-cid-mapping.json jsons/hanzi-and-pinyin-mapping.json
-```
+**Note: For unknown reasons, otfccbuild lost glyphs if a and d are the same value. \n If the sizes are different, it will be reflected, so set a=0.9, d=0.91 for 90%.**  
+refer to [pinyin_glyph.py](./src/pinyin_glyph.py#L148)
 
-## Optimize SVGs
-There are multiple transformations, so I'm going to combine them into one.
-[SVGCleaner.app](https://github.com/RazrFalcon/svgcleaner-gui/releases) is used for its simplicity.
-
-## Replace SVG to .glif
-A .glif is a file with character outlines in [UFO](https://unifiedfontobject.org/).
-The Unified Font Object (UFO) is a human readable, future proof format for storing font data.
-
-Refer to *[extract rotation, scale values from 2d transformation matrix](https://stackoverflow.com/questions/4361242/extract-rotation-scale-values-from-2d-transformation-matrix)*
-Matrix can calculate the scale, rotation, and shift at one time by raising the dimension.  
 <!--
 \begin{align*}
   \begin{pmatrix}
@@ -195,66 +149,117 @@ Matrix can calculate the scale, rotation, and shift at one time by raising the d
 \end{align*}
  -->
 ![matrix](./imgs/texclip20190728183918.png)  
-Transformation matrix as a list of six. float values (e.g. -t "0.1 0 0 -0.1 -50 200", -t "a b c d e f")   
+<!-- Ref.[extract rotation, scale values from 2d transformation matrix](https://stackoverflow.com/questions/4361242/extract-rotation-scale-values-from-2d-transformation-matrix)  
+Matrix can calculate the scale, rotation, and shift at one time by raising the dimension.   -->
+
+### feature tag
+"aalt" is set to display the alternative characters.  
+
+- "aalt_0" is set to "gsub_single". In use case, a symbol character and when the pronunciation changes only one Chinese character.
+- "aalt_1" is set to "gsub_alternate". In use case, When the pronunciation changes more than two Chinese characters.
+
+
+"rclt" is used for homograph substitution.
+This feature is used for chaining contextual substitution
+
+- "pattern one" is pattern of the pronunciation changes only one Chinese character.
+- "pattern two" is pattern of the pronunciation changes more than two Chinese characters.
+- "exception pattern" is pattern of the duplicates that affect phrases of pattern one or two.
+  [to details](./res/phonics/duo_yin_zi/README.md)
+
+
+# Specifications (constraints)
+- This font assumes horizontal writing only  
+- The glyf table can only store up to 65536  
+- The only font that can be used as a glyf is Fixed-width latin alphabet only
+- The json of the standard python library becomes bloated and slow when converted to dict, so use [orjson](https://github.com/ijl/orjson)  
+    refer to [Choosing a faster JSON library for Python](https://pythonspeed.com/articles/faster-json-library/),  
+    [PythonのJSONパーサのメモリ使用量と処理時間を比較してみる](https://postd.cc/memory-use-and-speed-of-json-parsers/)
+- ssNN range from ss00 - 20
+    [Tag: 'ss01' - 'ss20'](https://docs.microsoft.com/en-us/typography/opentype/spec/features_pt#-tag-ss01---ss20)
+- Chinese Pinyin is simplified in the glyf table (yī -> yi1)
+- Exclude the specific pronunciations(e.g: 呣 m̀, 嘸 m̄) as that is not included in unicode
+
+- [overwrite.txt](/res/phonics/unicode_mapping_table/overwrite.txt) has been added phrase for various purposes 
+    1. Register Pinyin that can not be acquired by pypinyin
+    2. Adjust the priority of pronunciation
+    3. Add the pronunciation of the "儿" as "r"
+    4. Add light tone(轻声), Integrate pronounce of the duplicate Chinese characters
+    5. Exclude the specific pronunciations(e.g: 呣 m̀, 嘸 m̄)
+  
+
+- IVS responds as follows:
+
+| code | Pinyin glyf |
+| ---: | :--- |
+| 0xE01E0 | None. Chinese character only |
+| 0xE01E1 | With the standard pronunciation |
+| 0xE01E2 | With the variational pronunciation |
+
+  
+
+- The correspondence between ssNN and Pinyin is as follows:
+
+    -> If you don't put the standard pronunciation in ssNN, GSUB will immediately return to the original state when reverting to the standard reading in cmap_uvs.   
+       Therefore, prepare a glyph for reverting to the standard pronunciation in ss01.  
+
+| Naming Rules | glyf type |
+| :--- | :--- |
+| hanzi_glyf | Chinese character glyf with the standard pronunciation |
+| hanzi_glyf.ss00 | Chinese character glyf without Pinyin. Pinyin can be changed by simply changing the IVS code. |
+| hanzi_glyf.ss01 | (When Chinese character has the variational pronunciation) <br> Chinese character glyf with the standard pronunciation (duplicates with hanzi_glyf, but replaces it by overriding GSUB replacements) |
+| hanzi_glyf.ss02 | (When Chinese character has the variational pronunciation) <br> After that, Chinese character glyf with the variational pronunciation
+
+  
+  
+- The name of the lookup table is free, but it obeys the following rules to reveal the reference source
+
+| lookup table name | reference source |
+| ---: | :--- |
+| lookup_pattern_0N | pattern one |
+| lookup_pattern_1N | pattern two |
+| lookup_pattern_2N | exception pattern |
+  
+  
+-  The order of 1~n in [duoyinzi_pattern_one.txt](./outputs/duoyinzi_pattern_one.txt) follows [marged-mapping-table.txt](./outputs/marged-mapping-table.txt), If order is 1 as the standard reading. Is order sequence match with ss0N. 
+
+e.g.:  
 ```
-$ python svgs2glifs.py fonts/SVGs jsons/unicode-cid-mapping.json -w 2048 -H 2048 -t "1 0 0
-1 0 0"
+U+5F3A: qiáng,qiǎng,jiàng  #强
 ```
-<!-- ```
-$ python svg2glif.py fonts/SVGs/cid09502.svg out.glif -w 2048 -H 2048 -t "2 0 0 -2 0 0"
-``` -->
-<!-- ## otf -> ttf
 ```
-$ python otf2ttf.py fonts/SourceHanSerifSC-Regular.otf
-``` -->
+1, 强, qiáng, [~调|~暴|~度|~占|~攻|加~|~奸|~健|~项|~行|~硬|~壮|~盗|~权|~制|~盛|~烈|~化|~大|~劲]
+2, 强, qiǎng, [~求|~人|~迫|~辩|~词夺理|~颜欢笑]
+3, 强, jiàng, [~嘴|倔~]
+```
+  
+  
+- lookup rclt summarizes the reading pattern by. rclt0 is "pattern one".  rclt1 is "pattern two"。 rclt2 is "exception pattern".  
+- [duoyinzi_pattern_two.json](./outputs/duoyinzi_pattern_two.json) and [duoyinzi_exceptional_pattern.json](./outputs/duoyinzi_exceptional_pattern.json) a notation similar to [Glyphs](https://glyphsapp.com/) and [OpenType™ Feature File](http://adobe-type-tools.github.io/afdko/OpenTypeFeatureFileSpecification.html#5.f) 
+- ignore tag specifies the phrase to be affected. And attach a single quote to a specific character that is affected. 
+    Refer to ignore tag in [duoyinzi_exceptional_pattern.json](./outputs/duoyinzi_exceptional_pattern.json).
 
-## Convart TTF to UFO
-Conversion using FontForge.
-<!-- ```
-$ fontforge -script ttf2ufo.pe fonts/SourceHanSerifCN-Regular.ttf
-``` -->
-![ttf-to-ufo-img0.png](./imgs/ttf-to-ufo-img0.png)
-![ttf-to-ufo-img1.png](./imgs/ttf-to-ufo-img1.png)
-![ttf-to-ufo-img2.png](./imgs/ttf-to-ufo-img2.png)
-![ttf-to-ufo-img3.png](./imgs/ttf-to-ufo-img3.png)
-![ttf-to-ufo-img4.png](./imgs/ttf-to-ufo-img4.png)
-![ttf-to-ufo-img5.png](./imgs/ttf-to-ufo-img5.png)
-
-## Move each .glif to UFO
-Overwrite the "glyphs/\*.glif" that is output under "fonts/ufo/glyphs/\*.glif".
-When I overwrite each glyphs, it doesn't work. Why, is it because of the Finder? So, move or copy them file by file.  
-There are 16026 files.
-
-## Assemble UFO to TTF
-<!-- ```
-$ fontforge -script ufo2ttf.pe fonts/SourceHanSerifCN-Regular.ufo
-``` -->
-![ufo-to-ttf-img0.png](./imgs/ufo-to-ttf-img0.png)
-![ufo-to-ttf-img1.png](./imgs/ufo-to-ttf-img1.png)
-![ufo-to-ttf-img2.png](./imgs/ufo-to-ttf-img2.png)
-![ufo-to-ttf-img3.png](./imgs/ufo-to-ttf-img3.png)
-![ufo-to-ttf-img4.png](./imgs/ufo-to-ttf-img4.png)
-![ufo-to-ttf-img5.png](./imgs/ufo-to-ttf-img5.png)
-![ufo-to-ttf-img6.png](./imgs/ufo-to-ttf-img6.png)
-![ufo-to-ttf-img7.png](./imgs/ufo-to-ttf-img7.png)
-
+# Terminology used
+![](./imgs/terminology.png)
 
 # Collection of Chinese characters that are not found in `pypinyin`
 [FIX_PINYIN.md](FIX_PINYIN.md)
 
 
-# Ligatures
-- [OpenType Cookbook](http://opentypecookbook.com/)
-- [glyphs Ligatures](https://glyphsapp.com/tutorials/ligatures)
-- [github ligatures](https://github.com/topics/ligatures)
-- [kiliman/operator-mono-lig](https://github.com/kiliman/operator-mono-lig)
-- [【完全版】Ligature Symbols フォントセットの自作方法](https://kudakurage.hatenadiary.com/entry/20120720/1342749116)
 
-<!-- fontforge
-ctrl + Shift + F -> Lookups
-cid59875 -->
-
+# References
 ## Heteronyms ([多音字](https://zh.wikipedia.org/wiki/%E5%A4%9A%E9%9F%B3%E5%AD%97))
 - [中国語の多音字辞典（Chinese Duoyinzi Dictionary）](https://dokochina.com/duoyinzi.htm)
+- [ユーウェン中国語講座 - 多音字](https://yuwen.zaich.com/intermediate/duoyinzi)
 - [常用多音字表](http://xh.5156edu.com/page/18317.html)
 - [104个汉字多音字一句话总结](http://news.sina.com.cn/c/2017-03-19/doc-ifycnikk1155875.shtml)
+
+## Dictionary Sites
+- [baidu汉语](https://hanyu.baidu.com/)
+- [汉典](https://www.zdic.net/)
+
+## Opentype Specification
+- [OpenType™ Feature File Specification](http://adobe-type-tools.github.io/afdko/OpenTypeFeatureFileSpecification.html#5f-gsub-lookuptype-6-chaining-contextual-substitution)
+- [西暦表記を元号による表記にするフォント](http://mottainaidtp.seesaa.net/article/425166883.html)
+- [IVD/IVSとは](https://mojikiban.ipa.go.jp/1292.html)
+- [OpenType フォント・フォーマット](https://aznote.jakou.com/prog/opentype/index.html)
