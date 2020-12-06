@@ -7,6 +7,7 @@ OSS の多音字に対応した拼音フォント及びその作成ツールで�
 私達は中国語の学習や普及を目的としているグループです。/ We are a group dedicated to learning and promoting the Chinese language.  
 - [萌神PROJECT](https://mengshen-project.com/)
 - [「萌神フォント」誕生しました！](https://note.com/geek_chainese/n/n7a6f26a885d1)
+- [「萌神フォント」Ver.2ができました！](https://note.com/geekzhongwen/n/nf9552d4bdf66)
 
 ## 目的 / Purpose
 基本的な日本語、簡体字、繁体字を表示できるフォントであり、
@@ -36,6 +37,9 @@ Implemented contextual replacing to support homograph (多音字).
 You can also use Unicode IVS (ideographic variant selector) to switch other different pinyin.  
 ![](./imgs/2020-10-25-19.17.04.gif)
 
+# 対応している多音字の一覧 / List of supported homograph
+- [supported homograph](./DUOYINZI_DICTIONARY.md)
+
 # 生成方法 / How to make fonts
 - [日本語](./HOW_TO_MAKE_JP.md)  
 - [English](./HOW_TO_MAKE_EN.md)
@@ -43,5 +47,5 @@ You can also use Unicode IVS (ideographic variant selector) to switch other diff
 
 # 謝辞 / Acknowledgments
 Thank you to the following people and repositories. 
-- NFSL2001 ([@NightFurySL2001](https://github.com/NightFurySL2001)) - san
+- [@NightFurySL2001](https://github.com/NightFurySL2001)-san
 - [BPMF IVS](https://github.com/ButTaiwan/bpmfvs)
