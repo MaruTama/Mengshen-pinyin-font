@@ -116,12 +116,12 @@ def pattern_one(PHRASE_TABLE_FILE):
     list_multiple_replacement_by_duoyinzi = get_multiple_replacement_by_duoyinzi(PHRASE_TABLE_FILE)
     if len(list_multiple_replacement_by_duoyinzi) > 0:
         print("単語を phrase_of_pattern_two.txt に移動させてください")
-        print("There is more than one hanzi(kanji) that can be replaced by Pinyin in a phrase : ")
+        print("There is more than one hanzi(kanji) that can be replaced by variational pronunciation in a phrase : ")
         print(list_multiple_replacement_by_duoyinzi)
         exit()
     else:
         print("success!")
-        print("There is no more than one hanzi(kanji) that can be replaced by Pinyin in a phrase.")
+        print("There is no more than one hanzi(kanji) that can be replaced by variational pronunciation in a phrase.")
     print()
 
 
