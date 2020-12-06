@@ -173,10 +173,10 @@ This feature is used for chaining contextual substitution
 - The glyf table can only store up to 65536  
 - The only font that can be used as a glyf is Fixed-width latin alphabet only
 - The json of the standard python library becomes bloated and slow when converted to dict, so use [orjson](https://github.com/ijl/orjson)  
-    refer to [Choosing a faster JSON library for Python](https://pythonspeed.com/articles/faster-json-library/),  
+    Refer to [Choosing a faster JSON library for Python](https://pythonspeed.com/articles/faster-json-library/),  
     [PythonのJSONパーサのメモリ使用量と処理時間を比較してみる](https://postd.cc/memory-use-and-speed-of-json-parsers/)
-- ssNN range from ss00 - 20
-    [Tag: 'ss01' - 'ss20'](https://docs.microsoft.com/en-us/typography/opentype/spec/features_pt#-tag-ss01---ss20)
+- ssNN range from ss00 - 20  
+    Refer to [Tag: 'ss01' - 'ss20'](https://docs.microsoft.com/en-us/typography/opentype/spec/features_pt#-tag-ss01---ss20)
 - Chinese Pinyin is simplified in the glyf table (yī -> yi1)
 - Exclude the specific pronunciations(e.g: 呣 m̀, 嘸 m̄) as that is not included in unicode
 
@@ -233,7 +233,7 @@ U+5F3A: qiáng,qiǎng,jiàng  #强
 3, 强, jiàng, [~嘴|倔~]
 ```
   
-  
+
 - lookup rclt summarizes the reading pattern by. rclt0 is "pattern one".  rclt1 is "pattern two"。 rclt2 is "exception pattern".  
 - [duoyinzi_pattern_two.json](./outputs/duoyinzi_pattern_two.json) and [duoyinzi_exceptional_pattern.json](./outputs/duoyinzi_exceptional_pattern.json) a notation similar to [Glyphs](https://glyphsapp.com/) and [OpenType™ Feature File](http://adobe-type-tools.github.io/afdko/OpenTypeFeatureFileSpecification.html#5.f) 
 - ignore tag specifies the phrase to be affected. And attach a single quote to a specific character that is affected. 

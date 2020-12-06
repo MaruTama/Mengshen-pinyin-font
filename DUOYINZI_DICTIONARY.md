@@ -1,5 +1,5 @@
 ## pattern 1
-There is one hanzi(kanji) only that can be replaced by variational pronunciation in a phrase.
+There is one hanzi only that can be replaced by variational pronunciation in a phrase.
 | Number | hanzi | pinyin | phrase |
 | ---: | :--- | :--- | :--- |
 | 1|阿|ā|阿托品|
@@ -253,7 +253,7 @@ There is one hanzi(kanji) only that can be replaced by variational pronunciation
 |   |奇|jī|奇数|
 
 ## pattern 2
-There is more than one hanzi(kanji) that can be replaced by variational pronunciation in a phrase.
+There is more than one hanzi that can be replaced by variational pronunciation in a phrase.
 | Number | phrase | pinyin |
 | ---: | :--- | :--- |
 | 1|间作离间|jiàn/zuò/lí/jiàn|
