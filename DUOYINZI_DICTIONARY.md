@@ -299,3 +299,8 @@ There are duplicates that affect phrases of pattern 1 or 2.
 | ---: | :--- | :--- |
 | 1| 着手: zhuó/shǒu | 背着手: bèi/zhe/shǒu|
 | 2| 轴子: zhóu/zǐ   | 大轴子: dà/zhòu/zi, 压轴子: yā/zhòu/zi|
+
+
+## References
+- [中国語の多音字辞典（Chinese Duoyinzi Dictionary）](https://dokochina.com/duoyinzi.htm)
+- [ユーウェン中国語講座 - 多音字](https://yuwen.zaich.com/intermediate/duoyinzi)

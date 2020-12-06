@@ -47,7 +47,7 @@ $ cd <PROJECT-ROOT>/res/phonics/duo_yin_zi/scripts/
 $ python make_pattern_table.py
 ```
 
-2. Make an unicode table of the target Chinese characters 
+2. Make an unicode table of the target Chinese characters  
 [to details](./res/phonics/unicode_mapping_table/README.md) 
 ```
 $ cd <PROJECT-ROOT>/res/phonics/unicode_mapping_table/
@@ -63,7 +63,7 @@ $ python src/make_template_jsons.py <BASE-FONT-NAME>
 # python src/make_template_jsons.py ./res/fonts/SourceHanSerifCN-Regular.ttf
 ```
 
-4. Extraction of latin characters for display at Pinyin
+4. Extraction of latin characters for display at Pinyin  
 **Note: Fixed-width latin alphabet fonts only**
 ```
 $ cd <PROJECT-ROOT>
@@ -127,7 +127,7 @@ Reference usage examples:
 In the reference, a-d is the value of the affine transformation.
 In this tool, using a,d (scale) and x,y (move).
 
-**Note: For unknown reasons, otfccbuild lost glyphs if a and d are the same value. \n If the sizes are different, it will be reflected, so set a=0.9, d=0.91 for 90%.**  
+**Note: For unknown reasons, otfccbuild lost glyphs if a and d are the same value. If the sizes are different, it will be reflected, so set a=0.9, d=0.91 for 90%.**  
 refer to [pinyin_glyph.py](./src/pinyin_glyph.py#L148)
 
 <!--
@@ -164,7 +164,7 @@ This feature is used for chaining contextual substitution
 
 - "pattern one" is pattern of the pronunciation changes only one Chinese character.
 - "pattern two" is pattern of the pronunciation changes more than two Chinese characters.
-- "exception pattern" is pattern of the duplicates that affect phrases of pattern one or two.
+- "exception pattern" is pattern of the duplicates that affect phrases of pattern one or two.  
   [to details](./res/phonics/duo_yin_zi/README.md)
 
 
