@@ -4,8 +4,7 @@
 - 簡体字と繁体字の漢字は拼音が付く
 - 簡体字の対象範囲は [通用规范汉字表](https://blogs.adobe.com/CCJKType/2014/03/china-8105.html) に準拠する
 - 繁体字の対象範囲は [Big5( 大五碼 )-2003](https://moztw.org/docs/big5/) に準拠する
-- 日本の漢字は[当用漢字字体表（新字体）](https://kotobank.jp/word/%E6%96%B0%E5%AD%97%E4%BD%93-537633)に準拠する
-- 新字体は[常用漢字](https://kanji.jitenon.jp/cat/joyo.html)が表示できる程度の範囲とする
+- 日本の漢字は[常用漢字表（平成22年内閣告示第2号）](https://www.bunka.go.jp/kokugo_nihongo/sisaku/joho/joho/kijun/naikaku/kanji/)に準拠する
 - 「ひらがな」「カタカナ」を表示できる  
 
 
@@ -167,6 +166,7 @@ rclt は多音字の置換に利用している。この feature は (文脈連�
 # 仕様（制約）
 - このフォントは横書きのみ想定  
 - glyf table は 65536 までしか格納できない  
+- glyf table は大きいので別の json として保存している  
 - 拼音のグリフとして使えるフォントは等幅英字のみ  
 - python の標準ライブラリの json は dict に変換すると肥大化して遅くなるので、 [orjson](https://github.com/ijl/orjson) を利用する  
     refer to [Choosing a faster JSON library for Python](https://pythonspeed.com/articles/faster-json-library/), 
@@ -186,22 +186,27 @@ rclt は多音字の置換に利用している。この feature は (文脈連�
     呣 m̀, 嘸 m̄　を除外するため（追加してもいいが拼音グリフを作るのが面倒になる）  
 
 - IVS は  
-    0xE01E0 => 何もないグリフ
-    0xE01E1 => 標準的な拼音
-    0xE01E2 => 以降、異読の拼音
-    に対応させる
+| code | Pinyin glyf |
+| ---: | :--- |
+| 0xE01E0 | 何もないグリフ |
+| 0xE01E1 | 標準的な拼音 |
+| 0xE01E2 | 以降、異読の拼音 |
 
 - ssXX と拼音の対応は以下のようにする  
     -> ssXX に標準的な拼音を入れないと cmap_uvs で標準の読みに戻す場合に、すぐにGSUBが効いて元に戻ってしまう。そのため、ss01 に標準的な拼音に戻す用のグリフを用意する.  
-    hanzi_glyf　　　　標準の読みの拼音  
-    hanzi_glyf.ss00　拼音の無い漢字グリフ。設定を変更するだけで拼音を変更できる  
-    hanzi_glyf.ss01　（異読の拼音があるとき）標準の読みの拼音（hanzi_glyf と重複するが GSUB の置換（多音字のパターン）を無効にして強制的に置き換えるため）  
-    hanzi_glyf.ss02　（異読の拼音があるとき）以降、異読な拼音　
+| 命名規則 | グリフタイプ |
+| :--- | :--- |
+| hanzi_glyf | 標準の読みの拼音 |
+| hanzi_glyf.ss00 | 拼音の無い漢字グリフ。設定を変更するだけで拼音を変更できる |
+| hanzi_glyf.ss01 | （異読の拼音があるとき）標準の読みの拼音（hanzi_glyf と重複するが GSUB の置換（多音字のパターン）を無効にして強制的に置き換えるため）|
+| hanzi_glyf.ss02 |（異読の拼音があるとき）以降、異読な拼音 |
 
 - lookup table の名前は自由だけど、どこから参照しているか分かりやすくするために名前を以下のようにする  
-    lookup_pattern_0X <= pattern one  
-    lookup_pattern_1X <= pattern two  
-    lookup_pattern_2X <= exception pattern  
+| lookup table name | reference source |
+| ---: | :--- |
+| lookup_pattern_0N | pattern one |
+| lookup_pattern_1N | pattern two |
+| lookup_pattern_2N | exception pattern |
 
 - [duoyinzi_pattern_one.txt](./outputs/duoyinzi_pattern_one.txt) の 1~n の並びは、[marged-mapping-table.txt](./outputs/marged-mapping-table.txt) に従う。1 が標準的な読み. ss01 と合わせる  
     ```

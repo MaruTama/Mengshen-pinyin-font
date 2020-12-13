@@ -5,8 +5,7 @@
 - Display pinyin for both Simplified and Traditional Chinese
 - The scope of Simplified Chinese characters is based on the *[Table of General Standard Chinese Characters](https://en.wikipedia.org/wiki/Table_of_General_Standard_Chinese_Characters)* ([通用规范汉字表](https://blogs.adobe.com/CCJKType/2014/03/china-8105.html))
 - The scope of Traditional Chinese characters is based on the *[Big-5-2003](https://en.wikipedia.org/wiki/Big5)* ([五大碼-2003](https://moztw.org/docs/big5/))
-- The scope of Japanese Kanji is based on the *[Tōyō kanji List (mainly Shinjitai)](https://en.wikipedia.org/wiki/Shinjitai)* ([当用漢字字体表（i.e.:新字体）](https://kotobank.jp/word/%E6%96%B0%E5%AD%97%E4%BD%93-537633))
-- Japanese new glyphs/*Shinjitai* (新字体) that can be displayed are limited to the extent of *[Jōyō_kanji](https://en.wikipedia.org/wiki/J%C5%8Dy%C5%8D_kanji)* ([常用漢字](https://kanji.jitenon.jp/cat/joyo.html))
+- The scope of Japanese Kanji is based on the *[Jōyō_kanji](https://en.wikipedia.org/wiki/J%C5%8Dy%C5%8D_kanji)* ([常用漢字表（平成22年内閣告示第2号）](https://www.bunka.go.jp/kokugo_nihongo/sisaku/joho/joho/kijun/naikaku/kanji/))
 - Hiragana (e.g.:あ) and katakana (e.g.:ア) are available
 
 The font used here is based on [Source-Han-TrueType](https://github.com/Pal3love/Source-Han-TrueType).
@@ -171,6 +170,7 @@ This feature is used for chaining contextual substitution
 # Specifications (constraints)
 - This font assumes horizontal writing only  
 - The glyf table can only store up to 65536  
+- The glyf table is large, save it as another json  
 - The only font that can be used as a glyf is Fixed-width latin alphabet only
 - The json of the standard python library becomes bloated and slow when converted to dict, so use [orjson](https://github.com/ijl/orjson)  
     Refer to [Choosing a faster JSON library for Python](https://pythonspeed.com/articles/faster-json-library/),  
@@ -208,7 +208,7 @@ This feature is used for chaining contextual substitution
 | hanzi_glyf | Chinese character glyf with the standard pronunciation |
 | hanzi_glyf.ss00 | Chinese character glyf without Pinyin. Pinyin can be changed by simply changing the IVS code. |
 | hanzi_glyf.ss01 | (When Chinese character has the variational pronunciation) <br> Chinese character glyf with the standard pronunciation (duplicates with hanzi_glyf, but replaces it by overriding GSUB replacements) |
-| hanzi_glyf.ss02 | (When Chinese character has the variational pronunciation) <br> After that, Chinese character glyf with the variational pronunciation
+| hanzi_glyf.ss02 | (When Chinese character has the variational pronunciation) <br> After that, Chinese character glyf with the variational pronunciation |
 
   
   
