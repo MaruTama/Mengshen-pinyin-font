@@ -69,15 +69,16 @@ class Font():
         if len(refered_glyf_names) < 2:
             return
 
+        # 最初のものに統一する
+        refered_glyf_name = refered_glyf_names[0]
         for str_oct_unicode in duplicate_hanzi_unicodes:
             if str_oct_unicode in cmap_table:
-                # 最初のものに統一する
-                refered_glyf_name = refered_glyf_names[0]
-                # 不要なグリフの削除
-                delete_glyf_name = cmap_table[str_oct_unicode]
-                self.delete_glyf(delete_glyf_name)
-                # 参照するグリフを更新
-                cmap_table.update( {str_oct_unicode : refered_glyf_name} )
+                if cmap_table[str_oct_unicode] != refered_glyf_name:
+                    # 不要なグリフの削除
+                    delete_glyf_name = cmap_table[str_oct_unicode]
+                    self.delete_glyf(delete_glyf_name)
+                    # 参照するグリフを更新
+                    cmap_table.update( {str_oct_unicode : refered_glyf_name} )
 
     def delete_glyf(self, glyf_name):
         # 空のグリフのテーブル（管理しやすくするために、glyf table は別オブジェクトになっている）
