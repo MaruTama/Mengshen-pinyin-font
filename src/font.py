@@ -21,6 +21,7 @@ class Font():
         self.PATTERN_TWO_JSON       = PATTERN_TWO_JSON
         self.EXCEPTION_PATTERN_JSON = EXCEPTION_PATTERN_JSON
         self.load_json()
+        # utility を使うために設定する
         utility.cmap_table = self.marged_font["cmap"]
         self.PINYIN_MAPPING_TABLE = pg.get_pinyin_table_with_mapping_table()
 
@@ -28,7 +29,6 @@ class Font():
         pinyin_glyph = py_glyph.PinyinGlyph(TAMPLATE_MAIN_JSON, ALPHABET_FOR_PINYIN_JSON)
         self.py_alphablet = pinyin_glyph.get_py_alphablet_glyf_table()
         pinyin_glyph.add_references_of_pronunciation()
-        # pinyin_glyph.save_json("unti.json")
         self.pronunciation = pinyin_glyph.get_pronunciation_glyf_table()
         print("発音のグリフを作成完了")
 
@@ -41,6 +41,57 @@ class Font():
             str(0x55C0):1, str(0xFA0D):1
         }
         self.is_added_glyf = [False, False]
+        # もし、別のグリフが用意されているなら、グリフ数削減のためにも参照を先を統一する。
+        self.integrate_reference_of_wu4()
+        self.integrate_reference_of_hu4()
+
+    # ⺎(U+2E8E) 兀(U+5140) 兀(U+FA0C)
+    def integrate_reference_of_wu4(self):
+        wu4_str_oct_unicodes = [str(0x2E8E), str(0x5140), str(0xFA0C)]
+        self.integrate_reference_of_duplicate_hanzi(wu4_str_oct_unicodes)
+    
+    # 嗀(U+55C0) 嗀(U+FA0D)
+    def integrate_reference_of_hu4(self):
+        hu4_str_oct_unicodes = [str(0x55C0), str(0xFA0D)]
+        self.integrate_reference_of_duplicate_hanzi(hu4_str_oct_unicodes)
+
+    # 重複して定義されている漢字においてグリフが複数あるときには参照するグリフを一つにする
+    def integrate_reference_of_duplicate_hanzi(self, duplicate_hanzi_unicodes):
+        refered_set_glyf_name = set()
+        cmap_table = self.marged_font["cmap"]
+
+        for str_oct_unicode in duplicate_hanzi_unicodes:
+            if str_oct_unicode in cmap_table:
+                refered_set_glyf_name.add(cmap_table[str_oct_unicode])
+        refered_glyf_names = list(refered_set_glyf_name)
+        refered_glyf_names.sort()
+        # 参照先が一つのときは問題ないので抜ける
+        if len(refered_glyf_names) < 2:
+            return
+
+        for str_oct_unicode in duplicate_hanzi_unicodes:
+            if str_oct_unicode in cmap_table:
+                # 最初のものに統一する
+                refered_glyf_name = refered_glyf_names[0]
+                # 不要なグリフの削除
+                delete_glyf_name = cmap_table[str_oct_unicode]
+                self.delete_glyf(delete_glyf_name)
+                # 参照するグリフを更新
+                cmap_table.update( {str_oct_unicode : refered_glyf_name} )
+
+    def delete_glyf(self, glyf_name):
+        # 空のグリフのテーブル（管理しやすくするために、glyf table は別オブジェクトになっている）
+        template_glyf_table  = self.marged_font["glyf"]
+        glyph_order_list     = self.marged_font["glyph_order"]
+        
+        if glyf_name in template_glyf_table:
+            del template_glyf_table[glyf_name]
+        if glyf_name in self.substance_glyf_table:
+            del self.substance_glyf_table[glyf_name]
+        if glyf_name in glyph_order_list:
+            glyph_order_list.remove(glyf_name)
+
+        print(glyf_name)
 
     def get_advance_size_of_hanzi(self):
         # なんでもいいが、とりあえず漢字の「一」でサイズを取得する
@@ -75,20 +126,20 @@ class Font():
             self.marged_font.update( {"cmap_uvs": {}} )
 
         for (hanzi, pinyins) in utility.get_has_single_pinyin_hanzi():
-            str_unicode = str(ord(hanzi))
-            if not (str_unicode in utility.cmap_table):
-                raise Exception("グリフが見つかりません.\n  unicode: {}".format(str_unicode))
+            str_oct_unicode = str(ord(hanzi))
+            if not (str_oct_unicode in self.marged_font["cmap"]):
+                raise Exception("グリフが見つかりません.\n  unicode: {}".format(str_oct_unicode))
             cid = utility.convert_str_hanzi_2_cid(hanzi)
-            self.marged_font["cmap_uvs"]["{0} {1}".format(str_unicode, IVS)] = "{}.ss00".format(cid)
+            self.marged_font["cmap_uvs"]["{0} {1}".format(str_oct_unicode, IVS)] = "{}.ss00".format(cid)
         
         for (hanzi, pinyins) in utility.get_has_multiple_pinyin_hanzi():
-            str_unicode = str(ord(hanzi))
-            if not (str_unicode in utility.cmap_table):
-                raise Exception("グリフが見つかりません.\n  unicode: {}".format(str_unicode))
+            str_oct_unicode = str(ord(hanzi))
+            if not (str_oct_unicode in self.marged_font["cmap"]):
+                raise Exception("グリフが見つかりません.\n  unicode: {}".format(str_oct_unicode))
             cid = utility.convert_str_hanzi_2_cid(hanzi)
             # ss00 は ピンインのないグリフ なので、ピンインのグリフは "ss{:02}".format(len) まで
             for i in range( len(pinyins)+1 ):
-                self.marged_font["cmap_uvs"]["{0} {1}".format(str_unicode, IVS + i)] = "{}.ss{:02}".format(cid, i)
+                self.marged_font["cmap_uvs"]["{0} {1}".format(str_oct_unicode, IVS + i)] = "{}.ss{:02}".format(cid, i)
 
     def add_glyph_order(self):
         """
@@ -102,16 +153,16 @@ class Font():
         # 漢字グリフ追加
         set_glyph_order = set(self.marged_font["glyph_order"])
         for (hanzi, pinyins) in utility.get_has_single_pinyin_hanzi():
-            str_unicode = str(ord(hanzi))
-            if not (str_unicode in utility.cmap_table):
-                raise Exception("グリフが見つかりません.\n  unicode: {}".format(str_unicode))
+            str_oct_unicode = str(ord(hanzi))
+            if not (str_oct_unicode in self.marged_font["cmap"]):
+                raise Exception("グリフが見つかりません.\n  unicode: {:x}".format(int(str_oct_unicode)))
             cid = utility.convert_str_hanzi_2_cid(hanzi)
             set_glyph_order.add("{}.ss00".format(cid))
 
         for (hanzi, pinyins) in utility.get_has_multiple_pinyin_hanzi():
-            str_unicode = str(ord(hanzi))
-            if not (str_unicode in utility.cmap_table):
-                raise Exception("グリフが見つかりません.\n  unicode: {}".format(str_unicode))
+            str_oct_unicode = str(ord(hanzi))
+            if not (str_oct_unicode in self.marged_font["cmap"]):
+                raise Exception("グリフが見つかりません.\n  unicode: {:x}".format(int(str_oct_unicode)))
             # ss00 は ピンインのないグリフ なので、ピンインのグリフは "ss{:02}".format(len) まで
             for i in range( len(pinyins)+1 ):
                 cid = utility.convert_str_hanzi_2_cid(hanzi)
@@ -157,17 +208,17 @@ class Font():
     
     # unicode 上に定義が重複している漢字があるとエラーになるので判定を入れる
     # Exception: otfccbuild : Build : [WARNING] [Stat] Circular glyph reference found in gid 11663 to gid 11664. The reference will be dropped.
-    def is_added_glyf_4_duplicate_definition_of_hanzi(self, str_unicode):
-        duplicate_definition_of_hanzes = [str_unicode for str_unicode, _ in self.duplicate_definition_of_hanzes.items()]
-        if str_unicode in duplicate_definition_of_hanzes:
-            idx = self.duplicate_definition_of_hanzes[str_unicode]
+    def is_added_glyf_4_duplicate_definition_of_hanzi(self, str_oct_unicode):
+        duplicate_definition_of_hanzes = [str_oct_unicode for str_oct_unicode, _ in self.duplicate_definition_of_hanzes.items()]
+        if str_oct_unicode in duplicate_definition_of_hanzes:
+            idx = self.duplicate_definition_of_hanzes[str_oct_unicode]
             return self.is_added_glyf[idx]
         return False
 
-    def update_status_is_added_glyf_4_duplicate_definition_of_hanzi(self, str_unicode):
-        duplicate_definition_of_hanzes = [str_unicode for str_unicode, _ in self.duplicate_definition_of_hanzes.items()]
-        if str_unicode in duplicate_definition_of_hanzes:
-            idx = self.duplicate_definition_of_hanzes[str_unicode]
+    def update_status_is_added_glyf_4_duplicate_definition_of_hanzi(self, str_oct_unicode):
+        duplicate_definition_of_hanzes = [str_oct_unicode for str_oct_unicode, _ in self.duplicate_definition_of_hanzes.items()]
+        if str_oct_unicode in duplicate_definition_of_hanzes:
+            idx = self.duplicate_definition_of_hanzes[str_oct_unicode]
             self.is_added_glyf[idx] = True
                 
     def add_glyf(self):
@@ -190,17 +241,17 @@ class Font():
         # hanzi_glyf -> hanzi_glyf.ss00
         # hanzi_glyf = hanzi_glyf.ss00 + normal pronunciation
         for (hanzi, pinyins) in utility.get_has_single_pinyin_hanzi():
-            str_unicode = str(ord(hanzi))
-            if not (str_unicode in utility.cmap_table):
-                raise Exception("グリフが見つかりません.\n  unicode: {}".format(str_unicode))
-            if self.is_added_glyf_4_duplicate_definition_of_hanzi(str_unicode):
+            str_oct_unicode = str(ord(hanzi))
+            if not (str_oct_unicode in self.marged_font["cmap"]):
+                raise Exception("グリフが見つかりません.\n  unicode: {}".format(str_oct_unicode))
+            if self.is_added_glyf_4_duplicate_definition_of_hanzi(str_oct_unicode):
                 continue
             cid = utility.convert_str_hanzi_2_cid(hanzi)
-            glyf_data = self.font_glyf_table[cid]
-            self.font_glyf_table.update( { "{}.ss00".format(cid) : glyf_data } )
+            glyf_data = self.substance_glyf_table[cid]
+            self.substance_glyf_table.update( { "{}.ss00".format(cid) : glyf_data } )
             normal_pronunciation = pinyins[pg.NORMAL_PRONUNCIATION]
             glyf_data = self.generate_hanzi_glyf_with_pinyin(cid, normal_pronunciation)
-            self.font_glyf_table.update( { cid : glyf_data } )
+            self.substance_glyf_table.update( { cid : glyf_data } )
 
         # if "hanzi_glyf" has variational pronunciation
         # hanzi_glyf -> hanzi_glyf.ss00
@@ -208,33 +259,33 @@ class Font():
         # hanzi_glyf = hanzi_glyf.ss01
         # hanzi_glyf.ss02 = hanzi_glyf.ss00 + variational pronunciation
         for (hanzi, pinyins) in utility.get_has_multiple_pinyin_hanzi():
-            str_unicode = str(ord(hanzi))
-            if not (str_unicode in utility.cmap_table):
-                raise Exception("グリフが見つかりません.\n  unicode: {}".format(str_unicode))
-            if self.is_added_glyf_4_duplicate_definition_of_hanzi(str_unicode):
+            str_oct_unicode = str(ord(hanzi))
+            if not (str_oct_unicode in self.marged_font["cmap"]):
+                raise Exception("グリフが見つかりません.\n  unicode: {}".format(str_oct_unicode))
+            if self.is_added_glyf_4_duplicate_definition_of_hanzi(str_oct_unicode):
                 continue
             cid = utility.convert_str_hanzi_2_cid(hanzi)
-            glyf_data = self.font_glyf_table[cid]
+            glyf_data = self.substance_glyf_table[cid]
             # hanzi_glyf -> hanzi_glyf.ss00
-            self.font_glyf_table.update( { "{}.ss00".format(cid) : glyf_data } )
+            self.substance_glyf_table.update( { "{}.ss00".format(cid) : glyf_data } )
             # hanzi_glyf.ss01 = hanzi_glyf.ss00 + normal pronunciation
             normal_pronunciation = pinyins[pg.NORMAL_PRONUNCIATION]
             glyf_data = self.generate_hanzi_glyf_with_pinyin(cid, normal_pronunciation)
-            self.font_glyf_table.update( { "{}.ss01".format(cid) : glyf_data } )
+            self.substance_glyf_table.update( { "{}.ss01".format(cid) : glyf_data } )
             # hanzi_glyf = hanzi_glyf.ss01
             glyf_data = self.generate_hanzi_glyf_with_normal_pinyin(cid)
-            self.font_glyf_table.update( { cid : glyf_data } )
+            self.substance_glyf_table.update( { cid : glyf_data } )
             # if hanzi_glyf has variational pronunciation
             # hanzi_glyf.ss01 = hanzi_glyf.ss00 + variational pronunciation
             for i in range( 1,len(pinyins) ):
                 variational_pronunciation = pinyins[i]
                 glyf_data = self.generate_hanzi_glyf_with_pinyin(cid, variational_pronunciation)
-                self.font_glyf_table.update( { "{}.ss{:02}".format(cid, pg.VARIATIONAL_PRONUNCIATION + i) : glyf_data } )
-            self.update_status_is_added_glyf_4_duplicate_definition_of_hanzi(str_unicode)
+                self.substance_glyf_table.update( { "{}.ss{:02}".format(cid, pg.VARIATIONAL_PRONUNCIATION + i) : glyf_data } )
+            self.update_status_is_added_glyf_4_duplicate_definition_of_hanzi(str_oct_unicode)
 
         new_glyf = self.marged_font["glyf"]
         new_glyf.update( self.py_alphablet )
-        new_glyf.update( self.font_glyf_table )
+        new_glyf.update( self.substance_glyf_table )
         self.marged_font["glyf"] = new_glyf
         print("  ==> glyf num : {}".format(len(self.marged_font["glyf"])))
         if len(self.marged_font["glyf"]) > 65536:
@@ -273,7 +324,7 @@ class Font():
         with open(self.TAMPLATE_MAIN_JSON, "rb") as read_file:
             self.marged_font = orjson.loads(read_file.read())
         with open(self.TAMPLATE_GLYF_JSON, "rb") as read_file:
-            self.font_glyf_table = orjson.loads(read_file.read())
+            self.substance_glyf_table = orjson.loads(read_file.read())
 
     def save_as_json(self, TAMPLATE_MARGED_JSON):
         with open(TAMPLATE_MARGED_JSON, "wb") as f:
