@@ -4,6 +4,7 @@
 import shell
 import orjson
 import os
+import copy
 import pinyin_getter as pg
 import pinyin_glyph as py_glyph
 import utility
@@ -25,8 +26,10 @@ class Font():
 
         # 発音のグリフを作成する
         pinyin_glyph = py_glyph.PinyinGlyph(TAMPLATE_MAIN_JSON, ALPHABET_FOR_PINYIN_JSON)
-        pinyin_glyph.add_pronunciations_to_glyf_table()
-        self.pinyin_glyf = pinyin_glyph.get_pronunciations_to_glyf_table()
+        self.py_alphablet = pinyin_glyph.get_py_alphablet_glyf_table()
+        pinyin_glyph.add_references_of_pronunciation()
+        # pinyin_glyph.save_json("unti.json")
+        self.pronunciation = pinyin_glyph.get_pronunciation_glyf_table()
         print("発音のグリフを作成完了")
 
         # 定義が重複している文字に関しては、基本的に同一のグリフが使われているはず
@@ -42,16 +45,21 @@ class Font():
     def get_advance_size_of_hanzi(self):
         # なんでもいいが、とりあえず漢字の「一」でサイズを取得する
         cid = self.marged_font["cmap"][str(ord("一"))]
+        # advanceWidth は確実にあるはずなので、有無の検証はしない
+        if not ("advanceHeight" in self.marged_font["glyf"][cid]):
+            glyf_cid = self.marged_font["glyf"][cid]
+            glyf_cid.update( {"advanceHeight": self.marged_font["glyf"][cid]["advanceWidth"]} )
+
         advanceWidth   = self.marged_font["glyf"][cid]["advanceWidth"]
         advanceHeight  = self.marged_font["glyf"][cid]["advanceHeight"]
-        verticalOrigin = self.marged_font["glyf"][cid]["verticalOrigin"]
-        return (advanceWidth, advanceHeight, verticalOrigin)
+        return (advanceWidth, advanceHeight)
 
     def get_advance_size_of_pinyin_glyf(self):
         # なんでもいいが、とりあえず「yi1」でサイズを取得する
-        advanceWidth  = self.pinyin_glyf["arranged_yi1"]["advanceWidth"]
-        advanceHeight = self.pinyin_glyf["arranged_yi1"]["advanceHeight"]
-        return (advanceWidth, advanceHeight)
+        advanceWidth  = self.pronunciation["yi1"]["advanceWidth"]
+        advanceHeight = self.pronunciation["yi1"]["advanceHeight"]
+        verticalOrigin = self.pronunciation["yi1"]["verticalOrigin"]
+        return (advanceWidth, advanceHeight, verticalOrigin)
     
     def add_cmap_uvs(self):
         IVS = 0xE01E0 #917984
@@ -63,6 +71,8 @@ class Font():
         hanzi_glyf.ss02　（異読のピンインがあるとき）以降、異読
         ...
         """
+        if not ("cmap_uvs" in self.marged_font):
+            self.marged_font.update( {"cmap_uvs": {}} )
 
         for (hanzi, pinyins) in utility.get_has_single_pinyin_hanzi():
             str_unicode = str(ord(hanzi))
@@ -108,19 +118,19 @@ class Font():
                 set_glyph_order.add("{}.ss{:02}".format(cid, i))
         
         # ピンインのグリフを追加
-        set_glyph_order = set_glyph_order | set(self.pinyin_glyf.keys())
+        set_glyph_order = set_glyph_order | set(self.py_alphablet.keys())
         new_glyph_order = list(set_glyph_order)
         new_glyph_order.sort()
         self.marged_font["glyph_order"] = new_glyph_order
         # print(self.marged_font["glyph_order"])
 
     def generate_hanzi_glyf_with_normal_pinyin(self, cid):
-        (advanceWidth, _, verticalOrigin) = self.get_advance_size_of_hanzi()
-        (_, advanceAddedPinyinHeight) = self.get_advance_size_of_pinyin_glyf()
+        (advance_width, _) = self.get_advance_size_of_hanzi()
+        (_, added_pinyin_height, added_pinyin_vertical_origin) = self.get_advance_size_of_pinyin_glyf()
         hanzi_glyf = {
-                         "advanceWidth": advanceWidth,
-                         "advanceHeight": advanceAddedPinyinHeight,
-                         "verticalOrigin": verticalOrigin,
+                         "advanceWidth": advance_width,
+                         "advanceHeight": added_pinyin_height,
+                         "verticalOrigin": added_pinyin_vertical_origin,
                          "references": [
                              {"glyph":"{}.ss01".format(cid),"x":0, "y":0, "a":1, "b":0, "c":0, "d":1}
                          ]
@@ -128,17 +138,19 @@ class Font():
         return hanzi_glyf
 
     def generate_hanzi_glyf_with_pinyin(self, cid, pronunciation):
-        (advanceWidth, _, verticalOrigin) = self.get_advance_size_of_hanzi()
-        (_, advanceAddedPinyinHeight) = self.get_advance_size_of_pinyin_glyf()
+        (advance_width, _) = self.get_advance_size_of_hanzi()
+        (_, added_pinyin_height, added_pinyin_vertical_origin) = self.get_advance_size_of_pinyin_glyf()
         simpled_pronunciation = utility.simplification_pronunciation( pronunciation )
+        # ピンインと無印の漢字(ss00) を組み合わせる
+        glyf_data = self.pronunciation[simpled_pronunciation]
+        # ミュータブルなオブジェクトは参照元に追加してしまうので、copy する。
+        references = copy.copy(glyf_data["references"])
+        references.append( {"glyph":"{}.ss00".format(cid), "x":0, "y":0, "a":1, "b":0, "c":0, "d":1} )
         hanzi_glyf = {
-                         "advanceWidth": advanceWidth,
-                         "advanceHeight": advanceAddedPinyinHeight,
-                         "verticalOrigin": verticalOrigin,
-                         "references": [
-                             {"glyph":"arranged_{}".format(simpled_pronunciation),"x":0, "y":0, "a":1, "b":0, "c":0, "d":1},
-                             {"glyph":"{}.ss00".format(cid),                      "x":0, "y":0, "a":1, "b":0, "c":0, "d":1}
-                         ]
+                         "advanceWidth": advance_width,
+                         "advanceHeight": added_pinyin_height,
+                         "verticalOrigin": added_pinyin_vertical_origin,
+                         "references": references
                      }
         return hanzi_glyf
     
@@ -221,7 +233,7 @@ class Font():
             self.update_status_is_added_glyf_4_duplicate_definition_of_hanzi(str_unicode)
 
         new_glyf = self.marged_font["glyf"]
-        new_glyf.update( self.pinyin_glyf )
+        new_glyf.update( self.py_alphablet )
         new_glyf.update( self.font_glyf_table )
         self.marged_font["glyf"] = new_glyf
         print("  ==> glyf num : {}".format(len(self.marged_font["glyf"])))
@@ -234,7 +246,7 @@ class Font():
         self.marged_font["GSUB"] = GSUB.get_GSUB_table()
 
     def set_about_size(self):
-        (_, advanceAddedPinyinHeight) = self.get_advance_size_of_pinyin_glyf()
+        (_, advanceAddedPinyinHeight, _) = self.get_advance_size_of_pinyin_glyf()
         if advanceAddedPinyinHeight > self.marged_font["head"]["yMax"]:
             # すべてのグリフの輪郭を含む範囲
             self.marged_font["head"]["yMax"] = advanceAddedPinyinHeight

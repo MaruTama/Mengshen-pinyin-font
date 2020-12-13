@@ -7,6 +7,14 @@ import shell
 import utility
 
 
+# advanceHeight に対する advanceHeight の割合 (適当に決めてるから調整)
+VERTICAL_ORIGIN_PER_HEIGHT = 0.88
+# advanceHeight が無いときは決め打ちで advanceWidth の 1.4 倍にする
+HEIGHT_RATE_OF_MONOSPACE = 1.4
+# otfccbuild の仕様なのか opentype の仕様なのか分からないが a と d が同じ値だと、グリフが消失する。 
+# 少しでもサイズが違えば反映されるので、反映のためのマジックナンバー
+DELTA_4_REFLECTION = 0.001
+
 class PinyinGlyph():
     # 想定する漢字のサイズに対するピンイン表示部のサイズ
     # 前作より引用
@@ -31,7 +39,10 @@ class PinyinGlyph():
             self.font_main = orjson.loads(read_file.read())
             self.cmap_table = self.font_main["cmap"]
         with open(ALPHABET_FOR_PINYIN_JSON, "rb") as read_file:
-            self.pinyin_glyf = orjson.loads(read_file.read())
+            self.PY_ALPHABET_GLYF = orjson.loads(read_file.read())
+        
+        # 発音の参照をもつ e.g.: {"làng":ref}
+        self.pronunciations = {}
 
     
     
@@ -40,7 +51,7 @@ class PinyinGlyph():
         # なんでもいいが、とりあえず漢字の「一」でサイズを取得する
         cid = self.font_main["cmap"][str(ord("一"))]
         advanceWidth  = self.font_main["glyf"][cid]["advanceWidth"]
-        advanceHeight = self.font_main["glyf"][cid]["advanceHeight"]
+        advanceHeight = self.font_main["glyf"][cid]["advanceHeight"] if "advanceHeight" in self.font_main["glyf"][cid] else advanceWidth
         return (advanceWidth, advanceHeight)
 
     # PINYIN_MAPPING_TABLE から全発音を取り出して返す
@@ -53,13 +64,15 @@ class PinyinGlyph():
         return pronunciations
 
     # pinyin の発音をマージ先の大きさを取得して調整、追加する
-    def add_pronunciations_to_glyf_table(self):
+    def add_references_of_pronunciation(self):
         (target_advance_width_of_hanzi, target_advance_height_of_hanzi) = self.__get_advance_size_of_hanzi()
         pronunciations = self.__get_pronunciations()
 
         """
         a-d ってなんだ？
-        > The transformation entries determine the values of an affine transformation applied to the component prior to its being incorporated into the parent glyph. Given the component matrix [a b c d e f], the transformation applied to the component is:
+        > The transformation entries determine the values of an affine transformation applied to 
+        the component prior to its being incorporated into the parent glyph. 
+        Given the component matrix [a b c d e f], the transformation applied to the component is:
 
         [The 'glyf' table](https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6glyf.html)
         [FontConfigの​matrix​フォント​プロパティを​利用して​字体を​変化させる​方法](http://ie.pcgw.pgw.jp/2015/10/17/fontconfig-matrix.html)
@@ -81,11 +94,13 @@ class PinyinGlyph():
 
         # ピンインがキャンバスに収まる scale を求める. 
         # 等幅フォントであれば大きさは同じなのでどんな文字でも同じだと思うが、一応最も背の高い文字を指定する (多分 ǘ ǚ ǜ)
-        pinyin_scale  = target_pinyin_canvas_height / self.pinyin_glyf["py_v3"]["advanceHeight"]
+        py_alphablet_v3_of_glyf = self.PY_ALPHABET_GLYF["py_alphablet_v3"]
+        advanceHeight = py_alphablet_v3_of_glyf["advanceHeight"] if "advanceHeight" in py_alphablet_v3_of_glyf else py_alphablet_v3_of_glyf["advanceWidth"] * HEIGHT_RATE_OF_MONOSPACE
+        pinyin_scale  = target_pinyin_canvas_height / advanceHeight
 
         # ピンイン表示部に文字を詰めていく
         # 各文字の配置を計算する
-        pinyin_width  = self.pinyin_glyf["py_v3"]["advanceWidth"] * pinyin_scale
+        pinyin_width  = self.PY_ALPHABET_GLYF["py_alphablet_v3"]["advanceWidth"] * pinyin_scale
         
         for pronunciation in pronunciations:
             # 引数多いから、クラス内のローカル変数にしようかと思ったけど、明示的にコメント入れておいて役割を示すのもいいかな
@@ -95,7 +110,7 @@ class PinyinGlyph():
                                         target_pinyin_canvas_width, 
                                         target_pinyin_canvas_tracking, 
                                         target_advance_width_of_hanzi )
-            self.__add_pronunciations( pronunciation,
+            self.__add_pronunciation( pronunciation,
                                         width_positions, 
                                         target_advance_width_of_hanzi, 
                                         pinyin_scale, 
@@ -130,7 +145,7 @@ class PinyinGlyph():
         return pinyin_positions
 
 
-    def __add_pronunciations(self, 
+    def __add_pronunciation(self, 
                             pronunciation,                    # pinyin の発音 (e.g.: láng)
                             width_positions,                  # ピンインの各文字の座標のリスト
                             target_advance_width_of_hanzi,    # マージ先のフォントの漢字の幅
@@ -142,32 +157,41 @@ class PinyinGlyph():
             simpled_alphabet = utility.simplification_pronunciation( pronunciation[i] )
             x = width_positions[ i ]
             references.append( 
-                {"glyph":"py_{}".format(simpled_alphabet),
-                                "x": x,             "y": target_pinyin_canvas_base_line,
-                                "a": pinyin_scale, "b": 0, 
-                                "c": 0,            "d": pinyin_scale + 0.001}
+                {"glyph":"py_alphablet_{}".format(simpled_alphabet),
+                                "x": x,                     "y": target_pinyin_canvas_base_line,
+                                "a": round(pinyin_scale,3), "b": 0, 
+                                "c": 0,                     "d": round(pinyin_scale + DELTA_4_REFLECTION, 3)}
             )
 
         (_, target_advance_height_of_hanzi) = self.__get_advance_size_of_hanzi()
-        # arranged_ と名前を変えているのは、一文字の発音のときに同じ名前のグリフができないようにするため。
-        # 同じ名前のグリフがあると参照エラーになる。
         simpled_pronunciation = utility.simplification_pronunciation(pronunciation)
+        advanceHeight = round( target_advance_height_of_hanzi + target_pinyin_canvas_height, 2 )
         pronunciation = {
-            "arranged_{}".format(simpled_pronunciation) : {
+            simpled_pronunciation : {
                 "advanceWidth"  : target_advance_width_of_hanzi,
-                "advanceHeight" : round( target_advance_height_of_hanzi + target_pinyin_canvas_height, 2 ),
-                "verticalOrigin": 0, # 漢字へのマージ時に変更するから、今は 0 
+                "advanceHeight" : advanceHeight,
+                "verticalOrigin": advanceHeight * VERTICAL_ORIGIN_PER_HEIGHT,
                 "references": references
             }
         }
-        self.pinyin_glyf.update( pronunciation )
+        self.pronunciations.update( pronunciation )
 
 
-    def save(self, OUTPUT_JSON):
+    # 確認のために使う。生成時には利用しない。
+    def save_json(self, OUTPUT_JSON):
+        tmp_pinyin_glyf = self.PY_ALPHABET_GLYF
+        # 発音のグリフも確認するために出力する. 一文字の発音のときに重複しないように名前に arranged_ と付ける。
+        for simpled_pronunciation, data in self.pronunciations.items():
+            tmp_pinyin_glyf.update( {"arranged_{}".format(simpled_pronunciation) : data} )
+        
         with open(OUTPUT_JSON, "wb") as write_file:
-            serialized_glyf = orjson.dumps(self.pinyin_glyf, option=orjson.OPT_INDENT_2)
+            serialized_glyf = orjson.dumps(tmp_pinyin_glyf, option=orjson.OPT_INDENT_2)
             write_file.write(serialized_glyf)
+        print("ピンイン確認用jsonを出力！")
 
-    def get_pronunciations_to_glyf_table(self):
-        return self.pinyin_glyf
+    def get_py_alphablet_glyf_table(self):
+        return self.PY_ALPHABET_GLYF
+
+    def get_pronunciation_glyf_table(self):
+        return self.pronunciations
     

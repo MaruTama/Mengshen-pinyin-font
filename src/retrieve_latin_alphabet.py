@@ -68,7 +68,7 @@ def get_reversed_cmap_table():
     reversed_cmap_table = {}
     for ucode in UNICODE_ALPHABET:
         cid = cmap_table[str(ucode)]
-        reversed_cmap_table.update( { cid : "py_" + utility.SIMPLED_ALPHABET[chr(ucode)] } )
+        reversed_cmap_table.update( { cid : "py_alphablet_" + utility.SIMPLED_ALPHABET[chr(ucode)] } )
 
     return reversed_cmap_table
 
