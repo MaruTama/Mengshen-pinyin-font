@@ -10,23 +10,25 @@ import pinyin_glyph as py_glyph
 import utility
 import path as p
 import GSUB_table as gt
-import name_table as nt
+import config
+import name_table
 
 class Font():
     def __init__(self, TAMPLATE_MAIN_JSON, TAMPLATE_GLYF_JSON, ALPHABET_FOR_PINYIN_JSON, \
-                        PATTERN_ONE_TXT, PATTERN_TWO_JSON, EXCEPTION_PATTERN_JSON):
+                        PATTERN_ONE_TXT, PATTERN_TWO_JSON, EXCEPTION_PATTERN_JSON, FONT_TYPE):
         self.TAMPLATE_MAIN_JSON     = TAMPLATE_MAIN_JSON
         self.TAMPLATE_GLYF_JSON     = TAMPLATE_GLYF_JSON
         self.PATTERN_ONE_TXT        = PATTERN_ONE_TXT
         self.PATTERN_TWO_JSON       = PATTERN_TWO_JSON
         self.EXCEPTION_PATTERN_JSON = EXCEPTION_PATTERN_JSON
+        self.FONT_TYPE = FONT_TYPE
         self.load_json()
         # utility を使うために設定する
         utility.cmap_table = self.marged_font["cmap"]
         self.PINYIN_MAPPING_TABLE = pg.get_pinyin_table_with_mapping_table()
 
         # 発音のグリフを作成する
-        pinyin_glyph = py_glyph.PinyinGlyph(TAMPLATE_MAIN_JSON, ALPHABET_FOR_PINYIN_JSON)
+        pinyin_glyph = py_glyph.PinyinGlyph(TAMPLATE_MAIN_JSON, ALPHABET_FOR_PINYIN_JSON, FONT_TYPE)
         self.py_alphablet = pinyin_glyph.get_py_alphablet_glyf_table()
         pinyin_glyph.add_references_of_pronunciation()
         self.pronunciation = pinyin_glyph.get_pronunciation_glyf_table()
@@ -91,8 +93,6 @@ class Font():
             del self.substance_glyf_table[glyf_name]
         if glyf_name in glyph_order_list:
             glyph_order_list.remove(glyf_name)
-
-        print(glyf_name)
 
     def get_advance_size_of_hanzi(self):
         # なんでもいいが、とりあえず漢字の「一」でサイズを取得する
@@ -310,7 +310,7 @@ class Font():
 
     def set_copyright(self):
         # フォント製作者によるバージョン
-        self.marged_font["head"]["fontRevision"] = nt.VISION
+        self.marged_font["head"]["fontRevision"] = name_table.VISION
         # 作成日(基準日：1904/01/01 00:00 GMT)
         from datetime import datetime
         base_date = datetime.strptime("1904/01/01 00:00", "%Y/%m/%d %H:%M")
@@ -318,7 +318,12 @@ class Font():
         now_time  = datetime.now().timestamp() 
         self.marged_font["head"]["created"] = round( now_time - base_time )
         # フォント名等を設定
-        self.marged_font["name"] = nt.name_table
+        if self.FONT_TYPE == config.HAN_SERIF_TYPE:
+            self.marged_font["name"] = name_table.HAN_SERIF
+        elif self.FONT_TYPE == config.HANDWRITTEN_TYPE:
+            self.marged_font["name"] = name_table.HANDWRITTEN
+        else:
+            pass
 
 
     def load_json(self):
