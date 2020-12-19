@@ -1,7 +1,8 @@
 # Mengshen(萌神)-pinyin(拼音)-font
 OSS の多音字に対応した拼音フォント及びその作成ツールです。 / OpenSource Pinyin font and creation tool that supports homograph (多音字).
 
-[Download](https://github.com/MaruTama/pinyin-font-tools/releases)  
+**[Download/下载](https://github.com/MaruTama/pinyin-font-tools/releases)**  
+
 ![explain_han_serif](./imgs/explain_han_serif.png)  
 ![explain_handwritten](./imgs/explain_handwritten.png)  
 ![characteristic_point](./imgs/characteristic_point.png)  
