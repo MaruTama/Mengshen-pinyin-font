@@ -1,5 +1,6 @@
 __pycache__
 .DS_Store
+res/fonts/glyphs
 tmp/json/template.json
 tmp/json/template_glyf.json
 tools/SVGCleaner.app

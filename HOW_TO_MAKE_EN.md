@@ -8,9 +8,16 @@
 - The scope of Japanese Kanji is based on the *[Jōyō_kanji](https://en.wikipedia.org/wiki/J%C5%8Dy%C5%8D_kanji)* ([常用漢字表（平成22年内閣告示第2号）](https://www.bunka.go.jp/kokugo_nihongo/sisaku/joho/joho/kijun/naikaku/kanji/))
 - Hiragana (e.g.:あ) and katakana (e.g.:ア) are available
 
+### Based font
+#### han-serif
 The font used here is based on [Source-Han-TrueType](https://github.com/Pal3love/Source-Han-TrueType).
-This is a TTF version of [Source Han Sans](https://github.com/adobe-fonts/source-han-sans)/[Source Han Serif](https://github.com/adobe-fonts/source-han-serif) with reduced file size. All required Chinese characters are included.
+This is a TTF version of [Source Han Sans](https://github.com/adobe-fonts/source-han-sans)/[Source Han Serif](https://github.com/adobe-fonts/source-han-serif) with reduced file size. All required Chinese characters are included.  
+[M+ M Type-1's mplus-1m-medium.ttf](https://mplus-fonts.osdn.jp/about.html) is used for the pinyin part of this font.
 
+#### handwritten
+The font used here is based on [小赖字体/Xiaolai Font](https://github.com/lxgw/kose-font).  
+And remove Hangul characters(a960 #ꥠ ~ d7fb #ퟻ) from this font to reduce glyphs.  
+[SetoFontSP](https://ja.osdn.net/projects/setofont/releases/p14368) is used for the pinyin part of this font.
 ## Dependencies
 - macOS 10.15(Catalina)
 - python 3.7
@@ -39,27 +46,27 @@ $ brew install otfcc-mac64
 
 
 ## Generation procedure
-1. Making a homograph dictionary  
+1. Making a homograph dictionary(optional)  
 [to details](./res/phonics/duo_yin_zi/README.md)  
 ```
 $ cd <PROJECT-ROOT>/res/phonics/duo_yin_zi/scripts/
 $ python make_pattern_table.py
 ```
 
-2. Make an unicode table of the target Chinese characters  
+2. Make an unicode table of the target Chinese characters(optional)  
 [to details](./res/phonics/unicode_mapping_table/README.md) 
 ```
 $ cd <PROJECT-ROOT>/res/phonics/unicode_mapping_table/
 $ python make_unicode_pinyin_map_table.py 
 ```
 
-3. Dump the base font to an editable file (json)
+<!-- 3. Dump the base font to an editable file (json)
 The glyf table is too large and inconvenient to browse, so it should be separated from the other tables.  
 ```
 $ cd <PROJECT-ROOT>
 $ python src/make_template_jsons.py <BASE-FONT-NAME>
 # e,g.:
-# python src/make_template_jsons.py ./res/fonts/SourceHanSerifCN-Regular.ttf
+# python src/make_template_jsons.py ./res/fonts/han-serif/SourceHanSerifCN-Regular.ttf
 ```
 
 4. Extraction of latin characters for display at Pinyin  
@@ -68,13 +75,19 @@ $ python src/make_template_jsons.py <BASE-FONT-NAME>
 $ cd <PROJECT-ROOT>
 $ python src/retrieve_latin_alphabet.py <FONT-NAME-FOR-PINYIN>
 # e,g.:
-# python src/retrieve_latin_alphabet.py ./res/fonts/mplus-1m-medium.ttf
-```
+# python src/retrieve_latin_alphabet.py ./res/fonts/han-serif/mplus-1m-medium.ttf
+``` -->
 
-5. Build the font
+3. Build the font
 ```
 $ cd <PROJECT ROOT>
-$ time python3 src/main.py
+```
+```
+$ time python3 src/main.py --type han_serif
+```
+or   
+```
+$ time python3 src/main.py --type handwritten
 ```
 
 ## Technical Notes
@@ -171,6 +184,8 @@ This feature is used for chaining contextual substitution
 - This font assumes horizontal writing only  
 - The glyf table can only store up to 65536  
 - The glyf table is large, save it as another json  
+- Duplicately defined Chinese characters refer to the same glyph to reduce the number of glyphs.  
+ (⺎:U+2E8E, 兀:U+5140, 兀:U+FA0C and 嗀:U+55C0, 嗀:U+FA0D )  
 - The only font that can be used as a glyf is Fixed-width latin alphabet only
 - The json of the standard python library becomes bloated and slow when converted to dict, so use [orjson](https://github.com/ijl/orjson)  
     Refer to [Choosing a faster JSON library for Python](https://pythonspeed.com/articles/faster-json-library/),  
