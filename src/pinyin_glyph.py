@@ -5,34 +5,21 @@ import orjson
 import pinyin_getter as pg
 import shell
 import utility
-
+import config
 
 # advanceHeight に対する advanceHeight の割合 (適当に決めてるから調整)
 VERTICAL_ORIGIN_PER_HEIGHT = 0.88
-# advanceHeight が無いときは決め打ちで advanceWidth の 1.4 倍にする
+# ピンインの advanceHeight が無いときは決め打ちで advanceWidth の 1.4 倍にする
 HEIGHT_RATE_OF_MONOSPACE = 1.4
 # otfccbuild の仕様なのか opentype の仕様なのか分からないが a と d が同じ値だと、グリフが消失する。 
 # 少しでもサイズが違えば反映されるので、反映のためのマジックナンバー
 DELTA_4_REFLECTION = 0.001
 
 class PinyinGlyph():
-    # 想定する漢字のサイズに対するピンイン表示部のサイズ
-    # 前作より引用
-    METADATA_FOR_PINYIN = {
-        "pinyin_canvas":{
-            "width"    : 850,   # ピンイン表示部の幅
-            "height"   : 283.3, # ピンイン表示部の高さ
-            "base_line": 935,   # ベースラインからの高さ
-            "tracking" : 22.145 # 拼音の標準空白幅： Tracking is about uniform spacing across a text selection.
-        },
-        "expected_hanzi_canvas":{
-            "width" : 1000, # 基準にする漢字の表示部の幅
-            "height": 1000, # 基準にする漢字の表示部の高さ
-        }
-    }
+    
 
     # マージ先のフォントのメインjson（フォントサイズを取得するため）, ピンイン表示に使うためのglyfのjson, ピンインのグリフを追加したjson(出力ファイル)
-    def __init__(self, TAMPLATE_MAIN_JSON, ALPHABET_FOR_PINYIN_JSON):
+    def __init__(self, TAMPLATE_MAIN_JSON, ALPHABET_FOR_PINYIN_JSON, FONT_TYPE):
         self.PINYIN_MAPPING_TABLE = pg.get_pinyin_table_with_mapping_table()
 
         with open(TAMPLATE_MAIN_JSON, "rb") as read_file:
@@ -40,6 +27,15 @@ class PinyinGlyph():
             self.cmap_table = self.font_main["cmap"]
         with open(ALPHABET_FOR_PINYIN_JSON, "rb") as read_file:
             self.PY_ALPHABET_GLYF = orjson.loads(read_file.read())
+
+        if FONT_TYPE == config.HAN_SERIF_TYPE:
+            # 想定する漢字のサイズに対するピンイン表示部のサイズ
+            # # 前作より引用
+            self.METADATA_FOR_PINYIN = config.METADATA_FOR_HAN_SERIF
+        elif FONT_TYPE == config.HANDWRITTEN_TYPE:
+            self.METADATA_FOR_PINYIN = config.METADATA_FOR_HANDWRITTEN
+        else:
+            pass
         
         # 発音の参照をもつ e.g.: {"làng":ref}
         self.pronunciations = {}
@@ -126,6 +122,10 @@ class PinyinGlyph():
                                         canvas_width,                   # 表示部の幅（METADATA_FOR_PINYINで指定）
                                         canvas_tracking,                # 最大文字間幅（METADATA_FOR_PINYINで指定）
                                         target_advance_width_of_hanzi): # マージ先のフォントの幅（漢字なら正方形のはず）
+        is_avoid_overlapping_mode = self.METADATA_FOR_PINYIN["is_avoid_overlapping_mode"]
+        # 文字数が 6 なら横幅最大にする
+        if is_avoid_overlapping_mode and len(pronunciation) >= 6:
+            canvas_width = target_advance_width_of_hanzi
         # 空白数 1文字のときは1，それ以外はlen(pinyin) 
         blank_num = 1 if len(pronunciation)==1 else len(pronunciation)-1
         # 空白幅の設定
@@ -155,12 +155,20 @@ class PinyinGlyph():
         references = []
         for i in range(len(pronunciation)):
             simpled_alphabet = utility.simplification_pronunciation( pronunciation[i] )
-            x = width_positions[ i ]
+            x_position = width_positions[i]
+            y_position = target_pinyin_canvas_base_line
+            is_avoid_overlapping_mode = self.METADATA_FOR_PINYIN["is_avoid_overlapping_mode"]
+            x_scale_reduction_for_avoid_overlapping = self.METADATA_FOR_PINYIN["x_scale_reduction_for_avoid_overlapping"]
+            x_scale = round(pinyin_scale,3)
+            if is_avoid_overlapping_mode and len(pronunciation) >= 5:
+                x_scale -= x_scale_reduction_for_avoid_overlapping
+
+            y_scale = round(pinyin_scale + DELTA_4_REFLECTION, 3)
             references.append( 
                 {"glyph":"py_alphablet_{}".format(simpled_alphabet),
-                                "x": x,                     "y": target_pinyin_canvas_base_line,
-                                "a": round(pinyin_scale,3), "b": 0, 
-                                "c": 0,                     "d": round(pinyin_scale + DELTA_4_REFLECTION, 3)}
+                                "x": x_position, "y": y_position,
+                                "a": x_scale,    "b": 0, 
+                                "c": 0,          "d": y_scale}
             )
 
         (_, target_advance_height_of_hanzi) = self.__get_advance_size_of_hanzi()

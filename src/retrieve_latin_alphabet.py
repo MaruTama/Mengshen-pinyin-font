@@ -22,7 +22,7 @@ import path as p
 """
 
 ALPHABET_FOR_PINYIN_JSON = "alphabet4pinyin.json"
-OUTPUT_JSON = "output.json"
+OUTPUT_JSON = "output_for_pinyin.json"
 
 # 呣 m̀, 嘸 m̄ を使うが、これは unicode ではないので除外する。グリフが収録されていない事が多い。
 ALPHABET = ["a","ā","á","ǎ","à","b","c","d","e","ē","é","ě","è","f","g","h","i","ī","í","ǐ","ì","j","k","l","m","ḿ","n","ń","ň","ǹ","o","ō","ó","ǒ","ò","p","q","r","s","t","u","ū","ú","ǔ","ù","ü","ǖ","ǘ","ǚ","ǜ","v","w","x","y","z"]

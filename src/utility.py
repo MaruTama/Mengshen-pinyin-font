@@ -35,12 +35,14 @@ SIMPLED_ALPHABET = {
     "z":"z"
 }
 
-TAMPLATE_MAIN_JSON = os.path.join(p.DIR_TEMP, "template_main.json")
-with open(TAMPLATE_MAIN_JSON, "rb") as read_file:
-    marged_font = orjson.loads(read_file.read())
-cmap_table = marged_font["cmap"]
-
+cmap_table = {}
 PINYIN_MAPPING_TABLE = pg.get_pinyin_table_with_mapping_table()
+
+def get_cmap_table():
+    TAMPLATE_MAIN_JSON = os.path.join(p.DIR_TEMP, "template_main.json")
+    with open(TAMPLATE_MAIN_JSON, "rb") as read_file:
+        marged_font = orjson.loads(read_file.read())
+    cmap_table = marged_font["cmap"]
 
 # ピンイン表記の簡略化、e.g.: wěi -> we3i
 def simplification_pronunciation(pronunciation):
@@ -56,7 +58,9 @@ def get_has_multiple_pinyin_hanzi():
 
 # 漢字から cid を取得する
 def convert_str_hanzi_2_cid(str_hanzi):
-        return cmap_table[ str(ord(str_hanzi)) ]
+    if len(cmap_table) == 0:
+        get_cmap_table()
+    return cmap_table[ str(ord(str_hanzi)) ]
 
 # [階層構造のあるdictをupdateする](https://www.greptips.com/posts/1242/)
 def deepupdate(dict_base, other):
