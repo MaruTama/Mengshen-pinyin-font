@@ -2,11 +2,14 @@
 OSS の多音字に対応した拼音フォント及びその作成ツールです。 / OpenSource Pinyin font and creation tool that supports homograph (多音字).
 
 [Download](https://github.com/MaruTama/pinyin-font-tools/releases)  
-![screenshot](./imgs/ss.png)
+![explain_han_serif](./imgs/explain_han_serif.png)  
+![explain_handwritten](./imgs/explain_handwritten.png)  
+![characteristic_point](./imgs/characteristic_point.png)  
+
 
 私達は中国語の学習や普及を目的としているグループです。/ We are a group dedicated to learning and promoting the Chinese language.  
 - [萌神PROJECT](https://mengshen-project.com/)
-- [「萌神フォント」誕生しました！](https://note.com/geek_chainese/n/n7a6f26a885d1)
+- [「萌神フォント」誕生しました！](https://note.com/geekzhongwen/n/n7a6f26a885d1)
 - [「萌神フォント」Ver.2ができました！](https://note.com/geekzhongwen/n/nf9552d4bdf66)
 
 ## 目的 / Purpose
@@ -35,7 +38,10 @@ Subtitles are shown Chinese characters and pinyin.
 また、Unicode IVS（表意文字バリアントセレクター）を使用して、異なる拼音に切り替えることもできます。/
 Implemented contextual replacing to support homograph (多音字).
 You can also use Unicode IVS (ideographic variant selector) to switch other different pinyin.  
-![](./imgs/2020-10-25-19.17.04.gif)
+<!-- ![](./imgs/2020-10-25-19.17.04.gif) -->
+![using_contextual_replacing](./imgs/using_contextual_replacing.gif)  
+![using_ideographic_variant_selector](./imgs/using_ideographic_variant_selector.gif)  
+
 
 # 対応している多音字の一覧 / List of supported homograph
 - [supported homograph](./DUOYINZI_DICTIONARY.md)
@@ -49,3 +55,7 @@ You can also use Unicode IVS (ideographic variant selector) to switch other diff
 Thank you to the following people and repositories. 
 - [@NightFurySL2001](https://github.com/NightFurySL2001)-san
 - [BPMF IVS](https://github.com/ButTaiwan/bpmfvs)
+- [kose-font](https://github.com/lxgw/kose-font)
+- [SetoFontSP](https://ja.osdn.net/projects/setofont/releases/p14368)
+- [Source-Han-TrueType](https://github.com/Pal3love/Source-Han-TrueType)
+- [M+ M Type-1](https://mplus-fonts.osdn.jp/about.html)

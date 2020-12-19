@@ -10,12 +10,14 @@
 
 拼音を表示する対象は16026個ある。  
 
-ベースにしたフォント   
-ttfだし容量が削減されている。拼音を表示する漢字に関しては削減されてない。  
-- [Source-Han-TrueType](https://github.com/Pal3love/Source-Han-TrueType)
+### ベースにしたフォント   
+#### 宋体
+[source-han-serif(思源宋体) otf](https://github.com/adobe-fonts/source-han-serif/tree/release/OTF) から、不要な文字を取り除いた [Source-Han-TrueType](https://github.com/Pal3love/Source-Han-TrueType) をベースにしている。  
+拼音部分には M+ M Type-1 の [mplus-1m-medium.ttf](https://mplus-fonts.osdn.jp/about.html) を利用している。
 
-Source-Han-TrueType の基のフォント  
-- [source-han-serif(思源宋体) otf](https://github.com/adobe-fonts/source-han-serif/tree/release/OTF)
+#### 手書き風
+[シャオライ/Xiaolai Font](https://github.com/lxgw/kose-font) をベースにしている。これはグリフ数削減のためにハングル文字(a960 #ꥠ ~ d7fb #ퟻ) を除去して使っている。  
+拼音部分には [瀬戸フォント](https://ja.osdn.net/projects/setofont/releases/p14368) を利用している。
 
 
 ## 依存関係の解消
@@ -39,27 +41,27 @@ $ pip install -r requirements.txt
 ```
 
 ## 生成手順
-1. 多音字の辞書を作る  
+1. 多音字の辞書を作る(省略可能)  
 [詳細へ](./res/phonics/duo_yin_zi/README.md)  
 ```
 $ cd <PROJECT-ROOT>/res/phonics/duo_yin_zi/scripts/
 $ python make_pattern_table.py
 ```
 
-2. 対象の漢字の unicode テーブルを作る  
+2. 対象の漢字の unicode テーブルを作る(省略可能)  
 [詳細へ](./res/phonics/unicode_mapping_table/README.md)  
 ```
 $ cd <PROJECT-ROOT>/res/phonics/unicode_mapping_table/
 $ python make_unicode_pinyin_map_table.py 
 ```
 
-3. ベースにするフォントを編集可能の状態（json）にダンプする  
+<!-- 3. ベースにするフォントを編集可能の状態（json）にダンプする  
 glyf table はサイズが大きく閲覧のときに不便なので他のテーブルと分離する。  
 ```
 $ cd <PROJECT-ROOT>
 $ python src/make_template_jsons.py <BASE-FONT-NAME>
 # e,g.:
-# python src/make_template_jsons.py ./res/fonts/SourceHanSerifCN-Regular.ttf
+# python src/make_template_jsons.py ./res/fonts/han-serif/SourceHanSerifCN-Regular.ttf
 ```
 
 4. 拼音表示のための文字を抽出する  
@@ -68,13 +70,19 @@ $ python src/make_template_jsons.py <BASE-FONT-NAME>
 $ cd <PROJECT-ROOT>
 $ python src/retrieve_latin_alphabet.py <FONT-NAME-FOR-PINYIN>
 # e,g.:
-# python src/retrieve_latin_alphabet.py ./res/fonts/mplus-1m-medium.ttf
-```
+# python src/retrieve_latin_alphabet.py ./res/fonts/han-serif/mplus-1m-medium.ttf
+``` -->
 
-5. ビルドする  
+3. ビルドする  
 ```
 $ cd <PROJECT ROOT>
-$ time python3 src/main.py
+```
+```
+$ time python3 src/main.py --type han_serif
+```
+or   
+```
+$ time python3 src/main.py --type handwritten
 ```
 
 
@@ -167,6 +175,7 @@ rclt は多音字の置換に利用している。この feature は (文脈連�
 - このフォントは横書きのみ想定  
 - glyf table は 65536 までしか格納できない  
 - glyf table は大きいので別の json として保存している  
+- 重複して定義されている漢字をグリフ数削減のために同一のグリフを参照するようにしている（ ⺎:U+2E8E, 兀:U+5140, 兀:U+FA0C と 嗀:U+55C0, 嗀:U+FA0D ）  
 - 拼音のグリフとして使えるフォントは等幅英字のみ  
 - python の標準ライブラリの json は dict に変換すると肥大化して遅くなるので、 [orjson](https://github.com/ijl/orjson) を利用する  
     refer to [Choosing a faster JSON library for Python](https://pythonspeed.com/articles/faster-json-library/), 
@@ -186,6 +195,7 @@ rclt は多音字の置換に利用している。この feature は (文脈連�
     呣 m̀, 嘸 m̄　を除外するため（追加してもいいが拼音グリフを作るのが面倒になる）  
 
 - IVS は  
+
 | code | Pinyin glyf |
 | ---: | :--- |
 | 0xE01E0 | 何もないグリフ |
@@ -193,7 +203,8 @@ rclt は多音字の置換に利用している。この feature は (文脈連�
 | 0xE01E2 | 以降、異読の拼音 |
 
 - ssXX と拼音の対応は以下のようにする  
-    -> ssXX に標準的な拼音を入れないと cmap_uvs で標準の読みに戻す場合に、すぐにGSUBが効いて元に戻ってしまう。そのため、ss01 に標準的な拼音に戻す用のグリフを用意する.  
+    -> ssXX に標準的な拼音を入れないと cmap_uvs で標準の読みに戻す場合に、すぐにGSUBが効いて元に戻ってしまう。そのため、ss01 に標準的な拼音に戻す用のグリフを用意する. 
+
 | 命名規則 | グリフタイプ |
 | :--- | :--- |
 | hanzi_glyf | 標準の読みの拼音 |
@@ -202,6 +213,7 @@ rclt は多音字の置換に利用している。この feature は (文脈連�
 | hanzi_glyf.ss02 |（異読の拼音があるとき）以降、異読な拼音 |
 
 - lookup table の名前は自由だけど、どこから参照しているか分かりやすくするために名前を以下のようにする  
+
 | lookup table name | reference source |
 | ---: | :--- |
 | lookup_pattern_0N | pattern one |
