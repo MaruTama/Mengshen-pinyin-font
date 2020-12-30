@@ -2,6 +2,10 @@
 OSS の多音字に対応した拼音フォント及びその作成ツールです。 / OpenSource Pinyin font and creation tool that supports homograph (多音字).
 
 **[Download/下载](https://github.com/MaruTama/pinyin-font-tools/releases)**  
+<!-- [![download](https://img.shields.io/badge/Download-↓-yellow.svg)](https://github.com/nongthaihoang/custom_font_installer/releases) -->
+
+[![version](https://img.shields.io/badge/Version-1.02-brightgreen.svg)](https://github.com/nongthaihoang/custom_font_installer/releases/tag/v1.02)
+![updated](https://img.shields.io/badge/Updated-Dec_19,_2020-green.svg)   
 
 ![explain_han_serif](./imgs/explain_han_serif.png)  
 ![explain_handwritten](./imgs/explain_handwritten.png)  
