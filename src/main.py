@@ -17,18 +17,18 @@ import retrieve_latin_alphabet
 
 def parse_args(args):
     parser = argparse.ArgumentParser(
-        description="Select font type (\"han_serif\" or \"handwritten\")")
-    parser.add_argument('-t', '--type', choices=['han_serif', 'handwritten'], default='han_serif')
+        description="Select font style (\"han_serif\" or \"handwritten\")")
+    parser.add_argument('-t', '--style', choices=['han_serif', 'handwritten'], default='han_serif')
     return parser.parse_args(args)
 
 def main(args=None):
     options = parse_args(args)
-    if options.type == "han_serif":
+    if options.style == "han_serif":
         FONT_TYPE       = config.HAN_SERIF_TYPE
         FONT_FOR_MAIN   = config.HAN_SERIF_MAIN
         FONT_FOR_PINYIN = config.HAN_SERIF_PINYIN
         OUTPUT_FONT     = os.path.join(p.DIR_OUTPUT, "Mengshen-HanSerif.ttf")
-    elif options.type == "handwritten":
+    elif options.style == "handwritten":
         FONT_TYPE = config.HANDWRITTEN_TYPE
         FONT_FOR_MAIN   = config.HAN_HANDWRITTEN_MAIN
         FONT_FOR_PINYIN = config.HAN_HANDWRITTEN_PINYIN
