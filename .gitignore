@@ -1,8 +1,10 @@
 __pycache__
 .DS_Store
+src/*.pyc
 res/fonts/glyphs
 tmp/json/template.json
 tmp/json/template_glyf.json
+tmp/cmap.json
 tools/SVGCleaner.app
 tools/ttf2ufo.pe
 tools/ufo2ttf.pe
