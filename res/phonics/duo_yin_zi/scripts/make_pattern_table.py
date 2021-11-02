@@ -33,9 +33,9 @@ def deepupdate(dict_base, other):
         else:
             dict_base[k] = v
 
-def replace_chr(target_str, index, replace_charactor):
+def replace_chr(target_str, index, replace_character):
     tmp = list(target_str)
-    tmp[index] = replace_charactor
+    tmp[index] = replace_character
     return "".join( tmp )
 
 def expand_pattern_list2str(patterns):
@@ -46,37 +46,37 @@ def expand_pattern_list2str(patterns):
 ここから pattern_one のための関数
 """
 
-def add_pattern_one_table(pattern_table, charactor, pinyin, pattern):
-    if not (pinyin in PINYIN_MAPPING_TABLE[charactor]):
-        message = "{} => {} は 正しいピンインではありません".format(charactor, pinyin)
+def add_pattern_one_table(pattern_table, character, pinyin, pattern):
+    if not (pinyin in PINYIN_MAPPING_TABLE[character]):
+        message = "{} => {} は 正しいピンインではありません".format(character, pinyin)
         raise Exception(message)
         
-    if not (charactor in pattern_table):
+    if not (character in pattern_table):
         pattern_table.update( 
             { 
-                charactor: { 
-                    "pinyin": PINYIN_MAPPING_TABLE[charactor],
+                character: { 
+                    "pinyin": PINYIN_MAPPING_TABLE[character],
                     "patterns": { pinyin: [pattern] }
                 }
             })
         return 
 
-    if not (pinyin in pattern_table[charactor]["patterns"]):
-        new_dict_of_charactor = pattern_table[charactor]
-        deepupdate( new_dict_of_charactor, { "patterns": { pinyin: [pattern] }} )
+    if not (pinyin in pattern_table[character]["patterns"]):
+        new_dict_of_character = pattern_table[character]
+        deepupdate( new_dict_of_character, { "patterns": { pinyin: [pattern] }} )
         pattern_table.update( 
             { 
-                charactor: new_dict_of_charactor
+                character: new_dict_of_character
             }
         )
     else:
-        new_dict_of_charactor = pattern_table[charactor]
-        new_patterns = new_dict_of_charactor["patterns"][pinyin]
+        new_dict_of_character = pattern_table[character]
+        new_patterns = new_dict_of_character["patterns"][pinyin]
         new_patterns.append(pattern)
-        deepupdate( new_dict_of_charactor, { "patterns": { pinyin: new_patterns }} )
+        deepupdate( new_dict_of_character, { "patterns": { pinyin: new_patterns }} )
         pattern_table.update( 
             { 
-                charactor: new_dict_of_charactor
+                character: new_dict_of_character
             }
         )
 
@@ -88,33 +88,41 @@ def add_pattern_one_table(pattern_table, charactor, pinyin, pattern):
 def compress_pattern_one_table(pattern_table):
     import copy as cy
     pattern_table_4_work = cy.deepcopy(pattern_table)
-    for charactor in pattern_table:
-        if len(pattern_table[charactor]["patterns"]) == 1:
-            
-            patterns = list( pattern_table_4_work[charactor]["patterns"].values() )[0]
-            for pattern in patterns:
-                phrase = pattern.replace("~", charactor)
-                for i in range(len(phrase)):
-                    new_charactor = phrase[i]
-                    if new_charactor != charactor and new_charactor in pattern_table_4_work:
-                        if len(pattern_table_4_work[new_charactor]["patterns"]) > 1:
-                            pinyin = PINYIN_MAPPING_TABLE[new_charactor][NORMAL_PRONUNCIATION]
-                            # replace で置き換えると　累累: lěi/lèi　のpatternが ~~ になるので手動で置換する
-                            pattern = replace_chr(phrase, i, "~")
-                            add_pattern_one_table( pattern_table_4_work, new_charactor, pinyin, pattern )
-            pattern_table_4_work.pop(charactor)
+    characters_of_having_pattern_length_one_only = [c for c in pattern_table if len(pattern_table[c]["patterns"]) == 1]
+
+    for character in characters_of_having_pattern_length_one_only:
+        normal_pronunciation_patterns = list( pattern_table_4_work[character]["patterns"].values() )[NORMAL_PRONUNCIATION]
+        for normal_pronunciation_pattern in normal_pronunciation_patterns:
+            phrase = normal_pronunciation_pattern.replace("~", character)
+            # 置き換え先を探す
+            index_of_destination_character = search_4_replacement_destination(phrase, character, pattern_table_4_work)
+            if index_of_destination_character != None:
+                destination_character = phrase[index_of_destination_character]
+                pinyin = PINYIN_MAPPING_TABLE[destination_character][NORMAL_PRONUNCIATION]
+                # replace で置き換えると　累累: lěi/lèi　のpatternが ~~ になるので手動で置換する
+                normal_pronunciation_pattern = replace_chr(phrase, index_of_destination_character, "~")
+                add_pattern_one_table( pattern_table_4_work, destination_character, pinyin, normal_pronunciation_pattern )
+        pattern_table_4_work.pop(character)
 
     return pattern_table_4_work
+
+def search_4_replacement_destination(phrase, source_character, pattern_table):
+    for index in range(len(phrase)):
+        destination_character = phrase[index]
+        if destination_character != source_character and destination_character in pattern_table:
+            if len(pattern_table[destination_character]["patterns"]) > 1:
+                return index
+    return None
 
 # パターンテーブルの txt を出力する
 def export_pattern_one_table(pattern_table, PATTERN_ONE_TABLE_FILE):
     with open(PATTERN_ONE_TABLE_FILE, mode='w', encoding='utf-8') as write_file:
-        for charactor in pattern_table:
+        for character in pattern_table:
             order = SS_NORMAL_PRONUNCIATION
-            for pinyin in PINYIN_MAPPING_TABLE[charactor]:
-                if pinyin in list( pattern_table[charactor]["patterns"].keys() ):
-                    str_patterns = expand_pattern_list2str( pattern_table[charactor]["patterns"][pinyin] )
-                    line = "{0}, {1}, {2}, [{3}]\n".format(order, charactor, pinyin, str_patterns)
+            for pinyin in PINYIN_MAPPING_TABLE[character]:
+                if pinyin in list( pattern_table[character]["patterns"].keys() ):
+                    str_patterns = expand_pattern_list2str( pattern_table[character]["patterns"][pinyin] )
+                    line = "{0}, {1}, {2}, [{3}]\n".format(order, character, pinyin, str_patterns)
                     write_file.write(line)
                     order += 1
 
@@ -124,12 +132,12 @@ def seek_variational_pronunciation_in_phrase(phrase_instance):
     target_hanzes = []
     phrase = phrase_instance.get_name()
     for i in range(len(phrase)):
-        charactor = phrase[i]
-        charactor_pinyin = phrase_instance.get_list_pinyin()[i]
-        charactor_normal_pronunciation = PINYIN_MAPPING_TABLE[charactor][NORMAL_PRONUNCIATION]
-        if charactor_pinyin != charactor_normal_pronunciation:
+        character = phrase[i]
+        character_pinyin = phrase_instance.get_list_pinyin()[i]
+        character_normal_pronunciation = PINYIN_MAPPING_TABLE[character][NORMAL_PRONUNCIATION]
+        if character_pinyin != character_normal_pronunciation:
             count_variational_pronunciation += 1
-            target_hanzes.append( (i, charactor) )
+            target_hanzes.append( (i, character) )
 
     return count_variational_pronunciation, target_hanzes
 
@@ -153,14 +161,14 @@ def make_pattern_one(phrase_holder, PATTERN_ONE_TABLE_FILE):
         # 単語はすべて標準的なピンイン（多音字ではない）
         # ピンインを複数持つ(かつ今回は標準的なピンインで読む）漢字を見つけ次第入れる。先勝ち。
         # 単一の読みしか持たない漢字で構成される単語は除外する
-        if   0 == count_variational_pronunciation:
+        if 0 == count_variational_pronunciation:
             for i in range(len(phrase)):
-                charactor = phrase[i]
-                if 1 < len(PINYIN_MAPPING_TABLE[charactor]):
+                character = phrase[i]
+                if 1 < len(PINYIN_MAPPING_TABLE[character]):
                     pinyin = phrase_instance.get_list_pinyin()[i]
                     # replace で置き換えると　累累: lěi/lèi　のpatternが ~~ になるので、手動で置換する
                     pattern = replace_chr(phrase, i, "~")
-                    add_pattern_one_table( pattern_table, charactor, pinyin, pattern )
+                    add_pattern_one_table( pattern_table, character, pinyin, pattern )
                     break
         # 対象の多音字の漢字のパターンに入れる
         elif 1 == count_variational_pronunciation:
@@ -180,39 +188,39 @@ def make_pattern_one(phrase_holder, PATTERN_ONE_TABLE_FILE):
 ここから pattern_two のための関数
 """
 # lookup table の番号にする
-def get_pinyin_priority(charactor, pinyin):
+def get_pinyin_priority(character, pinyin):
     # uni4E0D　　　　標準の読みの拼音
     # uni4E0D.ss00　無印の漢字グリフ。設定を変更するだけで拼音を変更できる
     # uni4E0D.ss01　以降、異読なので、必ず "1" 以上になる. なので、- 1 をして添字を0から開始にする
-    return PINYIN_MAPPING_TABLE[charactor].index(pinyin) - 1
+    return PINYIN_MAPPING_TABLE[character].index(pinyin) - 1
 
 def add_lookup4pattern_two(lookup_table_dict, phrase_instance):
     _, has_variational_pronunciation_hanzes = seek_variational_pronunciation_in_phrase(phrase_instance)
-    for (idx, target_charactor) in has_variational_pronunciation_hanzes:
+    for (idx, target_character) in has_variational_pronunciation_hanzes:
         pinyin = phrase_instance.get_list_pinyin()[idx]
-        priority = get_pinyin_priority(target_charactor, pinyin)
+        priority = get_pinyin_priority(target_character, pinyin)
         lookup_name = "lookup_pattern_1{}".format( priority )
         # init
         if not (lookup_name in lookup_table_dict):
             lookup_table_dict.update( {lookup_name:{}} )
         # set
-        if not (target_charactor in lookup_table_dict[lookup_name]):
-            lookup_table_dict[lookup_name].update( { target_charactor : "{0}.ss0{1}".format( target_charactor, (SS_VARIATIONAL_PRONUNCIATION + priority) ) } )
+        if not (target_character in lookup_table_dict[lookup_name]):
+            lookup_table_dict[lookup_name].update( { target_character : "{0}.ss0{1}".format( target_character, (SS_VARIATIONAL_PRONUNCIATION + priority) ) } )
 
 def get_pattern4pattern_two(phrase_instance):
     phrase_value = []
     phrase = phrase_instance.get_name()
     # init
-    for charactor in phrase:
-        phrase_value.append( {charactor: None} )
+    for character in phrase:
+        phrase_value.append( {character: None} )
     # set
     _, has_variational_pronunciation_hanzes = seek_variational_pronunciation_in_phrase(phrase_instance)
-    for (idx, target_charactor) in has_variational_pronunciation_hanzes:
+    for (idx, target_character) in has_variational_pronunciation_hanzes:
         pinyin = phrase_instance.get_list_pinyin()[idx]
-        priority = get_pinyin_priority(target_charactor, pinyin)
+        priority = get_pinyin_priority(target_character, pinyin)
         phrase_value[idx] = \
             {
-                target_charactor: "lookup_pattern_1{}".format( priority )
+                target_character: "lookup_pattern_1{}".format( priority )
             }
     return phrase_value
 
