@@ -83,11 +83,11 @@ $ python src/retrieve_latin_alphabet.py <FONT-NAME-FOR-PINYIN>
 $ cd <PROJECT ROOT>
 ```
 ```
-$ time python3 src/main.py --style han_serif
+$ time python src/main.py --style han_serif
 ```
 or   
 ```
-$ time python3 src/main.py --style handwritten
+$ time python src/main.py --style handwritten
 ```
 
 ## Technical Notes
