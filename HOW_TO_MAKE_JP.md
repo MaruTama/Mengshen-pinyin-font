@@ -23,6 +23,11 @@
 ## 依存関係の解消
 ### otfcc
 [otfcc](https://github.com/caryll/otfcc) は軽量で IVS にも対応している。  
+
+### jq
+[jq](https://stedolan.github.io/jq/) は、json から少ない労力で値抽出・集計・整形して表示したりできるコマンドです。
+
+### mac only
 ```
 # Xcode をインストールしておく
 $ mas install 497799835
