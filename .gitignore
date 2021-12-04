@@ -3,6 +3,7 @@ __pycache__
 src/*.pyc
 res/fonts/glyphs
 tmp/json/template.json
+tmp/json/template_temp.json
 tmp/json/template_glyf.json
 tmp/cmap.json
 tools/SVGCleaner.app

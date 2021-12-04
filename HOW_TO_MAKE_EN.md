@@ -32,6 +32,10 @@ $ pip install -r requirements.txt
 ### otfcc
 [otfcc](https://github.com/caryll/otfcc) is lightweight and support IVS
 
+### jq
+[jq](https://stedolan.github.io/jq/) can mangle the data format that you have into the one that you want with very little effort
+
+### mac only
 ```
 # Install Xcode by mas-cli
 $ mas install 497799835
