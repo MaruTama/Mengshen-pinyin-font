@@ -47,14 +47,14 @@ $ pip install -r requirements.txt
 
 ## 生成手順
 1. 多音字の辞書を作る(省略可能)  
-[詳細へ](./res/phonics/duo_yin_zi/README.md)  
+[詳細へ](../res/phonics/duo_yin_zi/README_JP.md)  
 ```
 $ cd <PROJECT-ROOT>/res/phonics/duo_yin_zi/scripts/
 $ python make_pattern_table.py
 ```
 
 2. 対象の漢字の unicode テーブルを作る(省略可能)  
-[詳細へ](./res/phonics/unicode_mapping_table/README.md)  
+[詳細へ](../res/phonics/unicode_mapping_table/README_JP.md)  
 ```
 $ cd <PROJECT-ROOT>/res/phonics/unicode_mapping_table/
 $ python make_unicode_pinyin_map_table.py 
@@ -94,7 +94,7 @@ $ time python src/main.py --style handwritten
 ## 技術的メモ
 ### pinyin表示部のサイズ設定方法
 
-![outline](./imgs/outline.png)  
+![outline](../imgs/outline.png)  
 
 ```
     METADATA_FOR_PINYIN = {
@@ -110,7 +110,7 @@ $ time python src/main.py --style handwritten
         }
     }
 ```
-refer to [pinyin_glyph.py](./src/pinyin_glyph.py#L13)
+refer to [pinyin_glyph.py](https://github.com/MaruTama/Mengshen-pinyin-font/blob/e5d6e9e1770d849d6c17016683faf7c04d028473/src/pinyin_glyph.py#L10-L13), [config.py](https://github.com/MaruTama/Mengshen-pinyin-font/blob/e5d6e9e1770d849d6c17016683faf7c04d028473/src/config.py#L11-L41)
 
 ### グリフのコンポーネント化
 グリフはコンポーネント化して参照することができる。
@@ -140,7 +140,7 @@ refer to [pinyin_glyph.py](./src/pinyin_glyph.py#L13)
 今回は、「拡大縮小」と「平行移動」を使うので、a,d (scale) と x,y (move) を指定して使っている。
 
 **注意：otfccbuild の仕様なのか opentype の仕様なのか分からないが a と d が同じ値だと、グリフが消失する。 少しでもサイズが違えば反映されるので、90% にするなら、a=0.9, d=0.91 とかにする。**  
-refer to [pinyin_glyph.py](./src/pinyin_glyph.py#L148)
+refer to [pinyin_glyph.py](https://github.com/MaruTama/Mengshen-pinyin-font/blob/e5d6e9e1770d849d6c17016683faf7c04d028473/src/pinyin_glyph.py#L148-L154)
 
 <!--
 \begin{align*}
@@ -160,7 +160,7 @@ refer to [pinyin_glyph.py](./src/pinyin_glyph.py#L148)
   \end{pmatrix}
 \end{align*}
  -->
-![matrix](./imgs/texclip20190728183918.png)  
+![matrix](../imgs/texclip20190728183918.png)  
 <!-- Ref.[extract rotation, scale values from 2d transformation matrix](https://stackoverflow.com/questions/4361242/extract-rotation-scale-values-from-2d-transformation-matrix)  
 Matrix can calculate the scale, rotation, and shift at one time by raising the dimension.   -->
 
@@ -174,7 +174,7 @@ rclt は多音字の置換に利用している。この feature は (文脈連�
   pattern one は 熟語の中で 1文字だけ拼音が変化するパターン  
   pattern two は 熟語の中で 2文字以上拼音が変化するパターン  
   exception pattern は 例外的なパターン  
-  [詳細へ](./res/phonics/duo_yin_zi/README.md)
+  [詳細へ](../res/phonics/duo_yin_zi/README_JP.md)
 
 # 仕様（制約）
 - このフォントは横書きのみ想定  
@@ -225,7 +225,7 @@ rclt は多音字の置換に利用している。この feature は (文脈連�
 | lookup_pattern_1N | pattern two |
 | lookup_pattern_2N | exception pattern |
 
-- [duoyinzi_pattern_one.txt](./outputs/duoyinzi_pattern_one.txt) の 1~n の並びは、[marged-mapping-table.txt](./outputs/marged-mapping-table.txt) に従う。1 が標準的な読み. ss01 と合わせる  
+- [duoyinzi_pattern_one.txt](../outputs/duoyinzi_pattern_one.txt) の 1~n の並びは、[marged-mapping-table.txt](../outputs/marged-mapping-table.txt) に従う。1 が標準的な読み. ss01 と合わせる  
     ```
     U+5F3A: qiáng,qiǎng,jiàng  #强
     ```
@@ -236,14 +236,14 @@ rclt は多音字の置換に利用している。この feature は (文脈連�
     ```
 
 - lookup rclt は、読みのパターンごとにまとめる。 rclt0 は pattern one。 rclt1 は pattern two。 rclt2 は exception pattern.  
-- [duoyinzi_pattern_two.json](./outputs/duoyinzi_pattern_two.json) と [duoyinzi_exceptional_pattern.json](./outputs/duoyinzi_exceptional_pattern.json) は Graphs like な記述  
-- [duoyinzi_exceptional_pattern.json](./outputs/duoyinzi_exceptional_pattern.json) の ignore tag では 影響する漢字に ' をつける
+- [duoyinzi_pattern_two.json](../outputs/duoyinzi_pattern_two.json) と [duoyinzi_exceptional_pattern.json](../outputs/duoyinzi_exceptional_pattern.json) は Graphs like な記述  
+- [duoyinzi_exceptional_pattern.json](../outputs/duoyinzi_exceptional_pattern.json) の ignore tag では 影響する漢字に ' をつける
 
 # 利用している用語
-![](./imgs/terminology.png)
+![](../imgs/terminology.png)
 
 # pypinyinで拼音が見つからない漢字まとめ
-[FIX_PINYIN.md](FIX_PINYIN.md)
+[FIX_PINYIN.md](./FIX_PINYIN.md)
 
 # 参考資料
 ## 多音字

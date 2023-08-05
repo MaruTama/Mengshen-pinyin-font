@@ -51,14 +51,14 @@ $ brew install otfcc-mac64
 
 ## Generation procedure
 1. Making a homograph dictionary(optional)  
-[to details](./res/phonics/duo_yin_zi/README.md)  
+[to details](../res/phonics/duo_yin_zi/README_EN.md)  
 ```
 $ cd <PROJECT-ROOT>/res/phonics/duo_yin_zi/scripts/
 $ python make_pattern_table.py
 ```
 
 2. Make an unicode table of the target Chinese characters(optional)  
-[to details](./res/phonics/unicode_mapping_table/README.md) 
+[to details](../res/phonics/unicode_mapping_table/README_EN.md) 
 ```
 $ cd <PROJECT-ROOT>/res/phonics/unicode_mapping_table/
 $ python make_unicode_pinyin_map_table.py 
@@ -97,7 +97,7 @@ $ time python src/main.py --style handwritten
 ## Technical Notes
 ### How to set the canvas size of the pinyin display area
 
-![outline](./imgs/outline.png)  
+![outline](../imgs/outline.png)  
 
 ```
     METADATA_FOR_PINYIN = {
@@ -113,7 +113,7 @@ $ time python src/main.py --style handwritten
         }
     }
 ```
-refer to [pinyin_glyph.py](./src/pinyin_glyph.py#L13)
+refer to [pinyin_glyph.py](https://github.com/MaruTama/Mengshen-pinyin-font/blob/e5d6e9e1770d849d6c17016683faf7c04d028473/src/pinyin_glyph.py#L10-L13), [config.py](https://github.com/MaruTama/Mengshen-pinyin-font/blob/e5d6e9e1770d849d6c17016683faf7c04d028473/src/config.py#L11-L41)
 
 
 ### Componentization of the glyfs
@@ -144,7 +144,7 @@ In the reference, a-d is the value of the affine transformation.
 In this tool, using a,d (scale) and x,y (move).
 
 **Note: For unknown reasons, otfccbuild lost glyphs if a and d are the same value. If the sizes are different, it will be reflected, so set a=0.9, d=0.91 for 90%.**  
-refer to [pinyin_glyph.py](./src/pinyin_glyph.py#L148)
+refer to [pinyin_glyph.py](https://github.com/MaruTama/Mengshen-pinyin-font/blob/e5d6e9e1770d849d6c17016683faf7c04d028473/src/pinyin_glyph.py#L148-L154)
 
 <!--
 \begin{align*}
@@ -164,7 +164,7 @@ refer to [pinyin_glyph.py](./src/pinyin_glyph.py#L148)
   \end{pmatrix}
 \end{align*}
  -->
-![matrix](./imgs/texclip20190728183918.png)  
+![matrix](../imgs/texclip20190728183918.png)  
 <!-- Ref.[extract rotation, scale values from 2d transformation matrix](https://stackoverflow.com/questions/4361242/extract-rotation-scale-values-from-2d-transformation-matrix)  
 Matrix can calculate the scale, rotation, and shift at one time by raising the dimension.   -->
 
@@ -181,7 +181,7 @@ This feature is used for chaining contextual substitution
 - "pattern one" is pattern of the pronunciation changes only one Chinese character.
 - "pattern two" is pattern of the pronunciation changes more than two Chinese characters.
 - "exception pattern" is pattern of the duplicates that affect phrases of pattern one or two.  
-  [to details](./res/phonics/duo_yin_zi/README.md)
+  [to details](../res/phonics/duo_yin_zi/README_EN.md)
 
 
 # Specifications (constraints)
@@ -240,7 +240,7 @@ This feature is used for chaining contextual substitution
 | lookup_pattern_2N | exception pattern |
   
   
--  The order of 1~n in [duoyinzi_pattern_one.txt](./outputs/duoyinzi_pattern_one.txt) follows [marged-mapping-table.txt](./outputs/marged-mapping-table.txt), If order is 1 as the standard reading. Is order sequence match with ss0N. 
+-  The order of 1~n in [duoyinzi_pattern_one.txt](../outputs/duoyinzi_pattern_one.txt) follows [marged-mapping-table.txt](../outputs/marged-mapping-table.txt), If order is 1 as the standard reading. Is order sequence match with ss0N. 
 
 e.g.:  
 ```
@@ -254,15 +254,15 @@ U+5F3A: qiáng,qiǎng,jiàng  #强
   
 
 - lookup rclt summarizes the reading pattern by. rclt0 is "pattern one".  rclt1 is "pattern two"。 rclt2 is "exception pattern".  
-- [duoyinzi_pattern_two.json](./outputs/duoyinzi_pattern_two.json) and [duoyinzi_exceptional_pattern.json](./outputs/duoyinzi_exceptional_pattern.json) a notation similar to [Glyphs](https://glyphsapp.com/) and [OpenType™ Feature File](http://adobe-type-tools.github.io/afdko/OpenTypeFeatureFileSpecification.html#5.f) 
+- [duoyinzi_pattern_two.json](../outputs/duoyinzi_pattern_two.json) and [duoyinzi_exceptional_pattern.json](../outputs/duoyinzi_exceptional_pattern.json) a notation similar to [Glyphs](https://glyphsapp.com/) and [OpenType™ Feature File](http://adobe-type-tools.github.io/afdko/OpenTypeFeatureFileSpecification.html#5.f) 
 - ignore tag specifies the phrase to be affected. And attach a single quote to a specific character that is affected. 
-    Refer to ignore tag in [duoyinzi_exceptional_pattern.json](./outputs/duoyinzi_exceptional_pattern.json).
+    Refer to ignore tag in [duoyinzi_exceptional_pattern.json](../outputs/duoyinzi_exceptional_pattern.json).
 
 # Terminology used
-![](./imgs/terminology.png)
+![](../imgs/terminology.png)
 
 # Collection of Chinese characters that are not found in `pypinyin`
-[FIX_PINYIN.md](FIX_PINYIN.md)
+[FIX_PINYIN.md](./FIX_PINYIN.md)
 
 
 
