@@ -1,15 +1,15 @@
-# 間違っている熟語パターン
+# Wrong idioms in `pypinyin`
 - 长城(ZhǎngChéng -> ChángChéng)
 - 银行(YínXíng -> YínHáng)
 - 首都(ShǒuDōu -> Shǒudū)
 
-# 間違ってた漢字
+# Wrong hanzi in `pypinyin`
 为(wèi -> wéi)
 
-# pypinyinで見つからなかったもの
-[Word dictionary](https://www.mdbg.net/chinese/dictionary)でで検索してピンインが見つかったもの
+# Collection of Chinese characters that are not found in `pypinyin`
+Following table is the collection of Chinese characters that are found in [Word dictionary](https://www.mdbg.net/chinese/dictionary)
 
-|unicode|汉字|旧字/異体字|拼音|link|
+|统一码(unicode)|汉字(Hanzi)|旧字/異体字(Old/Variant character)|拼音(pinyin)|网址(URL)|
 |:---:|:--:|:-----:|:--:|:---------:|
 |U+2B8B8|𫢸|僤|dàn|[GlyphWiki](http://glyphwiki.org/wiki/u2b8b8)|
 |U+2BAC7|𫫇|噁|ě|[GlyphWiki](http://glyphwiki.org/wiki/u2bac7)|
