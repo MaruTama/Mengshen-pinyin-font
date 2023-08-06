@@ -143,10 +143,7 @@ Reference usage examples:
 In the reference, a-d is the value of the affine transformation.
 In this tool, using a,d (scale) and x,y (move).
 
-**Note: For unknown reasons, otfccbuild lost glyphs if a and d are the same value. If the sizes are different, it will be reflected, so set a=0.9, d=0.91 for 90%.**  
-refer to [pinyin_glyph.py](https://github.com/MaruTama/Mengshen-pinyin-font/blob/e5d6e9e1770d849d6c17016683faf7c04d028473/src/pinyin_glyph.py#L148-L154)
-
-<!--
+```math
 \begin{align*}
   \begin{pmatrix}
     x' \\
@@ -163,10 +160,13 @@ refer to [pinyin_glyph.py](https://github.com/MaruTama/Mengshen-pinyin-font/blob
     1 \\
   \end{pmatrix}
 \end{align*}
- -->
-![matrix](../imgs/texclip20190728183918.png)  
+ ```
+
 <!-- Ref.[extract rotation, scale values from 2d transformation matrix](https://stackoverflow.com/questions/4361242/extract-rotation-scale-values-from-2d-transformation-matrix)  
 Matrix can calculate the scale, rotation, and shift at one time by raising the dimension.   -->
+
+**Note: For unknown reasons, otfccbuild lost glyphs if a and d are the same value. If the sizes are different, it will be reflected, so set a=0.9, d=0.91 for 90%.**  
+refer to [pinyin_glyph.py](https://github.com/MaruTama/Mengshen-pinyin-font/blob/e5d6e9e1770d849d6c17016683faf7c04d028473/src/pinyin_glyph.py#L148-L154)
 
 ### feature tag
 "aalt" is set to display the alternative characters.  
