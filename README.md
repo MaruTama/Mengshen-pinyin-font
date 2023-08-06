@@ -35,6 +35,7 @@ This fonts can display basic Japanese, Simplified Chinese and Traditional Chines
 - [macOS](https://support.apple.com/en-us/HT201749)
 - [Windows](https://support.microsoft.com/en-us/help/314960/how-to-install-or-remove-a-font-in-windows)
 - [Linux/Unix-based systems](https://github.com/adobe-fonts/source-code-pro/issues/17#issuecomment-8967116)
+- [Android](./doc/HOW_TO_APPLY_FONT_ON_ANDROOID.md)
 
 ----
 
