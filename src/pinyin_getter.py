@@ -56,7 +56,7 @@ def get_pinyin_with_pypinyin(hanzi):
 
 def get_pinyin_table_with_mapping_table():
     pinyin_table = {}
-    with open(os.path.join(p.DIR_OUTPUT,MARGED_MAPPING_TABLE)) as read_file:
+    with open(os.path.join(p.DIR_OUTPUT,MARGED_MAPPING_TABLE), encoding='utf-8') as read_file:
         for line in read_file:
             str_unicode = line.split(':')[0]
             int_unicode = int(str_unicode[2:], 16)
