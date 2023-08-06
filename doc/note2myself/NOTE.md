@@ -9,14 +9,19 @@ Exception: otfccbuild : Build : [WARNING] [Stat] Circular glyph reference found 
        |-Build : [WARNING] [Stat] Circular glyph reference found in gid 13829 to gid 13828. The reference will be dropped.
 ```
 gid は glyph_order の添字
-解決策としては二回繰り返さないようにする。
+解決策としては[二回繰り返さないようにする。](https://github.com/MaruTama/Mengshen-pinyin-font/blob/e5d6e9e1770d849d6c17016683faf7c04d028473/src/font.py#L37-L58)
 前提として、すべての文字に対して同じ発音が登録されていること。overwrite.txt で調整した。
-- 11663 => cid10849 ⺎(U+2E8E) 兀(U+5140) 兀(U+FA0C)
-- 11664 => cid10849.ss00
-- 11665 => cid10849.ss01
-- 13827 => cid12670 嗀(U+55C0) 嗀(U+FA0D)
-- 13828 => cid12670.ss00
-- 13829 => cid12670.ss01
+
+|unicode|Integration destination glyph(e.g. SourceHanSerifCN-Regular.ttf)|
+|-|-|
+|⺎(U+2E8E)|cid10849|
+|兀(U+5140)|cid10849|
+|兀(U+FA0C)|cid10849|
+
+|unicode|Integration destination glyph(e.g. SourceHanSerifCN-Regular.ttf)|
+|-|-|
+|嗀(U+55C0)|cid12670|
+|嗀(U+FA0D)|cid12670|
 
 
 
@@ -52,7 +57,7 @@ rclt
        -> calt に似ている。アラビア文字に使うことが本来の目的であるが、どの文字にも適用可能。この機能を切ることはできない。
 
 
-![](./imgs/can_apply_calt_for_hanzi.png)
+![](../../imgs/can_apply_calt_for_hanzi.png)
 
 Glyphs は afdko の [chaining-contextual-substitution](http://adobe-type-tools.github.io/afdko/OpenTypeFeatureFileSpecification.html#5f-gsub-lookuptype-6-chaining-contextual-substitution) の書き方ができる。  
 
