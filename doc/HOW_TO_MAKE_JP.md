@@ -139,10 +139,7 @@ refer to [pinyin_glyph.py](https://github.com/MaruTama/Mengshen-pinyin-font/blob
 参照時に指定している a-d は、アフィン変換の値である。
 今回は、「拡大縮小」と「平行移動」を使うので、a,d (scale) と x,y (move) を指定して使っている。
 
-**注意：otfccbuild の仕様なのか opentype の仕様なのか分からないが a と d が同じ値だと、グリフが消失する。 少しでもサイズが違えば反映されるので、90% にするなら、a=0.9, d=0.91 とかにする。**  
-refer to [pinyin_glyph.py](https://github.com/MaruTama/Mengshen-pinyin-font/blob/e5d6e9e1770d849d6c17016683faf7c04d028473/src/pinyin_glyph.py#L148-L154)
-
-<!--
+```math
 \begin{align*}
   \begin{pmatrix}
     x' \\
@@ -159,11 +156,13 @@ refer to [pinyin_glyph.py](https://github.com/MaruTama/Mengshen-pinyin-font/blob
     1 \\
   \end{pmatrix}
 \end{align*}
- -->
-![matrix](../imgs/texclip20190728183918.png)  
+ ```
+
 <!-- Ref.[extract rotation, scale values from 2d transformation matrix](https://stackoverflow.com/questions/4361242/extract-rotation-scale-values-from-2d-transformation-matrix)  
 Matrix can calculate the scale, rotation, and shift at one time by raising the dimension.   -->
 
+**注意：otfccbuild の仕様なのか opentype の仕様なのか分からないが a と d が同じ値だと、グリフが消失する。 少しでもサイズが違えば反映されるので、90% にするなら、a=0.9, d=0.91 とかにする。**  
+refer to [pinyin_glyph.py](https://github.com/MaruTama/Mengshen-pinyin-font/blob/e5d6e9e1770d849d6c17016683faf7c04d028473/src/pinyin_glyph.py#L148-L154)
 
 ### feature tag
 aalt は代替文字の表示のために設定している。  
