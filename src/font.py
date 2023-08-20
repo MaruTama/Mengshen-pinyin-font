@@ -311,7 +311,7 @@ class Font():
 
     def set_copyright(self):
         # フォント製作者によるバージョン
-        self.marged_font["head"]["fontRevision"] = name_table.VISION
+        self.marged_font["head"]["fontRevision"] = name_table.VERSION
         # 作成日(基準日：1904/01/01 00:00 GMT)
         from datetime import datetime
         base_date = datetime.strptime("1904/01/01 00:00", "%Y/%m/%d %H:%M")
