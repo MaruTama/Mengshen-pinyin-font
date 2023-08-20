@@ -4,8 +4,8 @@ OSS の多音字に対応した拼音フォント及びその作成ツールで�
 **[Download/下载](https://github.com/MaruTama/pinyin-font-tools/releases)**  
 <!-- [![Download/下载](https://img.shields.io/badge/Download-↓-yellow.svg)](https://github.com/MaruTama/pinyin-font-tools/releases)   -->
 
-[![version](https://img.shields.io/badge/Version-1.02-brightgreen.svg)](https://github.com/nongthaihoang/custom_font_installer/releases/tag/v1.02) 
-![updated](https://img.shields.io/badge/Updated-Dec_19,_2020-green.svg) 
+[![version](https://img.shields.io/badge/Version-1.03-brightgreen.svg)](https://github.com/nongthaihoang/custom_font_installer/releases/tag/v1.03) 
+![updated](https://img.shields.io/badge/Updated-Aug_21,_2023-green.svg) 
 
 ![explain_han_serif](./imgs/explain_han_serif.png)  
 ![explain_handwritten](./imgs/explain_handwritten.png)  
@@ -72,6 +72,7 @@ You can also use Unicode IVS (ideographic variant selector) to switch other diff
 # 謝辞 / Acknowledgments
 Thank you to the following people and repositories. 
 - [@NightFurySL2001](https://github.com/NightFurySL2001)-san
+- [@lanyizi](https://github.com/lanyizi)-san
 - [BPMF IVS](https://github.com/ButTaiwan/bpmfvs)
 - [kose-font](https://github.com/lxgw/kose-font)
 - [SetoFontSP](https://ja.osdn.net/projects/setofont/releases/p14368)
