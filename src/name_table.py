@@ -2,7 +2,7 @@
 #!/usr/bin/env python'
 
 
-VISION = 1.02
+VERSION = 1.03
 
 '''
   platformID
@@ -66,7 +66,7 @@ HAN_SERIF = [
     "languageID": 0,
     "nameID": 3, 
     # フォント識別子
-    "nameString": "{};MENGSHEN;Mengshen-HanSerif".format(VISION)
+    "nameString": "{};MENGSHEN;Mengshen-HanSerif".format(VERSION)
   },
   {
     "platformID": 1,
@@ -82,7 +82,7 @@ HAN_SERIF = [
     "languageID": 0,
     "nameID": 5,
     # バージョン文字列
-    "nameString": "Version {}".format(VISION)
+    "nameString": "Version {}".format(VERSION)
   },
   {
     "platformID": 1,
@@ -178,7 +178,7 @@ HAN_SERIF = [
     "languageID": 1033,
     "nameID": 3,
     # フォント識別子
-    "nameString": "{};MENGSHEN;Mengshen-HanSerif".format(VISION)
+    "nameString": "{};MENGSHEN;Mengshen-HanSerif".format(VERSION)
   },
   {
     "platformID": 3,
@@ -194,7 +194,7 @@ HAN_SERIF = [
     "languageID": 1033,
     "nameID": 5,
     # バージョン文字列
-    "nameString": "Version {}".format(VISION)
+    "nameString": "Version {}".format(VERSION)
   },
   {
     "platformID": 3,
@@ -300,7 +300,7 @@ HANDWRITTEN = [
       "languageID": 0,
       "nameID": 3,
       # フォント識別子
-      "nameString": "{};MENGSHEN;Mengshen-Handwritten".format(VISION)
+      "nameString": "{};MENGSHEN;Mengshen-Handwritten".format(VERSION)
     },
     {
       "platformID": 1,
@@ -316,7 +316,7 @@ HANDWRITTEN = [
       "languageID": 0,
       "nameID": 5,
       # バージョン文字列
-      "nameString": "Version {}".format(VISION)
+      "nameString": "Version {}".format(VERSION)
     },
     {
       "platformID": 1,
@@ -381,7 +381,7 @@ HANDWRITTEN = [
       "languageID": 1033,
       "nameID": 3,
       # フォント識別子
-      "nameString": "{};MENGSHEN;Mengshen-Handwritten".format(VISION)
+      "nameString": "{};MENGSHEN;Mengshen-Handwritten".format(VERSION)
     },
     {
       "platformID": 3,
@@ -397,7 +397,7 @@ HANDWRITTEN = [
       "languageID": 1033,
       "nameID": 5,
       # バージョン文字列
-      "nameString": "Version {}".format(VISION)
+      "nameString": "Version {}".format(VERSION)
     },
     {
       "platformID": 3,
