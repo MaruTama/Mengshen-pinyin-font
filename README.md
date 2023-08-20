@@ -72,6 +72,7 @@ You can also use Unicode IVS (ideographic variant selector) to switch other diff
 # 謝辞 / Acknowledgments
 Thank you to the following people and repositories. 
 - [@NightFurySL2001](https://github.com/NightFurySL2001)-san
+- [@lanyizi](https://github.com/lanyizi)-san
 - [BPMF IVS](https://github.com/ButTaiwan/bpmfvs)
 - [kose-font](https://github.com/lxgw/kose-font)
 - [SetoFontSP](https://ja.osdn.net/projects/setofont/releases/p14368)
