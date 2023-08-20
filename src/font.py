@@ -305,6 +305,7 @@ class Font():
         if advanceAddedPinyinHeight > self.marged_font["hhea"]["ascender"]:
             # 原点からグリフの上端までの距離
             self.marged_font["hhea"]["ascender"] = advanceAddedPinyinHeight
+            self.marged_font["OS_2"]["usWinAscent"] = advanceAddedPinyinHeight
         # 特定の言語のベースライン
         # self.marged_font["BASE"]["hani"]
 
