@@ -590,7 +590,7 @@ U+545C: wū,wù  #呜
 U+5460: běn,pěn  #呠
 U+5461: wěn,mín,mǐn  #呡
 U+5462: ne,ní  #呢
-U+5463: móu,ḿ,Ḿ  #呣
+U+5463: móu,ḿ  #呣
 U+5464: líng,lìng  #呤
 U+546B: chè,zhān,tiè  #呫
 U+546C: xì,líng  #呬
@@ -2543,7 +2543,7 @@ U+6B2D: yīn,yì  #欭
 U+6B2F: xí,xì,kài  #欯
 U+6B31: xià,hē  #欱
 U+6B33: kuài,kuì  #欳
-U+6B38: èi,ǎi,āi,ěi,Ế,ế,Ề,ề  #欸
+U+6B38: èi,ǎi,āi,ěi  #欸
 U+6B3B: chuā,hū,xù,xū  #欻
 U+6B3D: qīn  #欽
 U+6B3E: kuǎn  #款
@@ -5052,7 +5052,7 @@ U+8A82: diào,tiǎo  #誂
 U+8A83: chǐ,yí,chì  #誃
 U+8A87: kuā,kuà  #誇
 U+8A8F: lǎng,ràng,làng  #誏
-U+8A92: xī,ề,ê,éi,ēi,ěi,èi  #誒
+U+8A92: xī,éi,ēi,ěi,èi  #誒
 U+8A96: bèi,bó  #誖
 U+8A9E: yǔ,yù,yu  #語
 U+8AA0: chéng,cheng  #誠
