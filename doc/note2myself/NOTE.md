@@ -23,8 +23,26 @@ gid は glyph_order の添字
 |嗀(U+55C0)|cid12670|
 |嗀(U+FA0D)|cid12670|
 
+## 循環参照している文字の特定方法
+`find_circular_reference_gid.py` スクリプトを実行すると該当するグリフを探し出す。
+```
+$ cd tools 
+$ python find_circular_reference_gid.py
+Circular references detected:
+cid10849.ss00
+cid10849.ss00
+cid10849.ss00
+cid10849.ss00
+```
 
-
+`camp.json` の中からグリフを検索して、該当する文字を特定できる。
+```
+{
+  "11918": "cid10849", // ⺎(U+2E8E)
+  "20800": "cid10849", // 兀(U+5140)
+  "64012": "cid10849", // 兀(U+FA0C)
+}
+```
 
 # メモ
 ## 文脈置換に利用する feature の調査
