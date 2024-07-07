@@ -44,6 +44,7 @@
 屏除: bǐng/chú
 屏弃: bǐng/qì
 幕屏障: mù/píng/zhàng
+占卜: zhān/bǔ
 萝卜: luó/bo
 刨除: páo/chú
 刨治: páo/zhì
@@ -53,6 +54,7 @@
 刨冰: bào/bīng
 刨床: bào/chuáng
 刨刀: bào/dāo
+刨子: bào/zǐ
 刨花: bào/huā
 刨工: bào/gōng
 刨身: bào/shēn
@@ -239,6 +241,7 @@
 腋臭: yè/chòu
 铜臭: tóng/xiù
 无色无臭: wú/sè/wú/xiù
+乳臭未干: rǔ/xiù/wèi/gān
 处女: chǔ/nǚ
 处世: chǔ/shì
 处暑: chǔ/shǔ
@@ -339,7 +342,6 @@
 担当: dān/dāng
 担架: dān/jià
 担名: dān/míng
-担子: dàn/zi
 弹弓: dàn/gōng
 弹片: dàn/piàn
 弹丸: dàn/wán
@@ -527,6 +529,7 @@
 区分: qū/fēn
 分量: fèn/liàng
 分外: fèn/wài
+分子: fèn/zǐ
 安分: ān/fèn
 过分: guò/fèn
 情分: qíng/fèn
@@ -543,7 +546,6 @@
 缝纫: féng/rèn
 干部: gàn/bù
 干劲: gàn/jìn
-干将: gàn/jiàng
 干练: gàn/liàn
 干流: gàn/liú
 干事: gàn/shì
@@ -637,7 +639,6 @@
 行话: háng/huà
 行会: háng/huì
 行距: háng/jù
-树行子: shù/hàng/zi
 道行: dào/héng
 好歹: hǎo/dǎi
 好汉: hǎo/hàn
@@ -859,7 +860,6 @@
 教学: jiāo/xué
 角度: jiǎo/dù
 角落: jiǎo/luò
-角斗: jué/dòu
 角色: jué/sè
 角逐: jué/zhú
 将近: jiāng/jìn
@@ -920,6 +920,7 @@
 尽力: jìn/lì
 尽情: jìn/qíng
 尽头: jìn/tóu
+尽兴: jìn/xìng
 尽职: jìn/zhí
 尽忠: jìn/zhōng
 禁闭: jìn/bì
@@ -958,6 +959,7 @@
 看家: kān/jiā
 看守: kān/shǒu
 看押: kān/yā
+地壳: dì/qiào
 甲壳: jiǎ/qiào
 躯壳: qū/qiào
 金蝉脱壳: jīn/chán/tuō/qiào
@@ -996,7 +998,6 @@
 空缺: kòng/quē
 空暇: kòng/xiá
 空闲: kòng/xián
-空子: kòng/zi
 填空: tián/kòng
 偷空: tōu/kòng
 乐观: lè/guān
@@ -1010,6 +1011,7 @@
 娱乐: yú/lè
 乐池: yuè/chí
 乐谱: yuè/pǔ
+乐曲: yuè/qǔ
 乐器: yuè/qì
 乐团: yuè/tuán
 乐章: yuè/zhāng
@@ -1099,6 +1101,7 @@
 规模: guī/mó
 楷模: kǎi/mó
 模样: mú/yàng
+模子: mú/zǐ
 宁日: níng/rì
 宁静: níng/jìng
 宁可: nìng/kě
@@ -1148,7 +1151,6 @@
 悄语: qiāo/yǔ
 悄密: qiāo/mì
 悄静: qiāo/jìng
-悄切: qiāo/qiè
 悄孤: qiāo/gū
 凄悄: qī/qiāo
 洁悄: jié/qiāo
@@ -1306,10 +1308,10 @@
 挑花: tiǎo/huā
 挑唆: tiǎo/suō
 妥帖: tuǒ/tiē
-熨帖: yù/tiē
 伏帖: fú/tiē
 宁帖: níng/tiē
 请帖: qǐng/tiě
+帖子: tiě/zǐ
 黑帖: hēi/tiě
 名帖: míng/tiě
 禀帖: bǐng/tiě
@@ -1493,7 +1495,6 @@
 摘要: zhāi/yào
 重要: zhòng/yào
 要求: yāo/qiú
-要挟: yāo/xié
 殷切: yīn/qiè
 殷勤: yīn/qín
 殷实: yīn/shí
@@ -1554,7 +1555,6 @@
 刻着: kè/zhe
 接着: jiē/zhe
 沿着: yán/zhe
-尽着: jǐn/zhe
 挨着: āi/zhe
 着急: zháo/jí
 着凉: zháo/liáng
@@ -1642,6 +1642,7 @@
 剧种: jù/zhǒng
 育种: yù/zhǒng
 种痘: zhòng/dòu
+种地: zhòng/dì
 种花: zhòng/huā
 种田: zhòng/tián
 种植: zhòng/zhí
@@ -1716,6 +1717,7 @@
 划拉: huá/lā
 划拳: huá/quán
 划算: huá/suàn
+划子: huá/zǐ
 佰划: bǎi/huai
 奇怪: qí/guài
 奇数: jī/shù
