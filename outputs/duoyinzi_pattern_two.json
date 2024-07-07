@@ -2,15 +2,11 @@
     "lookup_table": {
         "lookup_pattern_10": {
             "间": "间.ss02",
+            "离": "离.ss02",
             "兴": "兴.ss02",
             "头": "头.ss02",
-            "占": "占.ss02",
-            "卜": "卜.ss02",
-            "刨": "刨.ss02",
-            "子": "子.ss02",
-            "参": "参.ss02",
-            "臭": "臭.ss02",
             "干": "干.ss02",
+            "将": "将.ss02",
             "处": "处.ss02",
             "分": "分.ss02",
             "调": "调.ss02",
@@ -24,45 +20,48 @@
             "实": "实.ss02",
             "尽": "尽.ss02",
             "禁": "禁.ss02",
-            "地": "地.ss02",
-            "壳": "壳.ss02",
-            "乐": "乐.ss02",
-            "曲": "曲.ss02",
+            "得": "得.ss02",
+            "不": "不.ss02",
             "翘": "翘.ss02",
+            "棱": "棱.ss02",
+            "悄": "悄.ss02",
             "切": "切.ss02",
-            "数": "数.ss02",
             "踏": "踏.ss02",
+            "熨": "熨.ss02",
             "吐": "吐.ss02",
             "血": "血.ss02",
             "相": "相.ss02",
             "片": "片.ss02",
             "晕": "晕.ss02",
             "应": "应.ss02",
-            "和": "和.ss02",
             "答": "答.ss02",
             "了": "了.ss02",
             "舍": "舍.ss02",
-            "模": "模.ss02",
-            "奔": "奔.ss02"
-        },
-        "lookup_pattern_13": {
-            "差": "差.ss05",
-            "不": "不.ss05"
-        },
-        "lookup_pattern_14": {
-            "揣": "揣.ss06"
+            "担": "担.ss02",
+            "子": "子.ss02",
+            "空": "空.ss02",
+            "奔": "奔.ss02",
+            "角": "角.ss02",
+            "斗": "斗.ss02",
+            "要": "要.ss02",
+            "挟": "挟.ss02"
         },
         "lookup_pattern_11": {
-            "得": "得.ss03",
-            "棱": "棱.ss03",
-            "削": "削.ss03",
+            "参": "参.ss03",
+            "揣": "揣.ss03",
             "帖": "帖.ss03",
-            "种": "种.ss03",
-            "儿": "儿.ss03"
+            "和": "和.ss03"
         },
         "lookup_pattern_12": {
-            "着": "着.ss04",
-            "划": "划.ss04"
+            "差": "差.ss04"
+        },
+        "lookup_pattern_13": {
+            "着": "着.ss05",
+            "数": "数.ss05",
+            "行": "行.ss05"
+        },
+        "lookup_pattern_14": {
+            "儿": "儿.ss06"
         }
     },
     "patterns": {
@@ -74,7 +73,7 @@
                 "作": null
             },
             {
-                "离": null
+                "离": "lookup_pattern_10"
             },
             {
                 "间": "lookup_pattern_10"
@@ -94,42 +93,20 @@
                 "头": null
             }
         ],
-        "占卜": [
-            {
-                "占": "lookup_pattern_10"
-            },
-            {
-                "卜": "lookup_pattern_10"
-            }
-        ],
-        "刨子": [
-            {
-                "刨": "lookup_pattern_10"
-            },
-            {
-                "子": "lookup_pattern_10"
-            }
-        ],
         "参差": [
             {
-                "参": "lookup_pattern_10"
+                "参": "lookup_pattern_11"
             },
             {
-                "差": "lookup_pattern_13"
+                "差": "lookup_pattern_12"
             }
         ],
-        "乳臭未干": [
-            {
-                "乳": null
-            },
-            {
-                "臭": "lookup_pattern_10"
-            },
-            {
-                "未": null
-            },
+        "干将": [
             {
                 "干": "lookup_pattern_10"
+            },
+            {
+                "将": "lookup_pattern_10"
             }
         ],
         "处分": [
@@ -153,7 +130,7 @@
                 "挣": "lookup_pattern_10"
             },
             {
-                "揣": "lookup_pattern_14"
+                "揣": "lookup_pattern_11"
             }
         ],
         "囊揣": [
@@ -161,7 +138,7 @@
                 "囊": "lookup_pattern_10"
             },
             {
-                "揣": "lookup_pattern_14"
+                "揣": "lookup_pattern_11"
             }
         ],
         "少不更事": [
@@ -194,12 +171,12 @@
                 "实": "lookup_pattern_10"
             }
         ],
-        "尽兴": [
+        "尽着": [
             {
                 "尽": "lookup_pattern_10"
             },
             {
-                "兴": "lookup_pattern_10"
+                "着": "lookup_pattern_13"
             }
         ],
         "禁得起": [
@@ -207,7 +184,7 @@
                 "禁": "lookup_pattern_10"
             },
             {
-                "得": "lookup_pattern_11"
+                "得": "lookup_pattern_10"
             },
             {
                 "起": null
@@ -218,26 +195,10 @@
                 "禁": "lookup_pattern_10"
             },
             {
-                "不": "lookup_pattern_13"
+                "不": "lookup_pattern_10"
             },
             {
                 "住": null
-            }
-        ],
-        "地壳": [
-            {
-                "地": "lookup_pattern_10"
-            },
-            {
-                "壳": "lookup_pattern_10"
-            }
-        ],
-        "乐曲": [
-            {
-                "乐": "lookup_pattern_10"
-            },
-            {
-                "曲": "lookup_pattern_10"
             }
         ],
         "翘棱": [
@@ -245,26 +206,26 @@
                 "翘": "lookup_pattern_10"
             },
             {
-                "棱": "lookup_pattern_11"
+                "棱": "lookup_pattern_10"
             }
         ],
-        "切削": [
+        "悄切": [
             {
-                "切": "lookup_pattern_10"
+                "悄": "lookup_pattern_10"
             },
             {
-                "削": "lookup_pattern_11"
+                "切": "lookup_pattern_10"
             }
         ],
         "数得着": [
             {
-                "数": "lookup_pattern_10"
+                "数": "lookup_pattern_13"
             },
             {
-                "得": "lookup_pattern_11"
+                "得": "lookup_pattern_10"
             },
             {
-                "着": "lookup_pattern_12"
+                "着": null
             }
         ],
         "踏实": [
@@ -275,12 +236,12 @@
                 "实": "lookup_pattern_10"
             }
         ],
-        "帖子": [
+        "熨帖": [
             {
-                "帖": "lookup_pattern_11"
+                "熨": "lookup_pattern_10"
             },
             {
-                "子": "lookup_pattern_10"
+                "帖": "lookup_pattern_11"
             }
         ],
         "吐血": [
@@ -312,7 +273,7 @@
                 "应": "lookup_pattern_10"
             },
             {
-                "和": "lookup_pattern_10"
+                "和": "lookup_pattern_11"
             }
         ],
         "答应": [
@@ -323,20 +284,12 @@
                 "应": "lookup_pattern_10"
             }
         ],
-        "种地": [
-            {
-                "种": "lookup_pattern_11"
-            },
-            {
-                "地": "lookup_pattern_10"
-            }
-        ],
         "了得": [
             {
                 "了": "lookup_pattern_10"
             },
             {
-                "得": "lookup_pattern_11"
+                "得": "lookup_pattern_10"
             }
         ],
         "舍得": [
@@ -344,28 +297,31 @@
                 "舍": "lookup_pattern_10"
             },
             {
-                "得": "lookup_pattern_11"
+                "得": "lookup_pattern_10"
             }
         ],
-        "分子": [
+        "担子": [
             {
-                "分": "lookup_pattern_10"
+                "担": "lookup_pattern_10"
             },
             {
                 "子": "lookup_pattern_10"
             }
         ],
-        "模子": [
+        "树行子": [
             {
-                "模": "lookup_pattern_10"
+                "树": null
+            },
+            {
+                "行": "lookup_pattern_13"
             },
             {
                 "子": "lookup_pattern_10"
             }
         ],
-        "划子": [
+        "空子": [
             {
-                "划": "lookup_pattern_12"
+                "空": "lookup_pattern_10"
             },
             {
                 "子": "lookup_pattern_10"
@@ -379,7 +335,23 @@
                 "头": "lookup_pattern_10"
             },
             {
-                "儿": "lookup_pattern_11"
+                "儿": "lookup_pattern_14"
+            }
+        ],
+        "角斗": [
+            {
+                "角": "lookup_pattern_10"
+            },
+            {
+                "斗": "lookup_pattern_10"
+            }
+        ],
+        "要挟": [
+            {
+                "要": "lookup_pattern_10"
+            },
+            {
+                "挟": "lookup_pattern_10"
             }
         ]
     }
