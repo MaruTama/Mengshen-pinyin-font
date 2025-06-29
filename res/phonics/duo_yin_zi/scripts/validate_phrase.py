@@ -73,8 +73,9 @@ def pattern_one(PHRASE_TABLE_FILE):
     """
     duplicate_phrases = get_duplicate_phrase(PHRASE_TABLE_FILE)
     if len(duplicate_phrases) > 0:
-        print("重複する単語を削除してください")
-        print("Duplicate phrase :")
+        print("Error:")
+        print("  重複する単語を削除してください")
+        print("  Duplicate phrase :")
         print(duplicate_phrases)
         exit()
     else:
@@ -96,8 +97,9 @@ def pattern_one(PHRASE_TABLE_FILE):
     """
     duplicate_pattern_of_phrases = get_duplicate_pattern_of_phrase(PHRASE_TABLE_FILE)
     if len(duplicate_pattern_of_phrases) > 0:
-        print("重複する単語（パターン）を削除してください")
-        print("There are duplicates that affect other phrases :")
+        print("Error:")
+        print("  重複する単語（パターン）を削除してください")
+        print("  There are duplicates that affect other phrases :")
         print(duplicate_pattern_of_phrases)
         exit()
     else:
@@ -105,7 +107,7 @@ def pattern_one(PHRASE_TABLE_FILE):
         print("Nothing duplicates that affect other phrase.")
     print()
 
-    # 単語中に異読字が２個以上ないか
+    # 単語中に異読字が 2個以上ないか
     # 対処法
     # -> 別ファイル(pattern_two)へ
     """
@@ -115,8 +117,9 @@ def pattern_one(PHRASE_TABLE_FILE):
     """
     list_multiple_replacement_by_duoyinzi = get_multiple_replacement_by_duoyinzi(PHRASE_TABLE_FILE)
     if len(list_multiple_replacement_by_duoyinzi) > 0:
-        print("単語を phrase_of_pattern_two.txt に移動させてください")
-        print("There is more than one hanzi(kanji) that can be replaced by variational pronunciation in a phrase : ")
+        print("Error:")
+        print("  下記の単語を phrase_of_pattern_two.txt に移動させてください")
+        print("  There is more than one hanzi(kanji) that can be replaced by variational pronunciation in a phrase : ")
         print(list_multiple_replacement_by_duoyinzi)
         exit()
     else:
@@ -130,8 +133,9 @@ def pattern_two(PHRASE_TABLE_FILE):
     # 単語の重複がないか（単純な記述ミス）
     duplicate_phrases = get_duplicate_phrase(PHRASE_TABLE_FILE)
     if len(duplicate_phrases) > 0:
-        print("重複する単語を削除してください")
-        print("Duplicate phrase :")
+        print("Error:")
+        print("  重複する単語を削除してください")
+        print("  Duplicate phrase :")
         print(duplicate_phrases)
         exit()
     else:
@@ -148,8 +152,9 @@ def pattern_two(PHRASE_TABLE_FILE):
     list_multiple_replacement_by_duoyinzi = get_multiple_replacement_by_duoyinzi(PHRASE_TABLE_FILE)
     phrase_dict = get_phrase_dict(PHRASE_TABLE_FILE)
     if len(list_multiple_replacement_by_duoyinzi) != len(phrase_dict):
-        print("単語を phrase_of_pattern_one.txt に移動、もしくは削除してください。")
-        print("There is less than one different reading hanzi(kanji) in the phrase : ")
+        print("Error:")
+        print("  単語を phrase_of_pattern_one.txt に移動、もしくは削除してください。")
+        print("  There is less than one different reading hanzi(kanji) in the phrase : ")
         for phrase, str_pinyin in phrase_dict.items():
             if not (phrase in list_multiple_replacement_by_duoyinzi):
                 if   count_variational_pinyin(phrase, str_pinyin) == 0:
