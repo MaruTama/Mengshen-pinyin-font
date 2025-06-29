@@ -40,12 +40,19 @@ This fonts can display basic Japanese, Simplified Chinese and Traditional Chines
 ----
 
 # 使用例 / use case
-e.g. 微博, Netflix, Lyrics, News, etc.
+e.g. 微博, Netflix, Lyrics, News and MS Word etc.
 
 Improve your skills on your own, effectively and enjoyably, by watching films and series in the language you study.  
 Subtitles are shown Chinese characters and pinyin.  
 [Language Learning with Netflix](https://chrome.google.com/webstore/detail/language-learning-with-ne/hoombieeljmmljlkjmnheibnpciblicm?hl=en)  
 ![An-example-of-how-to-use](./imgs/An-example-of-how-to-use.png)
+
+
+<details><summary>Enable homograph features in Microsoft Word</summary><div>
+
+Please turn on any of the features under Font - Advanced - OpenType Features (suggest to choose Ligatures: Standard Only or tick Use Contextual Alternates, but other options are OK too) to display the correct pinyin in Microsoft Word. By default, Word will not use any OpenType features (including automatically changing the pinyin) if none of the options are used. Microsoft Excel turns on the feature by default, and is not affected.
+![word-setting](./imgs/word_setting.png)
+</div></details>
 
 ----
 
