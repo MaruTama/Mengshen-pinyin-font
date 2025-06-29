@@ -146,3 +146,22 @@ Big5(大五碼)かCNS11643, 前者の方がメジャー
 
 [源ノ明朝をいろいろなフォントと縦組みで比較してみた](https://silight.hatenablog.jp/entry/2017/04/04/170908)
 > 私がTTFバージョンを配布することも考えたのですが、源ノ明朝のライセンスはSIL Open Font Licenseとなっており、修正を加えたフォントの名前にオリジナルの名前を含めてはいけないというルールが定められています。このルールは、中身はほとんど同じなのに名前だけ違うフォントの乱立を招きます。そういった事態を避けるためにも現時点では私からは配布しません。
+
+
+## その他
+- [グループ:全漢字](https://glyphwiki.org/wiki/Group:%E5%85%A8%E6%BC%A2%E5%AD%97)
+- [zi.tools 字統网](https://zi.tools/zi/%F0%AE%8E%B5)
+　　-> 関係図とかもあってすごい
+
+## 異体字
+- [東京文化財研究所-異体字リスト](https://www.tobunken.go.jp/archives/%E7%95%B0%E4%BD%93%E5%AD%97%E3%83%AA%E3%82%B9%E3%83%88/)
+- [國際電腦漢字及異體字知識庫](https://chardb.iis.sinica.edu.tw/)
+
+## 総合情報(異体字・unicode・読み)
+- [Unihan Database](https://www.unicode.org/charts/unihan.html)
+- [文字情報技術促進協議会-文字情報基盤検索システム](https://moji.or.jp/mojikibansearch/basic)
+- [zi.tools 字統网](https://zi.tools/)
+- [汉辞宝](https://www.hancibao.com/)
+- [Chinese Text Project](https://ctext.org/dictionary.pl?if=en)
+- [CHISE / 漢字構造情報データベース](https://www.chise.org/ids/)
+　　-> 高度な部首検索ができる
