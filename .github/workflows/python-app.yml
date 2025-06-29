@@ -59,6 +59,6 @@ jobs:
 
         time python src/main.py --style han_serif
     - name: Upload built font
-      uses: actions/upload-artifact@v3.1.2
+      uses: actions/upload-artifact@v4
       with:
         path: outputs
