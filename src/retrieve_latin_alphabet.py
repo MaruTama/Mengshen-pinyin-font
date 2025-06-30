@@ -30,12 +30,16 @@ ALPHABET = ["a","ā","á","ǎ","à","b","c","d","e","ē","é","ě","è","f","g",
 UNICODE_ALPHABET = [ord(c) for c in ALPHABET]
 
 def process_shell(cmd=""):
-    # print('start')
-    completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-    # print(f'returncode: {completed_process.returncode},stdout: {completed_process.stdout},stderr: {completed_process.stderr}')
-    if b'' != completed_process.stderr:
-        raise Exception(completed_process.stderr)
-    return completed_process.stdout
+    """
+    DEPRECATED: Legacy shell command processor.
+    
+    This function has been replaced with a secure implementation
+    to prevent shell injection vulnerabilities.
+    """
+    from secure_shell import legacy_shell_process_replacement
+    # Return bytes for backward compatibility 
+    result = legacy_shell_process_replacement(cmd)
+    return result.encode('utf-8')
 
 def convert_otf2json(source_font_name, output_json):
     cmd = "otfccdump -o {} --pretty {}".format(output_json, source_font_name)
