@@ -1,14 +1,41 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
+
+from __future__ import annotations
+
 import os
+from typing import TypedDict
 import path
 
 # font type
 HAN_SERIF_TYPE   = 1
 HANDWRITTEN_TYPE = 2
 
+
+class PinyinCanvas(TypedDict):
+    """Configuration for pinyin display area."""
+    width: float
+    height: float
+    base_line: float
+    tracking: float
+
+
+class HanziCanvas(TypedDict):
+    """Configuration for hanzi display area."""
+    width: int
+    height: int
+
+
+class FontMetadata(TypedDict):
+    """Metadata configuration for font rendering."""
+    pinyin_canvas: PinyinCanvas
+    expected_hanzi_canvas: HanziCanvas
+    is_avoid_overlapping_mode: bool
+    x_scale_reduction_for_avoid_overlapping: float
+
+
 # metadata for font size
-METADATA_FOR_HAN_SERIF = {
+METADATA_FOR_HAN_SERIF: FontMetadata = {
     "pinyin_canvas":{
         "width"    : 850,   # ピンイン表示部の幅
         "height"   : 283.3, # ピンイン表示部の高さ
@@ -24,7 +51,7 @@ METADATA_FOR_HAN_SERIF = {
     "x_scale_reduction_for_avoid_overlapping": 0.1 # 上記のモードの際に x軸をどれだけ縮小するか
 }
 
-METADATA_FOR_HANDWRITTEN = {
+METADATA_FOR_HANDWRITTEN: FontMetadata = {
     "pinyin_canvas":{
         "width"    : 800, # ピンイン表示部の幅
         "height"   : 300, # ピンイン表示部の高さ

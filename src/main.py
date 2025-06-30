@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
 
+from __future__ import annotations
+
 # time python3 src/main.py
 
 import os
@@ -15,13 +17,13 @@ import config
 import make_template_jsons
 import retrieve_latin_alphabet
 
-def parse_args(args):
+def parse_args(args: list[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Select font style (\"han_serif\" or \"handwritten\")")
     parser.add_argument('-t', '--style', choices=['han_serif', 'handwritten'], default='han_serif')
     return parser.parse_args(args)
 
-def main(args=None):
+def main(args: list[str] | None = None) -> None:
     options = parse_args(args)
     if options.style == "han_serif":
         FONT_TYPE       = config.HAN_SERIF_TYPE

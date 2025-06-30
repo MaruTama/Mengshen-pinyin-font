@@ -2,6 +2,8 @@
 #!/usr/bin/env python
 
 # python3 src/retrieve_latin_alphabet.py ./res/fonts/mplus-1m-medium.ttf
+from __future__ import annotations
+
 import os
 import sys
 import argparse

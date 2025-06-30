@@ -16,6 +16,8 @@
 # $ cat sawarabi_setting.json | jq '.glyf |= map_values( (select(1).contours |= []) // .)' > test.json
 
 
+from __future__ import annotations
+
 import os
 import sys
 import argparse

@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
 
+from __future__ import annotations
+
 import orjson
 import pinyin_getter as pg
 import shell

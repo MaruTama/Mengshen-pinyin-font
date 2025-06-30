@@ -6,6 +6,8 @@ This module provides safe alternatives to shell command execution,
 preventing shell injection vulnerabilities.
 """
 
+from __future__ import annotations
+
 import subprocess
 import shlex
 from pathlib import Path
@@ -44,7 +46,7 @@ def safe_command_execution(cmd: Union[List[str], str]) -> subprocess.CompletedPr
     
     # Check for dangerous shell operators in arguments
     # Note: We're more permissive here to allow legitimate tool usage
-    dangerous_patterns = [';', '&&', '||', '`', '$()']
+    dangerous_patterns = [';', '&&', '||', '|', '`', '$()']
     for arg in cmd:
         for pattern in dangerous_patterns:
             if pattern in arg:

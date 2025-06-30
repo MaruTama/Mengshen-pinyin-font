@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
 
+from __future__ import annotations
+
 import os
 import orjson
 import pinyin_getter as pg
 import path as p
+from typing import Iterator, Tuple, List
 
 SIMPLED_ALPHABET = {
     "a":"a", "ā":"a1", "á":"a2", "ǎ":"a3", "à":"a4",
@@ -38,32 +41,52 @@ SIMPLED_ALPHABET = {
 cmap_table = {}
 PINYIN_MAPPING_TABLE = pg.get_pinyin_table_with_mapping_table()
 
-def get_cmap_table():
+def get_cmap_table() -> None:
+    global cmap_table
     TAMPLATE_MAIN_JSON = os.path.join(p.DIR_TEMP, "template_main.json")
     with open(TAMPLATE_MAIN_JSON, "rb") as read_file:
         marged_font = orjson.loads(read_file.read())
     cmap_table = marged_font["cmap"]
 
 # ピンイン表記の簡略化、e.g.: wěi -> we3i
-def simplification_pronunciation(pronunciation):
+def simplification_pronunciation(pronunciation: str) -> str:
     return  "".join( [SIMPLED_ALPHABET[c] for c in pronunciation] )
 
 # ピンインが一つだけの漢字をすべて取得する
-def get_has_single_pinyin_hanzi():
+def get_has_single_pinyin_hanzi() -> List[Tuple[str, List[str]]]:
     return [(hanzi, pinyins) for hanzi, pinyins in PINYIN_MAPPING_TABLE.items() if 1 == len(pinyins)]
 
 # ピンインが2つ以上の漢字をすべて取得する
-def get_has_multiple_pinyin_hanzi():
+def get_has_multiple_pinyin_hanzi() -> List[Tuple[str, List[str]]]:
     return [(hanzi, pinyins) for hanzi, pinyins in PINYIN_MAPPING_TABLE.items() if 1 < len(pinyins)]
 
+# Memory-efficient generator versions for large datasets
+def iter_single_pinyin_hanzi() -> Iterator[Tuple[str, List[str]]]:
+    """Generator version of get_has_single_pinyin_hanzi for memory efficiency."""
+    for hanzi, pinyins in PINYIN_MAPPING_TABLE.items():
+        if len(pinyins) == 1:
+            yield (hanzi, pinyins)
+
+def iter_multiple_pinyin_hanzi() -> Iterator[Tuple[str, List[str]]]:
+    """Generator version of get_has_multiple_pinyin_hanzi for memory efficiency."""
+    for hanzi, pinyins in PINYIN_MAPPING_TABLE.items():
+        if len(pinyins) > 1:
+            yield (hanzi, pinyins)
+
+def iter_all_hanzi_with_filter(min_pinyin_count: int = 1) -> Iterator[Tuple[str, List[str]]]:
+    """Flexible generator to iterate over hanzi with configurable filtering."""
+    for hanzi, pinyins in PINYIN_MAPPING_TABLE.items():
+        if len(pinyins) >= min_pinyin_count:
+            yield (hanzi, pinyins)
+
 # 漢字から cid を取得する
-def convert_str_hanzi_2_cid(str_hanzi):
+def convert_str_hanzi_2_cid(str_hanzi: str) -> str:
     if len(cmap_table) == 0:
         get_cmap_table()
     return cmap_table[ str(ord(str_hanzi)) ]
 
 # [階層構造のあるdictをupdateする](https://www.greptips.com/posts/1242/)
-def deepupdate(dict_base, other):
+def deepupdate(dict_base: dict, other: dict) -> None:
     for k, v in other.items():
         if isinstance(v, dict) and k in dict_base:
             deepupdate(dict_base[k], v)

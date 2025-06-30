@@ -1,8 +1,20 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python'
 
+from __future__ import annotations
+
+from typing import TypedDict
 
 VERSION = 1.04
+
+
+class FontNameEntry(TypedDict):
+    """Typed dictionary for font name table entries."""
+    platformID: int
+    encodingID: int
+    languageID: int
+    nameID: int
+    nameString: str
 
 '''
   platformID
@@ -34,7 +46,7 @@ VERSION = 1.04
    14: ライセンス情報の URL
   '''
 
-HAN_SERIF = [
+HAN_SERIF: list[FontNameEntry] = [
   # Macintosh
   {
     "platformID": 1,
@@ -268,7 +280,7 @@ HAN_SERIF = [
   }
 ]
 
-HANDWRITTEN = [
+HANDWRITTEN: list[FontNameEntry] = [
   # Macintosh
   {
       "platformID": 1,
