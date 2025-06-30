@@ -11,6 +11,7 @@ import subprocess
 import json
 import utility
 import path as p
+from typing import Dict, List, Any, Optional, Tuple
 
 # できた
 # cat alphabet4pinyin.json | jq '.glyf | with_entries(select(.key|match("^a$|^b$")))' > out.json
@@ -31,7 +32,7 @@ ALPHABET = ["a","ā","á","ǎ","à","b","c","d","e","ē","é","ě","è","f","g",
 
 UNICODE_ALPHABET = [ord(c) for c in ALPHABET]
 
-def process_shell(cmd=""):
+def process_shell(cmd: str = "") -> bytes:
     """
     DEPRECATED: Legacy shell command processor.
     
@@ -43,7 +44,7 @@ def process_shell(cmd=""):
     result = legacy_shell_process_replacement(cmd)
     return result.encode('utf-8')
 
-def convert_otf2json(source_font_name, output_json):
+def convert_otf2json(source_font_name: str, output_json: str) -> None:
     cmd = "otfccdump -o {} --pretty {}".format(output_json, source_font_name)
     try:
         process_shell(cmd)
@@ -52,22 +53,23 @@ def convert_otf2json(source_font_name, output_json):
         print(e)
 
 # cmap の大きさなら、全部取得しても 65536 程度だから、フィルターしなくてもいいな
-def get_cmap_table(source_font_json):
+def get_cmap_table(source_font_json: str) -> Dict[str, str]:
     cmd = "cat {} | jq '.cmap' ".format(source_font_json)
     try:
         cmap_table = json.loads( process_shell(cmd) )
+        return cmap_table
     except Exception as e:
         print()
         print(e)
-    return cmap_table
+        return {}
 
-def expand_pattern_list2match_pattern(ALPHABET):
+def expand_pattern_list2match_pattern(ALPHABET: List[str]) -> str:
     match_pattern = ""
     for c in ALPHABET:
         match_pattern += "^{}$|".format(c) if ALPHABET[-1] != c else "^{}$".format(c)
     return ' "{}" '.format(match_pattern)
 
-def get_reversed_cmap_table():
+def get_reversed_cmap_table() -> Dict[str, str]:
     output_json = os.path.join(p.DIR_TEMP, OUTPUT_JSON)
     cmap_table = get_cmap_table( output_json )
 
@@ -78,7 +80,7 @@ def get_reversed_cmap_table():
 
     return reversed_cmap_table
 
-def rename_cid_of_alphabet_for_pinyin(alphabet_glyf4pinyin_json):
+def rename_cid_of_alphabet_for_pinyin(alphabet_glyf4pinyin_json: str) -> None:
     with open(alphabet_glyf4pinyin_json, mode='r', encoding='utf-8') as read_file:
         glyf_json = json.load(read_file) 
     
@@ -91,7 +93,7 @@ def rename_cid_of_alphabet_for_pinyin(alphabet_glyf4pinyin_json):
     with open(alphabet_glyf4pinyin_json, mode='w', encoding='utf-8') as write_file:
         json.dump(new_glyf_json, write_file, indent=4, ensure_ascii=False)
 
-def make_alphabet_glyf_json(source_font_name):
+def make_alphabet_glyf_json(source_font_name: str) -> None:
     output_json = os.path.join(p.DIR_TEMP, OUTPUT_JSON)
     convert_otf2json( source_font_name, output_json )
     cmap_table = get_cmap_table( output_json )
@@ -109,7 +111,7 @@ def make_alphabet_glyf_json(source_font_name):
         print()
         print(e)
 
-def parse_args(args):
+def parse_args(args: Optional[List[str]]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Convert OpenType font (.otf/.ttf) to .json ")
     parser.add_argument(
@@ -117,7 +119,7 @@ def parse_args(args):
 
     return parser.parse_args(args)
 
-def main(args=None):
+def main(args: Optional[List[str]] = None) -> Optional[int]:
     options = parse_args(args)
     # 変換するフォント
     source_font_name = options.source_font_name
@@ -131,6 +133,8 @@ def main(args=None):
     else:
         print("invalid argument:")
         print("  input file is font file (.otf/.ttf) only.")
+        return 1
+    return 0
 
 if __name__ == "__main__":
     sys.exit(main())
