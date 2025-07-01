@@ -83,6 +83,8 @@ $ python src/retrieve_latin_alphabet.py <FONT-NAME-FOR-PINYIN>
 ``` -->
 
 3. Build the font
+
+### Local Environment
 ```
 $ cd <PROJECT ROOT>
 ```
@@ -93,6 +95,42 @@ or
 ```
 $ time python src/main.py --style handwritten
 ```
+
+### Docker Compose Environment
+You can generate fonts using Docker without worrying about dependency installation.
+
+#### Dictionary Generation
+```bash
+$ docker compose --profile dictionary run --rm mengshen-dictionary
+```
+
+#### Font Generation
+```bash
+# Generate han_serif font
+$ docker compose --profile font-generation run --rm mengshen-font-han_serif
+
+# Generate handwritten font  
+$ docker compose --profile font-generation run --rm mengshen-font-handwritten
+```
+
+#### Complete Pipeline (Dictionary + Both Fonts)
+```bash
+$ docker compose --profile pipeline run --rm mengshen-pipeline
+```
+
+#### Development Environment
+```bash
+# Start development environment
+$ docker compose --profile development up -d
+
+# Enter the container
+$ docker compose exec mengshen-dev bash
+
+# Manual execution inside development environment
+$ docker compose exec mengshen-dev python src/main.py --help
+```
+
+Generated fonts will be saved in the `outputs/` directory.
 
 ## Technical Notes
 ### How to set the canvas size of the pinyin display area

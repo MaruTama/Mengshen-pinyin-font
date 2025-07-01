@@ -79,6 +79,8 @@ $ python src/retrieve_latin_alphabet.py <FONT-NAME-FOR-PINYIN>
 ``` -->
 
 3. ビルドする  
+
+### ローカル環境での実行
 ```
 $ cd <PROJECT ROOT>
 ```
@@ -89,6 +91,42 @@ or
 ```
 $ time python src/main.py --style handwritten
 ```
+
+### Docker Compose での実行
+Docker を使用することで、依存関係のインストールを気にせずにフォント生成が可能です。
+
+#### 辞書生成
+```bash
+$ docker compose --profile dictionary run --rm mengshen-dictionary
+```
+
+#### フォント生成
+```bash
+# han_serif フォント生成
+$ docker compose --profile font-generation run --rm mengshen-font-han_serif
+
+# handwritten フォント生成  
+$ docker compose --profile font-generation run --rm mengshen-font-handwritten
+```
+
+#### 完全パイプライン（辞書 + 両フォント生成）
+```bash
+$ docker compose --profile pipeline run --rm mengshen-pipeline
+```
+
+#### 開発環境
+```bash
+# 開発環境起動
+$ docker compose --profile development up -d
+
+# コンテナ内に入る
+$ docker compose exec mengshen-dev bash
+
+# 開発環境内で手動実行
+$ docker compose exec mengshen-dev python src/main.py --help
+```
+
+生成されたフォントは `outputs/` ディレクトリに保存されます。
 
 
 ## 技術的メモ

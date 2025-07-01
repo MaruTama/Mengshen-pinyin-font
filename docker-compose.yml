@@ -1,0 +1,353 @@
+# Docker Compose configuration for Mengshen Pinyin Font Generator
+# Supports development, production, testing, and benchmarking environments
+
+version: '3.8'
+
+# =============================================================================
+# Services Definition
+# =============================================================================
+services:
+  # ---------------------------------------------------------------------------
+  # Dictionary Generation: Generate pattern tables and Unicode mappings
+  # ---------------------------------------------------------------------------
+  mengshen-dictionary:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    image: mengshen-font:development
+    container_name: mengshen-dictionary
+    volumes:
+      - .:/app
+      - mengshen-dev-cache:/app/cache
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    working_dir: /app
+    networks:
+      - mengshen-network
+    profiles:
+      - dictionary
+    command: >
+      sh -c "
+        echo 'Starting dictionary generation...' &&
+        cd res/phonics/duo_yin_zi/scripts && 
+        python make_pattern_table.py &&
+        echo 'Pattern tables generated successfully' &&
+        cd ../../unicode_mapping_table && 
+        python make_unicode_pinyin_map_table.py &&
+        echo 'Unicode mapping tables generated successfully' &&
+        echo 'Dictionary generation completed!'
+      "
+
+  # ---------------------------------------------------------------------------
+  # Font Generation: Generate han_serif or handwritten fonts
+  # ---------------------------------------------------------------------------
+  mengshen-font-han_serif:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    image: mengshen-font:development
+    container_name: mengshen-font-han_serif
+    volumes:
+      - .:/app
+      - mengshen-dev-cache:/app/cache
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    working_dir: /app
+    networks:
+      - mengshen-network
+    profiles:
+      - font-generation
+    command: >
+      sh -c "
+        echo 'Starting han_serif font generation...' &&
+        python src/main.py --style han_serif &&
+        echo 'han_serif font generation completed!'
+      "
+
+  mengshen-font-handwritten:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    image: mengshen-font:development
+    container_name: mengshen-font-handwritten
+    volumes:
+      - .:/app
+      - mengshen-dev-cache:/app/cache
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    working_dir: /app
+    networks:
+      - mengshen-network
+    profiles:
+      - font-generation
+    command: >
+      sh -c "
+        echo 'Starting handwritten font generation...' &&
+        python src/main.py --style handwritten &&
+        echo 'handwritten font generation completed!'
+      "
+
+  # ---------------------------------------------------------------------------
+  # Complete Pipeline: Dictionary + Font Generation
+  # ---------------------------------------------------------------------------
+  mengshen-pipeline:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    image: mengshen-font:development
+    container_name: mengshen-pipeline
+    volumes:
+      - .:/app
+      - mengshen-dev-cache:/app/cache
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    working_dir: /app
+    networks:
+      - mengshen-network
+    profiles:
+      - pipeline
+    command: >
+      sh -c "
+        echo 'Starting complete pipeline...' &&
+        echo 'Step 1: Dictionary generation' &&
+        cd res/phonics/duo_yin_zi/scripts && python make_pattern_table.py &&
+        cd ../../unicode_mapping_table && python make_unicode_pinyin_map_table.py &&
+        cd ../../../.. &&
+        echo 'Step 2: Font generation (han_serif)' &&
+        python src/main.py --style han_serif &&
+        echo 'Step 3: Font generation (handwritten)' &&
+        python src/main.py --style handwritten &&
+        echo 'Complete pipeline finished successfully!'
+      "
+
+  # ---------------------------------------------------------------------------
+  # Production Service: Optimized for production font generation
+  # ---------------------------------------------------------------------------
+  mengshen-production:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+      args:
+        BUILD_DATE: ${BUILD_DATE:-}
+        VCS_REF: ${VCS_REF:-}
+        VERSION: ${VERSION:-2.0.0}
+    image: mengshen-font:production
+    container_name: mengshen-production
+    restart: unless-stopped
+    volumes:
+      # Mount input resources (read-only)
+      - ./res:/app/res:ro
+      # Mount output directory
+      - ./outputs:/app/outputs
+      # Mount temporary directory for performance
+      - mengshen-tmp:/app/tmp
+      # Mount cache for performance optimization
+      - mengshen-cache:/app/cache
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONIOENCODING=utf-8
+      - PRODUCTION=1
+    networks:
+      - mengshen-network
+    profiles:
+      - production
+    # Resource limits for production
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'
+          memory: 2G
+        reservations:
+          cpus: '1.0'
+          memory: 512M
+    # Health check
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # ---------------------------------------------------------------------------
+  # Development Service: Full development environment with hot reload
+  # ---------------------------------------------------------------------------
+  mengshen-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    image: mengshen-font:development
+    container_name: mengshen-dev
+    volumes:
+      # Mount entire project for development (read-write)
+      - .:/app
+      # Mount cache for development
+      - mengshen-dev-cache:/app/cache
+      # Mount development history
+      - mengshen-dev-history:/home/mengshen/.bash_history
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+      - DEVELOPMENT=1
+      - DEBUG=1
+    working_dir: /app
+    command: bash
+    stdin_open: true
+    tty: true
+    networks:
+      - mengshen-network
+    profiles:
+      - development
+    ports:
+      # Jupyter notebook port (if needed)
+      - "8888:8888"
+      # Debug port
+      - "5678:5678"
+
+  # ---------------------------------------------------------------------------
+  # Testing Service: Automated testing environment
+  # ---------------------------------------------------------------------------
+  mengshen-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: testing
+    image: mengshen-font:testing
+    container_name: mengshen-test
+    volumes:
+      # Mount source code (read-only)
+      - ./src:/app/src:ro
+      - ./tests:/app/tests:ro
+      - ./requirements.txt:/app/requirements.txt:ro
+      - ./requirements-dev.txt:/app/requirements-dev.txt:ro
+      # Mount test results output
+      - ./test-results:/app/test-results
+    environment:
+      - PYTHONUNBUFFERED=1
+      - TESTING=1
+      - COVERAGE_FILE=/app/test-results/.coverage
+    networks:
+      - mengshen-network
+    profiles:
+      - testing
+    command: >
+      sh -c "
+        python -m pytest tests/ -v 
+        --cov=src 
+        --cov-report=html:/app/test-results/htmlcov 
+        --cov-report=term-missing 
+        --cov-report=xml:/app/test-results/coverage.xml
+        --junit-xml=/app/test-results/junit.xml
+      "
+
+  # ---------------------------------------------------------------------------
+  # Benchmark Service: Performance testing and analysis
+  # ---------------------------------------------------------------------------
+  mengshen-benchmark:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: benchmark
+    image: mengshen-font:benchmark
+    container_name: mengshen-benchmark
+    volumes:
+      # Mount source code (read-only)
+      - ./src:/app/src:ro
+      - ./res:/app/res:ro
+      # Mount benchmark results
+      - ./benchmark-results:/app/benchmark-results
+      # Mount cache for consistent benchmarking
+      - mengshen-benchmark-cache:/app/cache
+    environment:
+      - PYTHONUNBUFFERED=1
+      - BENCHMARK_MODE=1
+    networks:
+      - mengshen-network
+    profiles:
+      - benchmark
+    # Resource configuration for consistent benchmarking
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+    command: >
+      sh -c "
+        echo 'Starting performance benchmark...' &&
+        python -c 'from src.mengshen_font.processing.benchmark import run_performance_comparison; run_performance_comparison()' &&
+        echo 'Benchmark completed. Results saved to /app/benchmark-results/'
+      "
+
+  # ---------------------------------------------------------------------------
+  # CI/CD Service: Continuous integration testing
+  # ---------------------------------------------------------------------------
+  mengshen-ci:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: testing
+    image: mengshen-font:ci
+    volumes:
+      - .:/app:ro
+      - ./ci-results:/app/ci-results
+    environment:
+      - PYTHONUNBUFFERED=1
+      - CI=1
+      - TESTING=1
+    networks:
+      - mengshen-network
+    profiles:
+      - ci
+    command: >
+      sh -c "
+        echo 'Running CI pipeline...' &&
+        python -m pytest tests/ -v --tb=short &&
+        python -c 'import src.main; print(\"Import test passed\")' &&
+        echo 'CI pipeline completed successfully'
+      "
+
+# =============================================================================
+# Network Configuration
+# =============================================================================
+networks:
+  mengshen-network:
+    driver: bridge
+    name: mengshen-network
+
+# =============================================================================
+# Volume Configuration
+# =============================================================================
+volumes:
+  # Production volumes
+  mengshen-tmp:
+    name: mengshen-tmp
+    driver: local
+  mengshen-cache:
+    name: mengshen-cache
+    driver: local
+  
+  # Development volumes
+  mengshen-dev-cache:
+    name: mengshen-dev-cache
+    driver: local
+  mengshen-dev-history:
+    name: mengshen-dev-history
+    driver: local
+  
+  # Benchmark volumes
+  mengshen-benchmark-cache:
+    name: mengshen-benchmark-cache
+    driver: local
+
+# =============================================================================
+# Extension Configuration (for docker-compose overrides)
+# =============================================================================
