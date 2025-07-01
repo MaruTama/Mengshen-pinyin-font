@@ -1,0 +1,106 @@
+# Docker ignore file for Mengshen Pinyin Font Generator
+# Optimize build context and reduce image size
+
+# Git and version control
+.git
+.gitignore
+.gitmodules
+.github/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.env
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Testing and coverage
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+.hypothesis/
+htmlcov/
+.tox/
+
+# IDE and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Documentation
+*.md
+README*
+CHANGELOG*
+LICENSE*
+docs/
+*.rst
+
+# Temporary and cache files
+tmp/
+temp/
+cache/
+*.tmp
+*.log
+*.pid
+
+# Output files (will be generated in container)
+outputs/*.ttf
+outputs/*.otf
+outputs/*.woff*
+
+# Development tools
+.editorconfig
+.pre-commit-config.yaml
+pyproject.toml
+setup.cfg
+tox.ini
+
+# Node.js (if any)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Large sample files
+samples/
+examples/large/
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+
+# Development containers
+.devcontainer/
+docker-compose.override.yml
+docker-compose.local.yml
+
+# Security and credentials
+*.pem
+*.key
+*.crt
+secrets/
+.secrets/
