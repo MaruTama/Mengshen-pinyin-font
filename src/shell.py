@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import subprocess
 from secure_shell import legacy_shell_process_replacement
 
 def process(cmd: str = "") -> bytes:
@@ -13,4 +12,6 @@ def process(cmd: str = "") -> bytes:
     This function has been replaced with a secure implementation
     to prevent shell injection vulnerabilities.
     """
-    return legacy_shell_process_replacement(cmd)
+    # Return bytes for backward compatibility 
+    result = legacy_shell_process_replacement(cmd)
+    return result.encode('utf-8') if isinstance(result, str) else result

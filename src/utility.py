@@ -7,6 +7,7 @@ import os
 import orjson
 import pinyin_getter as pg
 import path as p
+from functools import lru_cache
 from typing import Iterator, List, TypedDict, Dict, Any
 from dataclasses import dataclass
 
@@ -85,14 +86,19 @@ def get_cmap_table() -> None:
     cmap_table = marged_font["cmap"]
 
 # ピンイン表記の簡略化、e.g.: wěi -> we3i
+@lru_cache(maxsize=1024)
 def simplification_pronunciation(pronunciation: str) -> str:
+    """Simplify pinyin pronunciation with caching for performance."""
     return  "".join( [SIMPLED_ALPHABET[c] for c in pronunciation] )
 
+@lru_cache(maxsize=1)
 def get_has_single_pinyin_hanzi() -> List[HanziPinyin]:
     """Get all characters with single pinyin pronunciation.
     
     Returns HanziPinyin objects that support tuple unpacking for backward compatibility.
     Usage: for hanzi, pinyins in get_has_single_pinyin_hanzi()
+    
+    Cached for performance as this is computed from static data.
     """
     return [
         HanziPinyin(character=hanzi, pronunciations=pinyins)
@@ -100,11 +106,14 @@ def get_has_single_pinyin_hanzi() -> List[HanziPinyin]:
         if len(pinyins) == 1
     ]
 
+@lru_cache(maxsize=1)
 def get_has_multiple_pinyin_hanzi() -> List[HanziPinyin]:
     """Get all characters with multiple pinyin pronunciations.
     
     Returns HanziPinyin objects that support tuple unpacking for backward compatibility.
     Usage: for hanzi, pinyins in get_has_multiple_pinyin_hanzi()
+    
+    Cached for performance as this is computed from static data.
     """
     return [
         HanziPinyin(character=hanzi, pronunciations=pinyins)
@@ -181,7 +190,9 @@ def iter_characters_by_pronunciation_count(min_count: int = 1, max_count: int = 
                 yield HanziPinyin(character=hanzi, pronunciations=pinyins)
 
 # 漢字から cid を取得する
+@lru_cache(maxsize=2048)
 def convert_str_hanzi_2_cid(str_hanzi: str) -> str:
+    """Convert hanzi character to CID with caching for performance."""
     if len(cmap_table) == 0:
         get_cmap_table()
     return cmap_table[ str(ord(str_hanzi)) ]

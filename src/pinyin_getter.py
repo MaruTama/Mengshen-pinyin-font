@@ -8,6 +8,8 @@ from pypinyin import pinyin, lazy_pinyin, Style
 import requests
 from bs4 import BeautifulSoup
 import path as p
+from functools import lru_cache
+from typing import List, Optional
 
 
 BAIDU_URL  = "https://hanyu.baidu.com/s?wd={}&from=zici"
@@ -23,7 +25,8 @@ SS_NORMAL_PRONUNCIATION      = 1
 SS_VARIATIONAL_PRONUNCIATION = 2
 
 
-def get_pinyin_with_baidu(hanzi):
+@lru_cache(maxsize=512)
+def get_pinyin_with_baidu(hanzi: str) -> Optional[List[str]]:
     try:
         html = requests.get(BAIDU_URL.format(hanzi))
         soup = BeautifulSoup(html.content, "html.parser")
@@ -40,7 +43,8 @@ def get_pinyin_with_baidu(hanzi):
         # print("not found pinyin")
         return None
 
-def get_pinyin_with_zdic(hanzi):
+@lru_cache(maxsize=512)
+def get_pinyin_with_zdic(hanzi: str) -> Optional[List[str]]:
     try:
         html = requests.get(ZDIC_URL.format(hanzi))
         soup = BeautifulSoup(html.content, "html.parser")
@@ -52,7 +56,8 @@ def get_pinyin_with_zdic(hanzi):
         # print("not found pinyin")
         return None
 
-def get_pinyin_with_pypinyin(hanzi):
+@lru_cache(maxsize=1024)
+def get_pinyin_with_pypinyin(hanzi: str) -> List[str]:
     return [p[0] for p in pinyin(hanzi)]
 
 
