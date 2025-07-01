@@ -25,7 +25,7 @@ DIR_MT = "../../download_unicode_tables"
 TGSCC_MAPPING_TABLE     = "TGSCC-mapping-table.txt"
 BIG5_MAPPING_TABLE      = "BIG5-mapping-table.txt"
 OVERWRITE_MAPPING_TABLE = "overwrite.txt"
-MARGED_MAPPING_TABLE    = "marged-mapping-table.txt"
+MERGED_MAPPING_TABLE    = "merged-mapping-table.txt"
 DIR_OT = "../../../outputs"
 
 # テーブルをダウンロードする
@@ -169,7 +169,7 @@ def marge_mapping_table():
     unicode_list_for_sort = list(set(unicode_list_for_sort))
     unicode_list_for_sort.sort()
 
-    with open(os.path.join(DIR_OT, MARGED_MAPPING_TABLE), mode='w', encoding='utf-8') as write_file:
+    with open(os.path.join(DIR_OT, MERGED_MAPPING_TABLE), mode='w', encoding='utf-8') as write_file:
         for int_unicode in unicode_list_for_sort:
             write_file.write(marged_mapping_table[int_unicode])
 
@@ -179,7 +179,7 @@ def overwrite_pinyin():
     unicode_list_for_sort = []
     header = ""
 
-    with open(os.path.join(DIR_OT, MARGED_MAPPING_TABLE), mode='r', encoding='utf-8') as read_file:
+    with open(os.path.join(DIR_OT, MERGED_MAPPING_TABLE), mode='r', encoding='utf-8') as read_file:
         for line in read_file:
             # "U+4ECD" -> "4ECD" -> 20173　ソートのために文字列から数値にする
             str_unicode = line.rstrip('\n').split(':')[0]
@@ -201,7 +201,7 @@ def overwrite_pinyin():
     unicode_list_for_sort = list(set(unicode_list_for_sort))
     unicode_list_for_sort.sort()
 
-    with open(os.path.join(DIR_OT, MARGED_MAPPING_TABLE), mode='w', encoding='utf-8') as write_file:
+    with open(os.path.join(DIR_OT, MERGED_MAPPING_TABLE), mode='w', encoding='utf-8') as write_file:
         for int_unicode in unicode_list_for_sort:
             write_file.write(marged_mapping_table[int_unicode])
 

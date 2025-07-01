@@ -10,7 +10,7 @@ from bs4 import BeautifulSoup
 BAIDU_URL  = "https://hanyu.baidu.com/s?wd={}&from=zici"
 ZDIC_URL   = "https://www.zdic.net/hans/{}"
 
-MARGED_MAPPING_TABLE    = "marged-mapping-table.txt"
+MERGED_MAPPING_TABLE    = "merged-mapping-table.txt"
 DIR_OT = "../../../../outputs"
 
 
@@ -49,7 +49,7 @@ def get_pinyin_with_pypinyin(hanzi):
 
 def get_pinyin_table_with_mapping_table():
     pinyin_table = {}
-    with open(os.path.join(DIR_OT,MARGED_MAPPING_TABLE), encoding='utf-8') as read_file:
+    with open(os.path.join(DIR_OT,MERGED_MAPPING_TABLE), encoding='utf-8') as read_file:
         for line in read_file:
             str_unicode = line.split(':')[0]
             int_unicode = int(str_unicode[2:], 16)

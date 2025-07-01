@@ -98,7 +98,7 @@ flowchart TB
 
         'lookup_table': {
         　　# Variant pinyin readings
-        　　# The sequence of numbers should match the index order of marged-mapping-table.txt.
+        　　# The sequence of numbers should match the index order of merged-mapping-table.txt.
         　　'lookup_10': {
         　　　　'占' : '占.ss02',
         　　　　'卜' : '卜.ss02',

@@ -81,14 +81,14 @@ class PinyinGlyph():
         なので、90% にするなら、a=0.9, d=0.91 とかにする。
         """
         # 追加したいフォントのサイズに合わせるために scale を求める
-        hanzi_canvas_width_scale  = target_advance_width_of_hanzi  / self.METADATA_FOR_PINYIN["expected_hanzi_canvas"]["width"]
-        hanzi_canvas_height_scale = target_advance_height_of_hanzi / self.METADATA_FOR_PINYIN["expected_hanzi_canvas"]["height"]
+        hanzi_canvas_width_scale  = target_advance_width_of_hanzi  / self.METADATA_FOR_PINYIN.expected_hanzi_canvas.width
+        hanzi_canvas_height_scale = target_advance_height_of_hanzi / self.METADATA_FOR_PINYIN.expected_hanzi_canvas.height
 
         # 追加したいフォント上でのピンイン表示部サイズを求める
-        target_pinyin_canvas_width     = self.METADATA_FOR_PINYIN["pinyin_canvas"]["width"]     * hanzi_canvas_width_scale
-        target_pinyin_canvas_height    = self.METADATA_FOR_PINYIN["pinyin_canvas"]["height"]    * hanzi_canvas_height_scale
-        target_pinyin_canvas_base_line = self.METADATA_FOR_PINYIN["pinyin_canvas"]["base_line"] * hanzi_canvas_height_scale
-        target_pinyin_canvas_tracking  = self.METADATA_FOR_PINYIN["pinyin_canvas"]["tracking"]  * hanzi_canvas_width_scale
+        target_pinyin_canvas_width     = self.METADATA_FOR_PINYIN.pinyin_canvas.width     * hanzi_canvas_width_scale
+        target_pinyin_canvas_height    = self.METADATA_FOR_PINYIN.pinyin_canvas.height    * hanzi_canvas_height_scale
+        target_pinyin_canvas_base_line = self.METADATA_FOR_PINYIN.pinyin_canvas.base_line * hanzi_canvas_height_scale
+        target_pinyin_canvas_tracking  = self.METADATA_FOR_PINYIN.pinyin_canvas.tracking  * hanzi_canvas_width_scale
 
         # ピンインがキャンバスに収まる scale を求める. 
         # 等幅フォントであれば大きさは同じなのでどんな文字でも同じだと思うが、一応最も背の高い文字を指定する (多分 ǘ ǚ ǜ)
@@ -124,7 +124,7 @@ class PinyinGlyph():
                                         canvas_width,                   # 表示部の幅（METADATA_FOR_PINYINで指定）
                                         canvas_tracking,                # 最大文字間幅（METADATA_FOR_PINYINで指定）
                                         target_advance_width_of_hanzi): # マージ先のフォントの幅（漢字なら正方形のはず）
-        is_avoid_overlapping_mode = self.METADATA_FOR_PINYIN["is_avoid_overlapping_mode"]
+        is_avoid_overlapping_mode = self.METADATA_FOR_PINYIN.is_avoid_overlapping_mode
         # 文字数が 6 なら横幅最大にする
         if is_avoid_overlapping_mode and len(pronunciation) >= 6:
             canvas_width = target_advance_width_of_hanzi
@@ -159,8 +159,8 @@ class PinyinGlyph():
             simpled_alphabet = utility.simplification_pronunciation( pronunciation[i] )
             x_position = width_positions[i]
             y_position = target_pinyin_canvas_base_line
-            is_avoid_overlapping_mode = self.METADATA_FOR_PINYIN["is_avoid_overlapping_mode"]
-            x_scale_reduction_for_avoid_overlapping = self.METADATA_FOR_PINYIN["x_scale_reduction_for_avoid_overlapping"]
+            is_avoid_overlapping_mode = self.METADATA_FOR_PINYIN.is_avoid_overlapping_mode
+            x_scale_reduction_for_avoid_overlapping = self.METADATA_FOR_PINYIN.x_scale_reduction_for_avoid_overlapping
             x_scale = round(pinyin_scale,3)
             if is_avoid_overlapping_mode and len(pronunciation) >= 5:
                 x_scale -= x_scale_reduction_for_avoid_overlapping

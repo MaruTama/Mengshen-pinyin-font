@@ -99,7 +99,7 @@ flowchart TB
 
         'lookup_table': {
         　　# 異読的なピンイン
-        　　# 数字の並びは、marged-mapping-table.txt の配列の添字順にする。
+        　　# 数字の並びは、merged-mapping-table.txt の配列の添字順にする。
         　　'lookup_10': {
         　　　　'占' : '占.ss02',
         　　　　'卜' : '卜.ss02',

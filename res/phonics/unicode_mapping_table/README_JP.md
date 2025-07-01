@@ -23,7 +23,7 @@ overwrite.txt は色々な目的のために追加している
 ### ファイル構成 
 ```
 outputs
-   └── marged-mapping-table.txt -> 簡体字と繁体字の unicode テーブルを統合したもの (overwrite.txt を反映済み)
+   └── merged-mapping-table.txt -> 簡体字と繁体字の unicode テーブルを統合したもの (overwrite.txt を反映済み)
 ```
 
 ```
@@ -38,5 +38,5 @@ download_unicode_tables
 ├── README.md
 ├── TGSCC-mapping-table.txt          -> 簡体字の対象範囲の unicode テーブル  
 ├── make_unicode_pinyin_map_table.py -> 作成のスクリプト
-└── overwrite.txt                    -> 修正のためのテーブル。 marged-mapping-table.txt　に対して上書きを行う。（編集可）
+└── overwrite.txt                    -> 修正のためのテーブル。 merged-mapping-table.txt　に対して上書きを行う。（編集可）
 ```

@@ -4,15 +4,23 @@
 from __future__ import annotations
 
 import os
-from typing import TypedDict
+from dataclasses import dataclass
+from enum import IntEnum
 import path
 
-# font type
-HAN_SERIF_TYPE   = 1
-HANDWRITTEN_TYPE = 2
+class FontType(IntEnum):
+    """Font type enumeration for type safety."""
+    HAN_SERIF = 1
+    HANDWRITTEN = 2
 
 
-class PinyinCanvas(TypedDict):
+# Backward compatibility
+HAN_SERIF_TYPE = FontType.HAN_SERIF
+HANDWRITTEN_TYPE = FontType.HANDWRITTEN
+
+
+@dataclass(frozen=True)
+class PinyinCanvas:
     """Configuration for pinyin display area."""
     width: float
     height: float
@@ -20,13 +28,15 @@ class PinyinCanvas(TypedDict):
     tracking: float
 
 
-class HanziCanvas(TypedDict):
+@dataclass(frozen=True)
+class HanziCanvas:
     """Configuration for hanzi display area."""
     width: int
     height: int
 
 
-class FontMetadata(TypedDict):
+@dataclass(frozen=True)
+class FontMetadata:
     """Metadata configuration for font rendering."""
     pinyin_canvas: PinyinCanvas
     expected_hanzi_canvas: HanziCanvas
@@ -35,37 +45,37 @@ class FontMetadata(TypedDict):
 
 
 # metadata for font size
-METADATA_FOR_HAN_SERIF: FontMetadata = {
-    "pinyin_canvas":{
-        "width"    : 850,   # ピンイン表示部の幅
-        "height"   : 283.3, # ピンイン表示部の高さ
-        "base_line": 935,   # ベースラインからの高さ
-        "tracking" : 22.145 # 拼音の標準空白幅： Tracking is about uniform spacing across a text selection.
-    },
-    "expected_hanzi_canvas":{
-        "width" : 1000, # 基準にする漢字の表示部の幅
-        "height": 1000, # 基準にする漢字の表示部の高さ
-    },
+METADATA_FOR_HAN_SERIF = FontMetadata(
+    pinyin_canvas=PinyinCanvas(
+        width=850,      # ピンイン表示部の幅
+        height=283.3,   # ピンイン表示部の高さ
+        base_line=935,  # ベースラインからの高さ
+        tracking=22.145 # 拼音の標準空白幅： Tracking is about uniform spacing across a text selection.
+    ),
+    expected_hanzi_canvas=HanziCanvas(
+        width=1000,  # 基準にする漢字の表示部の幅
+        height=1000, # 基準にする漢字の表示部の高さ
+    ),
     # ピンインが 5~6 文字以上(最大は6のはず)のとき、文字が重なることがある。この時にx軸を縮小して重なりを避けるモード
-    "is_avoid_overlapping_mode": False, 
-    "x_scale_reduction_for_avoid_overlapping": 0.1 # 上記のモードの際に x軸をどれだけ縮小するか
-}
+    is_avoid_overlapping_mode=False,
+    x_scale_reduction_for_avoid_overlapping=0.1 # 上記のモードの際に x軸をどれだけ縮小するか
+)
 
-METADATA_FOR_HANDWRITTEN: FontMetadata = {
-    "pinyin_canvas":{
-        "width"    : 800, # ピンイン表示部の幅
-        "height"   : 300, # ピンイン表示部の高さ
-        "base_line": 880, # ベースラインからの高さ
-        "tracking" : 5 # 拼音の標準空白幅： Tracking is about uniform spacing across a text selection.
-    },
-    "expected_hanzi_canvas":{
-        "width" : 1000, # 基準にする漢字の表示部の幅
-        "height": 1000, # 基準にする漢字の表示部の高さ
-    },
+METADATA_FOR_HANDWRITTEN = FontMetadata(
+    pinyin_canvas=PinyinCanvas(
+        width=800,    # ピンイン表示部の幅
+        height=300,   # ピンイン表示部の高さ
+        base_line=880, # ベースラインからの高さ
+        tracking=5    # 拼音の標準空白幅： Tracking is about uniform spacing across a text selection.
+    ),
+    expected_hanzi_canvas=HanziCanvas(
+        width=1000,  # 基準にする漢字の表示部の幅
+        height=1000, # 基準にする漢字の表示部の高さ
+    ),
     # ピンインが 5~6 文字以上(最大は6のはず)のとき、文字が重なることがある。この時にx軸を縮小して重なりを避けるモード
-    "is_avoid_overlapping_mode": True, 
-    "x_scale_reduction_for_avoid_overlapping": 0.1 # 上記のモードの際に x軸をどれだけ縮小するか
-}
+    is_avoid_overlapping_mode=True,
+    x_scale_reduction_for_avoid_overlapping=0.1 # 上記のモードの際に x軸をどれだけ縮小するか
+)
 
 
 # using font name

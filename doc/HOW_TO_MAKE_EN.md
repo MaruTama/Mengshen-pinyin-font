@@ -240,7 +240,7 @@ This feature is used for chaining contextual substitution
 | lookup_pattern_2N | exception pattern |
   
   
--  The order of 1~n in [duoyinzi_pattern_one.txt](../outputs/duoyinzi_pattern_one.txt) follows [marged-mapping-table.txt](../outputs/marged-mapping-table.txt), If order is 1 as the standard reading. Is order sequence match with ss0N. 
+-  The order of 1~n in [duoyinzi_pattern_one.txt](../outputs/duoyinzi_pattern_one.txt) follows [merged-mapping-table.txt](../outputs/merged-mapping-table.txt), If order is 1 as the standard reading. Is order sequence match with ss0N. 
 
 e.g.:  
 ```
