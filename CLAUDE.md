@@ -259,3 +259,38 @@ cd ../../../.. && python src/main.py -t han_serif
 # Full validation
 python -m pytest tests/integration/test_complete_pipeline.py -v
 ```
+
+## Refactoring Documentation Requirements
+
+### REFACTOR.md Update Policy
+**MANDATORY**: When completing any refactoring work, you MUST update `REFACTOR.md` to reflect the current status:
+
+1. **Phase Status Updates**: Change phase status from "未着手" → "🔄 実装中" → "✅ 完了"
+2. **Implementation Details**: Update code examples to reflect actual implementation
+3. **Completion Criteria**: Mark completed items with ✅ and update checklists
+4. **Benefits Documentation**: Update benefits section to reflect actual improvements achieved
+5. **File Changes**: Document specific files modified and their new functionality
+
+### Required Updates After Each Phase
+```markdown
+**Phase X: [Name]** ✅ 完了
+**状態**: ✅ 完了
+
+**実装完了状況:**
+- [x] Task 1 ✅ (具体的な変更内容)
+- [x] Task 2 ✅ (修正されたファイル名)
+- [x] Task 3 ✅ (テスト結果)
+
+**実装したアプローチのメリット**:
+- **セキュリティ**: 具体的なセキュリティ改善
+- **パフォーマンス**: 測定可能な改善結果
+- **保守性**: 実装された改善内容
+```
+
+### Documentation Workflow
+1. **開始時**: Phase status を "🔄 実装中" に更新
+2. **実装完了時**: 実装内容を詳細に記録
+3. **テスト完了時**: 検証結果とメリットを更新  
+4. **Phase完了時**: 全チェックボックスを ✅ に変更
+
+**Critical Rule**: リファクタリング作業完了後は必ず `REFACTOR.md` を最新状態に更新してください。これにより、プロジェクトの進捗と現在の実装状況を正確に把握できます。
