@@ -1,0 +1,73 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mengshen-pinyin-font"
+version = "1.03"
+description = "Chinese pinyin font generator with homograph support"
+authors = [
+    {name = "MaruTama", email = "noreply@github.com"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "lxml",
+    "requests",
+    "pypinyin",
+]
+
+[project.urls]
+Homepage = "https://github.com/MaruTama/Mengshen-pinyin-font"
+Repository = "https://github.com/MaruTama/Mengshen-pinyin-font"
+
+[project.scripts]
+mengshen-font = "src.main:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = [
+    "--strict-markers",
+    "--disable-warnings",
+    "--cov=src",
+    "--cov-report=html",
+    "--cov-report=term-missing",
+    "--cov-fail-under=80"
+]
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+ignore_missing_imports = true
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+include = '\.pyi?$'
+extend-exclude = '''
+(
+  /(
+      \.eggs
+    | \.git
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | _build
+    | buck-out
+    | build
+    | dist
+    | tmp
+    | outputs
+  )/
+)
+'''
+
+[tool.bandit]
+exclude_dirs = ["tests", "tmp", "outputs"]
+skips = ["B101"]  # Skip assert_used test
