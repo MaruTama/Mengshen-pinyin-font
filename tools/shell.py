@@ -1,12 +1,20 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
 
-import subprocess
+import sys
+from pathlib import Path
+
+# Add src directory to path for secure_shell import
+src_path = Path(__file__).parent.parent / "src"
+sys.path.insert(0, str(src_path))
+
+from secure_shell import legacy_shell_process_replacement
 
 def process(cmd=""):
-    # print('start')
-    completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-    # print(f'returncode: {completed_process.returncode},stdout: {completed_process.stdout},stderr:{completed_process.stderr}')
-    if b'' != completed_process.stderr:
-        raise Exception(completed_process.stderr.decode('utf-8'))
-    return completed_process.stdout.decode('utf-8')
+    """
+    DEPRECATED: Legacy shell command processor.
+    
+    This function has been replaced with a secure implementation
+    to prevent shell injection vulnerabilities.
+    """
+    return legacy_shell_process_replacement(cmd)
