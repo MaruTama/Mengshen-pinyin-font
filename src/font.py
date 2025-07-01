@@ -14,10 +14,19 @@ import path as p
 import GSUB_table as gt
 import config
 import name_table
+from typing import Dict, List, Any, Optional
 
-class Font():
-    def __init__(self, TAMPLATE_MAIN_JSON, TAMPLATE_GLYF_JSON, ALPHABET_FOR_PINYIN_JSON, \
-                        PATTERN_ONE_TXT, PATTERN_TWO_JSON, EXCEPTION_PATTERN_JSON, FONT_TYPE):
+class Font:
+    """
+    Main font generation class for the Mengshen Pinyin Font project.
+    
+    Handles font template loading, pinyin glyph generation, GSUB table creation,
+    and final font assembly with pinyin annotations.
+    """
+    
+    def __init__(self, TAMPLATE_MAIN_JSON: str, TAMPLATE_GLYF_JSON: str, ALPHABET_FOR_PINYIN_JSON: str,
+                 PATTERN_ONE_TXT: str, PATTERN_TWO_JSON: str, EXCEPTION_PATTERN_JSON: str, FONT_TYPE: int) -> None:
+        """Initialize Font with template files and font type configuration."""
         self.TAMPLATE_MAIN_JSON     = TAMPLATE_MAIN_JSON
         self.TAMPLATE_GLYF_JSON     = TAMPLATE_GLYF_JSON
         self.PATTERN_ONE_TXT        = PATTERN_ONE_TXT

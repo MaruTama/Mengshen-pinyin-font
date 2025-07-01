@@ -16,14 +16,15 @@ import path as p
 import config
 import make_template_jsons
 import retrieve_latin_alphabet
+from typing import List, Optional
 
-def parse_args(args: list[str] | None) -> argparse.Namespace:
+def parse_args(args: Optional[List[str]]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Select font style (\"han_serif\" or \"handwritten\")")
     parser.add_argument('-t', '--style', choices=['han_serif', 'handwritten'], default='han_serif')
     return parser.parse_args(args)
 
-def main(args: list[str] | None = None) -> None:
+def main(args: Optional[List[str]] = None) -> None:
     options = parse_args(args)
     if options.style == "han_serif":
         FONT_TYPE       = config.HAN_SERIF_TYPE
