@@ -280,3 +280,20 @@ def legacy_shell_process_replacement(cmd: str) -> str:
         SecurityError: If command is deemed unsafe
     """
     return safe_pipeline_execution(cmd)
+
+
+def secure_shell_process(cmd: List[str]) -> None:
+    """
+    Secure shell process execution for font generation.
+    
+    Args:
+        cmd: Command as list of strings for safe execution
+        
+    Raises:
+        SecurityError: If command execution fails
+    """
+    result = safe_command_execution(cmd)
+    
+    if result.returncode != 0:
+        error_msg = result.stderr or f"Command failed with return code {result.returncode}"
+        raise SecurityError(f"Font conversion failed: {error_msg}")
