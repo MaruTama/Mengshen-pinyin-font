@@ -113,6 +113,14 @@ class MappingDataManager:
             'unicode_range_start': min(int(k) for k in cmap_table.keys()) if cmap_table else 0,
             'unicode_range_end': max(int(k) for k in cmap_table.keys()) if cmap_table else 0
         }
+    
+    def get_unicode_mappings(self) -> Dict[str, str]:
+        """Get Unicode to CID mappings (alias for compatibility)."""
+        return self.get_cmap_table()
+    
+    def load_mappings(self) -> None:
+        """Load mapping data (triggers lazy loading)."""
+        self.get_cmap_table()
 
 
 # Global instance for backward compatibility

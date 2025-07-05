@@ -15,6 +15,56 @@ from .profiling import profile_function, performance_monitor
 from .parallel_processor import parallel_map, FontProcessingOptimizer
 
 
+# Simplified alphabet mapping for pinyin conversion
+SIMPLED_ALPHABET = {
+    "a":"a", "ā":"a1", "á":"a2", "ǎ":"a3", "à":"a4",
+    "b":"b",
+    "c":"c",
+    "d":"d",
+    "e":"e", "ē":"e1", "é":"e2", "ě":"e3", "è":"e4",
+    "f":"f",
+    "g":"g",
+    "h":"h",
+    "i":"i", "ī":"i1", "í":"i2", "ǐ":"i3", "ì":"i4",
+    "j":"j",
+    "k":"k",
+    "l":"l",
+    "m":"m", "m̄":"m1", "ḿ":"m2", "m̀":"m4",
+    "n":"n",           "ń":"n2", "ň":"n3", "ǹ":"n4",
+    "o":"o", "ō":"o1", "ó":"o2", "ǒ":"o3", "ò":"o4",
+    "p":"p",
+    "q":"q",
+    "r":"r",
+    "s":"s",
+    "t":"t",
+    "u":"u", "ū":"u1", "ú":"u2" ,"ǔ":"u3", "ù":"u4", "ü":"v", "ǖ":"v1", "ǘ":"v2", "ǚ":"v3", "ǜ":"v4",
+    "v":"v",
+    "w":"w",
+    "x":"x",
+    "y":"y",
+    "z":"z"
+}
+
+
+@lru_cache(maxsize=512)
+def simplification_pronunciation(pronunciation: str) -> str:
+    """Simplify pinyin pronunciation with caching for performance."""
+    return "".join([SIMPLED_ALPHABET[c] for c in pronunciation])
+
+
+# Global cmap table for legacy compatibility
+_cmap_table: Dict[str, str] = {}
+
+def set_cmap_table(cmap_table: Dict[str, str]) -> None:
+    """Set global cmap table for utility functions."""
+    global _cmap_table
+    _cmap_table = cmap_table
+
+def get_cmap_table() -> Dict[str, str]:
+    """Get global cmap table."""
+    return _cmap_table
+
+
 @dataclass(frozen=True)
 class OptimizedHanziPinyin:
     """Optimized version of HanziPinyin with better performance characteristics."""

@@ -79,8 +79,305 @@ class FontBuilder:
     
     def build(self, output_path: Path) -> None:
         """Build the complete font."""
-        print("Font build completed successfully")
+        try:
+            print(f"Starting font build for {self.font_type.name}...")
+            
+            # Load font templates
+            print("Loading font templates...")
+            self._load_templates()
+            
+            # Initialize managers
+            print("Initializing managers...")
+            self._initialize_managers()
+            
+            # Build font components
+            print("Adding cmap_uvs table...")
+            self._add_cmap_uvs()
+            
+            print("Adding glyph_order table...")
+            self._add_glyph_order()
+            
+            print("Adding glyf table...")
+            self._add_glyf()
+            
+            print("Adding GSUB table...")
+            self._add_gsub()
+            
+            print("Setting font metadata...")
+            self._set_about_size()
+            self._set_copyright()
+            
+            # Save and convert
+            print("Saving and converting font...")
+            temp_json_path = self.paths.get_temp_json_path("template_output.json")
+            self._save_as_json(temp_json_path)
+            self._convert_json_to_otf(temp_json_path, output_path)
+            
+            print(f"Font build completed successfully: {output_path}")
+            
+        except Exception as e:
+            print(f"Font build failed: {e}")
+            raise
     
     def get_build_statistics(self) -> Dict[str, Any]:
         """Get statistics about the built font."""
         return {"status": "placeholder"}
+    
+    def _load_templates(self) -> None:
+        """Load font template files."""
+        with open(self.template_main_path, "rb") as f:
+            self._font_data = orjson.loads(f.read())
+        
+        with open(self.template_glyf_path, "rb") as f:
+            self._glyf_data = orjson.loads(f.read())
+    
+    def _initialize_managers(self) -> None:
+        """Initialize component managers."""
+        self.glyph_manager.initialize(self._font_data, self._glyf_data, self.alphabet_pinyin_path)
+        # Set up utility cmap table for compatibility
+        from ..processing.optimized_utility import set_cmap_table
+        set_cmap_table(self._font_data["cmap"])
+    
+    def _add_cmap_uvs(self) -> None:
+        """Add Unicode IVS (Ideographic Variant Selector) support."""
+        # Initialize cmap_uvs table if not exists
+        if "cmap_uvs" not in self._font_data:
+            self._font_data["cmap_uvs"] = {}
+        
+        cmap_uvs = self._font_data["cmap_uvs"]
+        IVS_BASE = FontConstants.IVS_BASE  # 0xE01E0
+        
+        # Add IVS entries for single-pronunciation characters
+        for char_info in self.character_manager.iter_single_pronunciation_characters():
+            if not self.mapping_manager.has_glyph_for_character(char_info.character):
+                continue
+                
+            unicode_value = ord(char_info.character)
+            cid = self.mapping_manager.convert_hanzi_to_cid(char_info.character)
+            
+            if cid:
+                # IVS selector for ss00 (no pinyin variant)
+                ivs_key = f"{unicode_value} {IVS_BASE}"
+                cmap_uvs[ivs_key] = f"{cid}.ss00"
+        
+        # Add IVS entries for multiple-pronunciation characters
+        for char_info in self.character_manager.iter_multiple_pronunciation_characters():
+            if not self.mapping_manager.has_glyph_for_character(char_info.character):
+                continue
+                
+            unicode_value = ord(char_info.character)
+            cid = self.mapping_manager.convert_hanzi_to_cid(char_info.character)
+            
+            if cid:
+                # IVS selectors for all variants (ss00 through ssNN)
+                num_variants = len(char_info.pronunciations) + 1  # +1 for ss00
+                for i in range(num_variants):
+                    ivs_key = f"{unicode_value} {IVS_BASE + i}"
+                    cmap_uvs[ivs_key] = f"{cid}.ss{i:02d}"
+        
+        print(f"  ==> cmap_uvs entries: {len(cmap_uvs)}")
+    
+    def _add_glyph_order(self) -> None:
+        """Add glyph order definition."""
+        # Start with existing glyph order
+        existing_order = set(self._font_data.get("glyph_order", []))
+        
+        # Add hanzi glyphs for single-pronunciation characters
+        for char_info in self.character_manager.iter_single_pronunciation_characters():
+            if not self.mapping_manager.has_glyph_for_character(char_info.character):
+                continue
+                
+            cid = self.mapping_manager.convert_hanzi_to_cid(char_info.character)
+            if cid:
+                existing_order.add(f"{cid}.ss00")
+        
+        # Add hanzi glyphs for multiple-pronunciation characters
+        for char_info in self.character_manager.iter_multiple_pronunciation_characters():
+            if not self.mapping_manager.has_glyph_for_character(char_info.character):
+                continue
+                
+            cid = self.mapping_manager.convert_hanzi_to_cid(char_info.character)
+            if cid:
+                # Add all stylistic set variants (ss00 through ssNN)
+                num_variants = len(char_info.pronunciations) + 1  # +1 for ss00
+                for i in range(num_variants):
+                    existing_order.add(f"{cid}.ss{i:02d}")
+        
+        # Add pinyin alphabet glyphs
+        pinyin_glyph_names = self.glyph_manager.get_pinyin_glyph_names()
+        existing_order.update(pinyin_glyph_names)
+        
+        # Sort and set new glyph order
+        new_glyph_order = list(existing_order)
+        new_glyph_order.sort()
+        self._font_data["glyph_order"] = new_glyph_order
+        
+        print(f"  ==> glyph order entries: {len(new_glyph_order)}")
+    
+    def _add_glyf(self) -> None:
+        """Add pinyin-annotated glyphs using exact legacy logic."""
+        # CRITICAL FIX: Use glyf template data (substance_glyf_table) instead of main template glyf
+        # This matches legacy font.py where substance_glyf_table contains actual glyph contour data
+        
+        # Get the base glyf table from MAIN template (for metadata structure)
+        base_glyf = self._font_data.get("glyf", {})
+        
+        # Use glyph_manager to generate all pinyin-annotated glyphs
+        self.glyph_manager.generate_pinyin_glyphs()  # Generate pinyin alphabet glyphs
+        self.glyph_manager.generate_hanzi_glyphs()   # Generate hanzi+pinyin composite glyphs
+        
+        # Get all generated glyphs from glyph_manager
+        generated_glyphs = self.glyph_manager.get_all_glyphs()
+        
+        # CRITICAL FIX: Start with template glyf data that contains actual contours
+        # base_glyf from main template has empty contours, _glyf_data has the actual contours
+        new_glyf = dict(self._glyf_data)  # Use template glyf with contours as starting point
+        
+        # DEBUG: Verify hiragana contours are preserved
+        if 'cid01460' in new_glyf:
+            contour_count = len(new_glyf['cid01460'].get('contours', []))
+            print(f"DEBUG: new_glyf starts with cid01460 having {contour_count} contours")
+        
+        # Merge any metadata from base_glyf that might be needed
+        for glyph_name, glyph_data in base_glyf.items():
+            if glyph_name not in new_glyf:
+                new_glyf[glyph_name] = glyph_data
+        
+        # 2. Add pinyin alphabet glyphs (from legacy py_alphablet)
+        pinyin_alphabet_glyphs = {k: v for k, v in generated_glyphs.items() if k.startswith('py_alphablet')}
+        new_glyf.update(pinyin_alphabet_glyphs)
+        
+        # 3. Add substance glyphs (CRITICAL: use glyf template for contour data)
+        # This is the missing piece - we need to use _glyf_data for actual glyph contours
+        substance_glyphs = {k: v for k, v in generated_glyphs.items() if not k.startswith('py_alphablet')}
+        
+        print(f"DEBUG: Processing {len(substance_glyphs)} substance glyphs")
+        
+        # For substance glyphs, merge with template glyf data to preserve contours
+        for glyph_name, glyph_data in substance_glyphs.items():
+            # Check if this is a base glyph that should have contour data from template
+            base_glyph_name = glyph_name.split('.')[0]  # Remove .ss## suffix
+            
+            if base_glyph_name in self._glyf_data:
+                template_glyph = self._glyf_data[base_glyph_name]
+                
+                # CRITICAL FIX: If generated glyph has no useful content (no references/contours), use template
+                has_references = 'references' in glyph_data and len(glyph_data.get('references', [])) > 0
+                has_contours = 'contours' in glyph_data and len(glyph_data.get('contours', [])) > 0
+                template_has_contours = 'contours' in template_glyph and len(template_glyph.get('contours', [])) > 0
+                
+                if not has_references and not has_contours and template_has_contours:
+                    # Generated glyph is empty but template has contours - use template completely
+                    new_glyf[glyph_name] = template_glyph.copy()
+                    print(f"DEBUG: Used template completely for empty generated glyph: {glyph_name}")
+                elif glyph_name.endswith('.ss00'):
+                    # For .ss00 glyphs (hanzi without pinyin), use template contour data
+                    merged_glyph = template_glyph.copy()
+                    # Update metrics from generated data while keeping contours
+                    for key, value in glyph_data.items():
+                        if key not in ['contours']:  # Preserve template contours
+                            merged_glyph[key] = value
+                    new_glyf[glyph_name] = merged_glyph
+                    print(f"DEBUG: Preserved contours for .ss00 glyph: {glyph_name}")
+                else:
+                    # For all other glyphs (with pinyin), use generated references completely
+                    # This preserves the pinyin positioning and display
+                    new_glyf[glyph_name] = glyph_data
+                    print(f"DEBUG: Used generated data for pinyin glyph: {glyph_name}")
+            else:
+                # Use generated glyph as-is (likely a composite glyph)
+                new_glyf[glyph_name] = glyph_data
+                print(f"DEBUG: Used generated data for composite glyph: {glyph_name}")
+        
+        # CRITICAL FIX: Ensure all template glyphs are included, especially basic characters
+        # This preserves hiragana, katakana, alphabet characters that are not processed by character manager
+        template_glyphs_added = 0
+        for glyph_name, glyph_data in self._glyf_data.items():
+            if glyph_name not in new_glyf:
+                # Use template data completely - this preserves contours for basic characters
+                new_glyf[glyph_name] = glyph_data.copy()
+                template_glyphs_added += 1
+                
+                # Debug specific basic characters
+                if glyph_name in ['cid01460', 'cid00034', 'cid01461', 'cid01462']:  
+                    contour_count = len(glyph_data.get('contours', []))
+                    print(f"DEBUG: Added template glyph {glyph_name} with {contour_count} contours")
+        
+        print(f"DEBUG: Added {template_glyphs_added} template glyphs to preserve basic characters")
+        
+        # Update the font data
+        self._font_data["glyf"] = new_glyf
+        
+        # Validate glyph count limits (legacy compatibility)
+        if len(new_glyf) > 65536:
+            raise Exception("glyf table cannot contain more than 65536 glyphs.")
+        
+        print(f"  ==> glyf num : {len(new_glyf)}")
+    
+    def _add_gsub(self) -> None:
+        """Add GSUB table for contextual substitution."""
+        from ..processing.gsub_table_generator import GSUBTableGenerator
+        
+        # Create GSUB table generator with pattern files
+        gsub_generator = GSUBTableGenerator(
+            pattern_one_path=self.pattern_one_path,
+            pattern_two_path=self.pattern_two_path,
+            exception_pattern_path=self.exception_pattern_path,
+            character_manager=self.character_manager,
+            mapping_manager=self.mapping_manager
+        )
+        
+        # Generate and add GSUB table
+        gsub_table = gsub_generator.generate_gsub_table()
+        self._font_data["GSUB"] = gsub_table
+        
+        print("  ==> GSUB table generation completed")
+    
+    def _set_about_size(self) -> None:
+        """Set font size metadata."""
+        from ..config import VERSION
+        
+        # Set font revision in head table (legacy: head.fontRevision = name_table.VERSION)
+        if "head" not in self._font_data:
+            self._font_data["head"] = {}
+        
+        self._font_data["head"]["fontRevision"] = VERSION
+        
+        print(f"  ==> font revision set to: {VERSION}")
+    
+    def _set_copyright(self) -> None:
+        """Set font copyright and naming information."""
+        from ..config import HAN_SERIF, HANDWRITTEN
+        
+        # Set name table based on font type
+        if self.font_type == FontType.HAN_SERIF:
+            self._font_data["name"] = HAN_SERIF
+            print("  ==> name table set: HAN_SERIF")
+        elif self.font_type == FontType.HANDWRITTEN:
+            self._font_data["name"] = HANDWRITTEN
+            print("  ==> name table set: HANDWRITTEN")
+        else:
+            raise ValueError(f"Unsupported font type: {self.font_type}")
+        
+        print(f"  ==> name table entries: {len(self._font_data['name'])}")
+    
+    def _save_as_json(self, output_path: Path) -> None:
+        """Save font data as JSON."""
+        with open(output_path, "wb") as f:
+            f.write(orjson.dumps(self._font_data, option=orjson.OPT_INDENT_2))
+    
+    def _convert_json_to_otf(self, json_path: Path, output_path: Path) -> None:
+        """Convert JSON font to OTF using external tools."""
+        if self.external_tool:
+            self.external_tool.convert_json_to_otf(json_path, output_path)
+        else:
+            # Fallback to shell command (legacy compatibility)
+            import sys
+            import os
+            sys.path.append(os.path.join(os.path.dirname(__file__), "../../../"))
+            from src.secure_shell import secure_shell_process
+            secure_shell_process([
+                "otfccbuild", 
+                str(json_path), 
+                "-o", str(output_path)
+            ])

@@ -3,12 +3,16 @@
 
 from __future__ import annotations
 
-from .pinyin_data import PinyinDataManager
-from .character_data import CharacterDataManager
-from .mapping_data import MappingDataManager
+from .pinyin_data import PinyinDataManager, get_default_pinyin_manager
+from .character_data import CharacterDataManager, CharacterInfo, get_default_character_manager
+from .mapping_data import MappingDataManager, get_default_mapping_manager
 
 __all__ = [
     "PinyinDataManager",
     "CharacterDataManager", 
-    "MappingDataManager"
+    "CharacterInfo",
+    "MappingDataManager",
+    "get_default_pinyin_manager",
+    "get_default_character_manager",
+    "get_default_mapping_manager"
 ]

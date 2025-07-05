@@ -33,10 +33,10 @@ Examples:
         )
         
         parser.add_argument(
-            "-t", "--type",
+            "-t", "--style",
             choices=["han_serif", "handwritten"],
             default="han_serif",
-            help="Font type to generate (default: han_serif)"
+            help="Font style to generate (default: han_serif)"
         )
         
         parser.add_argument(
@@ -59,13 +59,13 @@ Examples:
         
         return parser
     
-    def _get_font_type(self, type_str: str) -> FontType:
+    def _get_font_type(self, style_str: str) -> FontType:
         """Convert string to FontType enum."""
         type_mapping = {
             "han_serif": FontType.HAN_SERIF,
             "handwritten": FontType.HANDWRITTEN
         }
-        return type_mapping[type_str]
+        return type_mapping[style_str]
     
     def _get_template_paths(self, font_type: FontType) -> dict:
         """Get template file paths for font type."""
@@ -80,9 +80,9 @@ Examples:
             "template_main": self.paths.get_temp_json_path("template_main.json"),
             "template_glyf": self.paths.get_temp_json_path("template_glyf.json"),
             "alphabet_pinyin": self.paths.get_temp_json_path("alphabet_for_pinyin.json"),
-            "pattern_one": self.paths.outputs_dir / "pattern_one.txt",
-            "pattern_two": self.paths.outputs_dir / "pattern_two.json", 
-            "exception_pattern": self.paths.outputs_dir / "exception_pattern.json"
+            "pattern_one": self.paths.outputs_dir / "duoyinzi_pattern_one.txt",
+            "pattern_two": self.paths.outputs_dir / "duoyinzi_pattern_two.json", 
+            "exception_pattern": self.paths.outputs_dir / "duoyinzi_exceptional_pattern.json"
         }
     
     def _get_output_path(self, font_type: FontType, custom_output: Optional[Path]) -> Path:
@@ -116,7 +116,7 @@ Examples:
         
         try:
             # Get configuration
-            font_type = self._get_font_type(parsed_args.type)
+            font_type = self._get_font_type(parsed_args.style)
             template_paths = self._get_template_paths(font_type)
             output_path = self._get_output_path(font_type, parsed_args.output)
             
