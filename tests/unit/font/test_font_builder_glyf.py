@@ -32,7 +32,7 @@ class TestFontBuilderGlyfImplementation:
             font_type=FontType.HAN_SERIF,
             template_main_path=paths.get_temp_json_path("template_main.json"),
             template_glyf_path=paths.get_temp_json_path("template_glyf.json"),
-            alphabet_pinyin_path=paths.get_temp_json_path("alphabet_for_pinyin.json"),
+            alphabet_pinyin_path=paths.get_temp_json_path("alphabet4pinyin.json"),
             pattern_one_path=paths.outputs_dir / "pattern_one.txt",
             pattern_two_path=paths.outputs_dir / "pattern_two.json",
             exception_pattern_path=paths.outputs_dir / "exception_pattern.json"
@@ -182,7 +182,7 @@ class TestFontBuilderGlyfIntegration:
             font_type=FontType.HAN_SERIF,
             template_main_path=paths.get_temp_json_path("template_main.json"),
             template_glyf_path=paths.get_temp_json_path("template_glyf.json"),
-            alphabet_pinyin_path=paths.get_temp_json_path("alphabet_for_pinyin.json"),
+            alphabet_pinyin_path=paths.get_temp_json_path("alphabet4pinyin.json"),
             pattern_one_path=paths.outputs_dir / "pattern_one.txt",
             pattern_two_path=paths.outputs_dir / "pattern_two.json",
             exception_pattern_path=paths.outputs_dir / "exception_pattern.json"

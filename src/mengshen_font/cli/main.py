@@ -70,12 +70,12 @@ Examples:
     def _get_template_paths(self, font_type: FontType) -> dict:
         """Get template file paths for font type."""
         if font_type == FontType.HAN_SERIF:
-            template_main_filename = "template_main_han_serif.json"
-            template_glyf_filename = "template_glyf_han_serif.json"
-            alphabet_filename = "alphabet_for_pinyin.json"  # M+ font style
+            template_main_filename = "template_main.json"
+            template_glyf_filename = "template_glyf.json"
+            alphabet_filename = "alphabet4pinyin.json"  # M+ font style
         elif font_type == FontType.HANDWRITTEN:
-            template_main_filename = "template_main_handwritten.json"
-            template_glyf_filename = "template_glyf_handwritten.json"
+            template_main_filename = "template_main.json"
+            template_glyf_filename = "template_glyf.json"
             alphabet_filename = "alphabet4pinyin.json"  # SetoFont style
         else:
             raise ValueError(f"Unsupported font type: {font_type}")

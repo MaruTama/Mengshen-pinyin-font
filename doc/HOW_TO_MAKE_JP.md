@@ -67,6 +67,7 @@ $ cd <PROJECT-ROOT>
 $ python src/make_template_jsons.py <BASE-FONT-NAME>
 # e,g.:
 # python src/make_template_jsons.py ./res/fonts/han-serif/SourceHanSerifCN-Regular.ttf
+# python src/make_template_jsons.py ./res/fonts/handwritten/XiaolaiMonoSC-without-Hangul-Regular.ttf
 ```
 
 4. 拼音表示のための文字を抽出する  
@@ -76,6 +77,7 @@ $ cd <PROJECT-ROOT>
 $ python src/retrieve_latin_alphabet.py <FONT-NAME-FOR-PINYIN>
 # e,g.:
 # python src/retrieve_latin_alphabet.py ./res/fonts/han-serif/mplus-1m-medium.ttf
+# python src/retrieve_latin_alphabet.py ./res/fonts/handwritten/latin-alpabet-of-SetoFont-SP.ttf
 ``` -->
 
 3. ビルドする  
