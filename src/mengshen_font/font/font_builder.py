@@ -55,7 +55,12 @@ class FontBuilder:
         # Data managers (dependency injection)
         self.pinyin_manager = pinyin_manager or PinyinDataManager()
         self.character_manager = character_manager or CharacterDataManager(self.pinyin_manager)
-        self.mapping_manager = mapping_manager or MappingDataManager(paths=self.paths)
+        # Create mapping manager with correct template path
+        if mapping_manager is None:
+            from ..data.mapping_data import JsonCmapDataSource
+            cmap_source = JsonCmapDataSource(self.template_main_path)
+            mapping_manager = MappingDataManager(cmap_source=cmap_source, paths=self.paths)
+        self.mapping_manager = mapping_manager
         
         # Font processing components
         self.glyph_manager = GlyphManager(
@@ -133,7 +138,7 @@ class FontBuilder:
     
     def _initialize_managers(self) -> None:
         """Initialize component managers."""
-        self.glyph_manager.initialize(self._font_data, self._glyf_data, self.alphabet_pinyin_path)
+        self.glyph_manager.initialize(self._font_data, self._glyf_data, self.alphabet_pinyin_path, self.template_main_path)
         # Set up utility cmap table for compatibility
         from ..processing.optimized_utility import set_cmap_table
         set_cmap_table(self._font_data["cmap"])
@@ -335,13 +340,41 @@ class FontBuilder:
     
     def _set_about_size(self) -> None:
         """Set font size metadata."""
-        from ..config import VERSION
+        from ..config.font_name_tables import VERSION
         
         # Set font revision in head table (legacy: head.fontRevision = name_table.VERSION)
         if "head" not in self._font_data:
             self._font_data["head"] = {}
         
         self._font_data["head"]["fontRevision"] = VERSION
+        
+        # Get pinyin glyph metrics from glyph_manager
+        # Assuming glyph_manager has a method to get pinyin glyph metrics
+        # For now, use a placeholder or retrieve from a known pinyin glyph
+        # This needs to be properly implemented in GlyphManager
+        # For now, let's assume a default value or retrieve from a specific glyph
+        # This is a critical part that needs to match legacy behavior
+        
+        # Placeholder for advanceAddedPinyinHeight - this needs to come from actual pinyin glyphs
+        # For now, we'll use a value that is likely to be larger than default yMax/ascender
+        # In a real scenario, this would be calculated from the generated pinyin glyphs
+        
+        # Retrieve pinyin glyph metrics from glyph_manager
+        # This assumes glyph_manager has a method to provide this
+        # If not, we need to add it to glyph_manager
+        pinyin_metrics = self.glyph_manager.get_pinyin_metrics()
+        
+        if pinyin_metrics:
+            advanceAddedPinyinHeight = pinyin_metrics.height
+            
+            if "head" in self._font_data and "yMax" in self._font_data["head"] and advanceAddedPinyinHeight > self._font_data["head"]["yMax"]:
+                self._font_data["head"]["yMax"] = advanceAddedPinyinHeight
+            
+            if "hhea" in self._font_data and "ascender" in self._font_data["hhea"] and advanceAddedPinyinHeight > self._font_data["hhea"]["ascender"]:
+                self._font_data["hhea"]["ascender"] = advanceAddedPinyinHeight
+                # Also update OS/2 usWinAscent if hhea.ascender is updated
+                if "OS_2" in self._font_data and "usWinAscent" in self._font_data["OS_2"]:
+                    self._font_data["OS_2"]["usWinAscent"] = advanceAddedPinyinHeight
         
         print(f"  ==> font revision set to: {VERSION}")
     
@@ -372,12 +405,21 @@ class FontBuilder:
             self.external_tool.convert_json_to_otf(json_path, output_path)
         else:
             # Fallback to shell command (legacy compatibility)
-            import sys
-            import os
-            sys.path.append(os.path.join(os.path.dirname(__file__), "../../../"))
-            from src.secure_shell import secure_shell_process
-            secure_shell_process([
-                "otfccbuild", 
-                str(json_path), 
-                "-o", str(output_path)
-            ])
+            import subprocess
+            try:
+                subprocess.run(
+                    ["otfccbuild", str(json_path), "-o", str(output_path)],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                    timeout=60
+                )
+            except subprocess.CalledProcessError as e:
+                print(f"Error during otfccbuild: {e.stderr}")
+                raise
+            except subprocess.TimeoutExpired as e:
+                print(f"otfccbuild timed out: {e}")
+                raise
+            except FileNotFoundError:
+                print("Error: otfccbuild command not found. Please ensure it's installed and in your PATH.")
+                raise

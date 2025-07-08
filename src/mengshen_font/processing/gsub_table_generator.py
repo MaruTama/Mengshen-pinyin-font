@@ -13,25 +13,33 @@ from typing import Dict, List, Any, Set
 from ..config import FontConstants
 from ..data import CharacterDataManager, MappingDataManager
 
-# Add src directory to path for legacy utility import
-_src_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
-if _src_path not in sys.path:
-    sys.path.insert(0, _src_path)
+# Import migrated legacy utility
+from ..core.legacy_utility import LegacyUtility, get_legacy_utility
 
-# Also try current working directory
-import os
-_cwd_src = os.path.join(os.getcwd(), 'src')
-if _cwd_src not in sys.path:
-    sys.path.insert(0, _cwd_src)
+# Create utility instance for backward compatibility
+_legacy_utility_instance = get_legacy_utility()
 
-try:
-    import utility as _legacy_utility
-    print(f"DEBUG: Legacy utility imported successfully from {_legacy_utility.__file__}")
-except ImportError as e:
-    print(f"DEBUG: Failed to import legacy utility: {e}")
-    print(f"DEBUG: Current working directory: {os.getcwd()}")
-    print(f"DEBUG: Python path: {sys.path[:3]}")
-    _legacy_utility = None
+# Create compatibility wrapper to maintain exact interface
+class _LegacyUtilityWrapper:
+    """Wrapper to maintain exact legacy utility interface."""
+    
+    def __init__(self, utility_instance: LegacyUtility):
+        self._utility = utility_instance
+    
+    def get_has_single_pinyin_hanzi(self):
+        return self._utility.get_has_single_pinyin_hanzi()
+    
+    def get_has_multiple_pinyin_hanzi(self):
+        return self._utility.get_has_multiple_pinyin_hanzi()
+    
+    def convert_str_hanzi_2_cid(self, str_hanzi: str):
+        return self._utility.convert_str_hanzi_2_cid(str_hanzi)
+    
+    def simplification_pronunciation(self, pronunciation: str):
+        return self._utility.simplification_pronunciation(pronunciation)
+
+_legacy_utility = _LegacyUtilityWrapper(_legacy_utility_instance)
+print("DEBUG: Legacy utility imported successfully from migrated module")
 
 
 class GSUBTableGenerator:

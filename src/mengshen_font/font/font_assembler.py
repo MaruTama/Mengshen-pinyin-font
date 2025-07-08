@@ -21,11 +21,11 @@ class FontAssembler:
     
     def set_font_metadata(self, font_data: Dict[str, Any], font_type: FontType) -> None:
         """Set font metadata including version and creation date."""
-        # Import name table here to avoid circular imports
-        import name_table
+        # Import migrated name table module
+        from ..config.font_name_tables import VERSION
         
         # Set font revision
-        font_data[FontConstants.HEAD_TABLE]["fontRevision"] = name_table.VERSION
+        font_data[FontConstants.HEAD_TABLE]["fontRevision"] = VERSION
         
         # Set creation date (base: 1904/01/01 00:00 GMT)
         base_date = datetime.strptime(FontConstants.FONT_EPOCH_BASE_DATE, FontConstants.DATE_FORMAT)

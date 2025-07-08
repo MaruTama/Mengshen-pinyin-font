@@ -70,16 +70,20 @@ Examples:
     def _get_template_paths(self, font_type: FontType) -> dict:
         """Get template file paths for font type."""
         if font_type == FontType.HAN_SERIF:
-            style_dir = "han-serif"
+            template_main_filename = "template_main_han_serif.json"
+            template_glyf_filename = "template_glyf_han_serif.json"
+            alphabet_filename = "alphabet_for_pinyin.json"  # M+ font style
         elif font_type == FontType.HANDWRITTEN:
-            style_dir = "handwritten"
+            template_main_filename = "template_main_handwritten.json"
+            template_glyf_filename = "template_glyf_handwritten.json"
+            alphabet_filename = "alphabet4pinyin.json"  # SetoFont style
         else:
             raise ValueError(f"Unsupported font type: {font_type}")
         
         return {
-            "template_main": self.paths.get_temp_json_path("template_main.json"),
-            "template_glyf": self.paths.get_temp_json_path("template_glyf.json"),
-            "alphabet_pinyin": self.paths.get_temp_json_path("alphabet_for_pinyin.json"),
+            "template_main": self.paths.get_temp_json_path(template_main_filename),
+            "template_glyf": self.paths.get_temp_json_path(template_glyf_filename),
+            "alphabet_pinyin": self.paths.get_temp_json_path(alphabet_filename),
             "pattern_one": self.paths.outputs_dir / "duoyinzi_pattern_one.txt",
             "pattern_two": self.paths.outputs_dir / "duoyinzi_pattern_two.json", 
             "exception_pattern": self.paths.outputs_dir / "duoyinzi_exceptional_pattern.json"

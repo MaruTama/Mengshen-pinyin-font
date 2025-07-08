@@ -35,6 +35,8 @@ class FontMetadata:
     """Font metadata configuration."""
     pinyin_canvas: PinyinCanvas
     hanzi_canvas: HanziCanvas
+    is_avoid_overlapping_mode: bool
+    x_scale_reduction_for_avoid_overlapping: float
 
 
 class FontConfig:
@@ -44,27 +46,31 @@ class FontConfig:
     _CONFIGS: Dict[FontType, FontMetadata] = {
         FontType.HAN_SERIF: FontMetadata(
             pinyin_canvas=PinyinCanvas(
-                width=1000.0,
-                height=1280.0,
-                base_line=950.0,
-                tracking=10.0
+                width=850.0,      # Legacy han_serif settings
+                height=283.3,     # Legacy value for compatibility
+                base_line=935.0,  # Legacy han_serif settings
+                tracking=22.145   # Legacy han_serif settings
             ),
             hanzi_canvas=HanziCanvas(
-                width=880.0,
-                height=880.0
-            )
+                width=1000.0,     # Legacy value for compatibility
+                height=1000.0     # Legacy value for compatibility
+            ),
+            is_avoid_overlapping_mode=False,  # Legacy han_serif setting
+            x_scale_reduction_for_avoid_overlapping=0.1  # Legacy setting
         ),
         FontType.HANDWRITTEN: FontMetadata(
             pinyin_canvas=PinyinCanvas(
-                width=1000.0,
-                height=1280.0,
-                base_line=950.0,
-                tracking=10.0
+                width=800.0,   # Legacy handwritten settings
+                height=300.0,  # Legacy value for compatibility
+                base_line=880.0, # Legacy correct baseline for handwritten positioning
+                tracking=5.0   # Legacy handwritten settings
             ),
             hanzi_canvas=HanziCanvas(
-                width=880.0,
-                height=880.0
-            )
+                width=1000.0,  # Legacy value for compatibility
+                height=1000.0  # Legacy value for compatibility
+            ),
+            is_avoid_overlapping_mode=True,  # Legacy handwritten setting - critical for positioning
+            x_scale_reduction_for_avoid_overlapping=0.1  # Legacy setting
         )
     }
     

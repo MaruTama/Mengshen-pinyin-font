@@ -74,9 +74,9 @@ class PinyinGlyphGenerator:
         all_pronunciations: Set[str]
     ) -> None:
         """Generate pronunciation glyphs from alphabet glyphs."""
-        # Font scaling calculations (from legacy code)
-        expected_hanzi_canvas_width = 1000.0  # Default hanzi canvas
-        expected_hanzi_canvas_height = 1000.0 
+        # Font scaling calculations (using config values for compatibility)
+        expected_hanzi_canvas_width = float(self.font_config.hanzi_canvas.width)
+        expected_hanzi_canvas_height = float(self.font_config.hanzi_canvas.height)
         
         hanzi_canvas_width_scale = hanzi_advance_width / expected_hanzi_canvas_width
         hanzi_canvas_height_scale = hanzi_advance_height / expected_hanzi_canvas_height
@@ -91,14 +91,13 @@ class PinyinGlyphGenerator:
         target_advance_height = hanzi_advance_height + target_pinyin_canvas_height
         target_vertical_origin = target_advance_height * VERTICAL_ORIGIN_PER_HEIGHT
         
-        # Get alphabet glyph height for scaling (sample from highest glyph)
-        alphabet_glyph_height = 1000.0  # Default
-        if "py_alphablet_v3" in self._pinyin_alphabets:
-            sample_glyph = self._pinyin_alphabets["py_alphablet_v3"]
-            alphabet_glyph_height = sample_glyph.get("advanceHeight", 
-                sample_glyph.get("advanceWidth", 1000.0) * 1.4)  # HEIGHT_RATE_OF_MONOSPACE
+        # Get alphabet glyph height for scaling (legacy logic)
+        py_alphablet_v3_glyf = self._pinyin_alphabets["py_alphablet_v3"]
+        advanceHeight = py_alphablet_v3_glyf.get("advanceHeight", 
+                       py_alphablet_v3_glyf.get("advanceWidth", 1000.0) * 1.4)  # HEIGHT_RATE_OF_MONOSPACE
         
-        pinyin_scale = target_pinyin_canvas_height / alphabet_glyph_height
+        # Legacy pinyin scale calculation (exact legacy logic)
+        pinyin_scale = target_pinyin_canvas_height / advanceHeight
         
         # Generate pronunciation glyphs
         for pronunciation in all_pronunciations:
@@ -127,15 +126,17 @@ class PinyinGlyphGenerator:
                     alphabet_glyph_name = f"py_alphablet_{char}"
                     
                     if alphabet_glyph_name in self._pinyin_alphabets:
-                        # Calculate scaling with legacy logic
+                        # Calculate scaling with exact legacy logic
                         x_scale = round(pinyin_scale, 3)
-                        y_scale = round(pinyin_scale + 0.001, 3)  # DELTA_4_REFLECTION
                         
-                        # Apply overlapping avoidance if needed
+                        # Apply overlapping avoidance if needed (legacy logic)
                         if (hasattr(self.font_config, 'is_avoid_overlapping_mode') and 
                             self.font_config.is_avoid_overlapping_mode and 
                             len(simplified_pronunciation) >= 5):
                             x_scale -= getattr(self.font_config, 'x_scale_reduction_for_avoid_overlapping', 0.1)
+                        
+                        # Legacy y_scale calculation (DELTA_4_REFLECTION)
+                        y_scale = round(pinyin_scale + 0.001, 3)
                         
                         # Create reference
                         reference = {
@@ -175,7 +176,7 @@ class PinyinGlyphGenerator:
         """Calculate pinyin character positions on canvas (from legacy code)."""
         is_avoid_overlapping_mode = getattr(self.font_config, 'is_avoid_overlapping_mode', False)
         
-        # If 6+ characters, use full hanzi width to avoid overlapping
+        # If 6+ characters, use full hanzi width to avoid overlapping (legacy logic)
         if is_avoid_overlapping_mode and len(pronunciation) >= 6:
             canvas_width = target_advance_width_of_hanzi
             
@@ -507,7 +508,7 @@ class GlyphManager:
         
         self._all_glyphs: Dict[str, Any] = {}
     
-    def initialize(self, font_data: Dict[str, Any], glyf_data: Dict[str, Any], alphabet_pinyin_path: Path) -> None:
+    def initialize(self, font_data: Dict[str, Any], glyf_data: Dict[str, Any], alphabet_pinyin_path: Path, template_main_json_path: Path) -> None:
         """Initialize with font data and templates using legacy pinyin generation."""
         # Initialize legacy pinyin glyph generator for exact compatibility
         import sys
@@ -522,14 +523,19 @@ class GlyphManager:
             import config as legacy_config
             
             # Create legacy pinyin glyph generator with exact same parameters
-            template_main_json = "tmp/json/template_main.json"  # Legacy path
-            font_type_mapping = {
-                FontType.HAN_SERIF: legacy_config.HAN_SERIF_TYPE,
-                FontType.HANDWRITTEN: legacy_config.HANDWRITTEN_TYPE
-            }
-            legacy_font_type = font_type_mapping.get(self.font_type, legacy_config.HAN_SERIF_TYPE)
+            template_main_json = str(template_main_json_path)  # Use provided path
             
-            # Create legacy pinyin glyph generator
+            # Map refactored FontType to legacy font type constants
+            if self.font_type == FontType.HAN_SERIF:
+                legacy_font_type = legacy_config.HAN_SERIF_TYPE
+            elif self.font_type == FontType.HANDWRITTEN:
+                legacy_font_type = legacy_config.HANDWRITTEN_TYPE  
+            else:
+                legacy_font_type = legacy_config.HAN_SERIF_TYPE  # Default fallback
+            
+            print(f"DEBUG: Using legacy font type {legacy_font_type} for refactored font type {self.font_type}")
+            
+            # Create legacy pinyin glyph generator with proper font type
             self.legacy_pinyin_generator = legacy_pinyin_glyph.PinyinGlyph(
                 template_main_json, str(alphabet_pinyin_path), legacy_font_type
             )
