@@ -77,7 +77,7 @@ $ cd <PROJECT-ROOT>
 $ python src/retrieve_latin_alphabet.py <FONT-NAME-FOR-PINYIN>
 # e,g.:
 # python src/retrieve_latin_alphabet.py ./res/fonts/han-serif/mplus-1m-medium.ttf
-# python src/retrieve_latin_alphabet.py ./res/fonts/handwritten/latin-alpabet-of-SetoFont-SP.ttf
+# python src/retrieve_latin_alphabet.py ./res/fonts/handwritten/latin-alphabet-of-SetoFont-SP.ttf
 ``` -->
 
 3. ビルドする  

@@ -136,7 +136,7 @@ def get_handwritten_main_font_path() -> str:
 
 def get_handwritten_pinyin_font_path() -> str:
     """Get HANDWRITTEN pinyin font path."""
-    return str(LegacyPaths.get_handwritten_dir() / "latin-alpabet-of-SetoFont-SP.ttf")
+    return str(LegacyPaths.get_handwritten_dir() / "latin-alphabet-of-SetoFont-SP.ttf")
 
 
 # Legacy compatibility - maintain original variable names

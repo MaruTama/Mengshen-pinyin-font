@@ -83,4 +83,4 @@ HAN_SERIF_MAIN   = os.path.normpath( os.path.join(path.DIR_FONT_FOR_HAN_SERIF, "
 HAN_SERIF_PINYIN = os.path.normpath( os.path.join(path.DIR_FONT_FOR_HAN_SERIF, "mplus-1m-medium.ttf") )
 
 HAN_HANDWRITTEN_MAIN   = os.path.normpath( os.path.join(path.DIR_FONT_FOR_HANDWRITTEN, "XiaolaiMonoSC-without-Hangul-Regular.ttf") )
-HAN_HANDWRITTEN_PINYIN = os.path.normpath( os.path.join(path.DIR_FONT_FOR_HANDWRITTEN, "latin-alpabet-of-SetoFont-SP.ttf") )
+HAN_HANDWRITTEN_PINYIN = os.path.normpath( os.path.join(path.DIR_FONT_FOR_HANDWRITTEN, "latin-alphabet-of-SetoFont-SP.ttf") )
