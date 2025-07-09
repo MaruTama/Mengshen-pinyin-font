@@ -1,278 +1,302 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-Never use cat. Use less.
+このファイルは、Claude Code (claude.ai/code) がこのリポジトリでコードを扱う際のガイダンスを提供します。
+catは使用せず、lessを使用してください。
 
-## Project Overview
+## プロジェクト概要
 
-This is the Mengshen (萌神) Pinyin Font project - an open source tool that generates Chinese fonts with automatic pinyin (phonetic) annotations. The project creates fonts that display pinyin above Chinese characters, with special support for homographs (多音字) - characters that have different pronunciations depending on context.
+これは萌神（Mengshen）拼音フォントプロジェクトです - 中国語フォントに自動的に拼音（発音記号）注釈を生成するオープンソースツールです。このプロジェクトは中国語文字の上に拼音を表示するフォントを作成し、多音字（文脈によって異なる発音を持つ文字）の特別なサポートを提供します。
 
-**Key Features:**
-- Supports Simplified Chinese, Traditional Chinese, and Japanese characters
-- Contextual pinyin replacement using OpenType GSUB tables
-- Unicode IVS (Ideographic Variant Selector) support
-- Two font styles: han_serif and handwritten
+**主な機能：**
+- 簡体字中国語、繁体字中国語、日本語文字のサポート
+- OpenType GSUB テーブルを使用した文脈的拼音置換
+- Unicode IVS（表意文字異体字セレクタ）サポート
+- 2つのフォントスタイル：han_serif と handwritten
 
-## Development Methodology
+## 開発手法
 
-### Test-Driven Development (TDD)
-This project follows strict TDD principles for all development and refactoring work. **ALWAYS** apply the Red-Green-Refactor cycle:
+### テスト駆動開発（TDD）
+このプロジェクトは、すべての開発とリファクタリング作業において厳格なTDD原則に従います。**必ず**Red-Green-Refactorサイクルを適用してください：
 
-1. **🔴 Red**: Write failing tests first
-2. **🟢 Green**: Write minimal code to pass tests  
-3. **🔵 Refactor**: Improve code while keeping tests green
+1. **🔴 Red**: 最初に失敗するテストを書く
+2. **🟢 Green**: テストを通すための最小限のコードを書く
+3. **🔵 Refactor**: テストを通したままコードを改善する
 
-### TDD Commands
+### TDD コマンド
 ```bash
-# Run all tests
+# すべてのテストを実行
 python -m pytest tests/ -v
 
-# Run tests with coverage
+# カバレッジ付きでテストを実行
 python -m pytest tests/ --cov=src --cov-report=html
 
-# Run security tests
+# セキュリティテストを実行
 python -m pytest tests/security/ -v
 
-# Run specific test category
+# 特定のテストカテゴリを実行
 python -m pytest tests/unit/ -v
 python -m pytest tests/integration/ -v
 python -m pytest tests/performance/ --benchmark-only
 
-# Watch tests during development
+# 開発中のテスト監視
 pytest-watch --clear
 ```
 
-### Test Requirements
-- **Unit test coverage**: 95%+ required
-- **Security test coverage**: 100% for security-related code
-- **Integration tests**: All major pipelines covered
-- **Performance tests**: No regression allowed
+### テスト要件
+- **ユニットテストカバレッジ**: 95%以上必須
+- **セキュリティテストカバレッジ**: セキュリティ関連コードは100%
+- **統合テスト**: すべての主要パイプラインをカバー
+- **パフォーマンステスト**: 回帰なし
 
-### TDD Workflow for Font Development (Complete Pipeline)
+### フォント開発のTDDワークフロー（完全パイプライン）
 ```bash
-# 1. 🔴 Red: Create characterization tests for existing functionality
+# 1. 🔴 Red: 既存機能の特性化テストを作成
 python -m pytest tests/integration/test_font_output_baseline.py
 
-# 2. 🔴 Red: Write tests for new feature/refactor  
-python -m pytest tests/unit/test_new_feature.py  # Should fail (Red)
+# 2. 🔴 Red: 新機能/リファクタリング用テストを書く
+python -m pytest tests/unit/test_new_feature.py  # 失敗するはず（Red）
 
-# 3. 🟢 Green: Implement minimal code to pass
-# Edit source files...
-python -m pytest tests/unit/test_new_feature.py  # Should pass (Green)
+# 3. 🟢 Green: テストを通すための最小限のコードを実装
+# ソースファイルを編集...
+python -m pytest tests/unit/test_new_feature.py  # 成功するはず（Green）
 
-# 4. 🔵 Refactor: Improve code while keeping tests green
-# Refactor source files...
-python -m pytest tests/unit/ tests/security/  # All should pass
+# 4. 🔵 Refactor: テストを通したままコードを改善
+# ソースファイルをリファクタリング...
+python -m pytest tests/unit/ tests/security/  # すべて成功するはず
 
-# 5. 🧪 Pipeline: Complete pipeline validation
-# Dictionary generation
+# 5. 🧪 Pipeline: 完全なパイプライン検証
+# 辞書生成
 cd res/phonics/duo_yin_zi/scripts/
 python make_pattern_table.py
 
 cd ../../unicode_mapping_table/  
 python make_unicode_pinyin_map_table.py
 
-# Font generation
+# ベースにするフォントを編集可能の状態（json）にダンプする  
+# glyf table はサイズが大きく閲覧のときに不便なので他のテーブルと分離する。  
+# han-serif
+python src/make_template_jsons.py ./res/fonts/han-serif/SourceHanSerifCN-Regular.ttf
+# handwritten
+python src/make_template_jsons.py ./res/fonts/handwritten/XiaolaiMonoSC-without-Hangul-Regular.ttf
+
+
+# 拼音表示のための文字を抽出する  
+# 固定幅の英字フォントのみ対応  
+# han-serif
+python src/retrieve_latin_alphabet.py ./res/fonts/han-serif/mplus-1m-medium.ttf
+# handwritten
+python src/retrieve_latin_alphabet.py ./res/fonts/handwritten/latin-alphabet-of-SetoFont-SP.ttf
+
+# フォント生成
 cd ../../../..
 python src/main.py -t han_serif
 python src/main.py -t handwritten
 
-# 6. 🎯 Integration: Run full test suite
+# 6. 🎯 Integration: 完全なテストスイートを実行
 python -m pytest tests/ --cov=src
 
-# 7. ✅ Validation: Verify no regression
+# 7. ✅ Validation: 回帰がないことを確認
 python -m pytest tests/integration/test_complete_pipeline.py
 ```
 
-## Build Commands
+## ビルドコマンド
 
-### Font Generation
+### フォント生成
+#### レガシー版
 ```bash
-# Generate han_serif font (default)
-python3 src/main.py
+# han_serifフォントを生成
+python3 src/main.py  -t han_serif
 
-# Generate handwritten font  
+# handwrittenフォントを生成
 python3 src/main.py -t handwritten
 
-# Time the build process
+# ビルドプロセスの時間測定
 time python3 src/main.py
 ```
-
-### Dependencies Setup
+#### リファクタ版
 ```bash
-# Install Python dependencies
+# han_serifフォントを生成
+PYTHONPATH=src python -m mengshen_font.cli.main -t han_serif
+
+# handwrittenフォントを生成
+PYTHONPATH=src python -m mengshen_font.cli.main -t handwritten
+```
+
+### 依存関係セットアップ
+```bash
+# Python依存関係をインストール
 pip install -r requirements.txt
 
-# Install external dependencies (macOS)
+# 外部依存関係をインストール（macOS）
 brew tap caryll/tap
 brew install otfcc-mac64
 brew install jq
 ```
 
-### Pattern Table Generation
+### パターンテーブル生成
 ```bash
-# Generate homograph pattern tables
+# 多音字パターンテーブルを生成
 cd res/phonics/duo_yin_zi/scripts
 python3 make_pattern_table.py
 ```
 
-## Architecture Overview
+## アーキテクチャ概要
 
-### Core Pipeline
-The font generation follows this pipeline:
-1. **Font Dumping**: Convert base fonts (TTF) to editable JSON using otfcc
-2. **Pinyin Processing**: Generate pinyin glyphs and pronunciation mappings
-3. **Glyph Integration**: Combine base font glyphs with pinyin glyphs
-4. **GSUB Table Generation**: Create contextual replacement rules for homographs
-5. **Font Assembly**: Build final TTF font from modified JSON
+### コアパイプライン
+フォント生成は以下のパイプラインに従います：
+1. **フォントダンプ**: otfccを使用してベースフォント（TTF）を編集可能なJSONに変換
+2. **拼音処理**: 拼音グリフと発音マッピングを生成
+3. **グリフ統合**: ベースフォントグリフと拼音グリフを結合
+4. **GSUB テーブル生成**: 多音字のための文脈的置換ルールを作成
+5. **フォント組み立て**: 修正されたJSONから最終的なTTFフォントを構築
 
-### Key Components
+### 主要コンポーネント
 
-**Main Entry Point:**
-- `src/main.py` - CLI interface and font generation orchestration
+**メインエントリーポイント：**
+- `src/main.py` - CLIインターフェースとフォント生成の統制
 
-**Core Font Processing:**
-- `src/font.py` - Main Font class that orchestrates the entire build process
-- `src/config.py` - Font type definitions and metadata (canvas sizes, tracking)
-- `src/pinyin_glyph.py` - Pinyin glyph generation and alphabet processing
-- `src/GSUB_table.py` - OpenType GSUB table generation for contextual replacement
+**コアフォント処理：**
+- `src/font.py` - 全体のビルドプロセスを統制するメインFontクラス
+- `src/config.py` - フォントタイプ定義とメタデータ（キャンバスサイズ、トラッキング）
+- `src/pinyin_glyph.py` - 拼音グリフ生成とアルファベット処理
+- `src/GSUB_table.py` - 文脈的置換のためのOpenType GSUB テーブル生成
 
-**Data Processing:**
-- `src/pinyin_getter.py` - Unicode to pinyin mapping and web scraping
-- `src/utility.py` - Utility functions for character and glyph operations
-- `res/phonics/unicode_mapping_table/` - Unicode to pinyin mapping tables
-- `res/phonics/duo_yin_zi/` - Homograph pattern definitions and processing
+**データ処理：**
+- `src/pinyin_getter.py` - Unicodeから拼音へのマッピングとWebスクレイピング
+- `src/utility.py` - 文字とグリフ操作のユーティリティ関数
+- `res/phonics/unicode_mapping_table/` - Unicodeから拼音へのマッピングテーブル
+- `res/phonics/duo_yin_zi/` - 多音字パターン定義と処理
 
-**External Tool Integration:**
-- `src/shell.py` - ⚠️ Shell command execution (contains security vulnerabilities)
-- `src/make_template_jsons.py` - Font to JSON conversion using otfcc
-- `src/retrieve_latin_alphabet.py` - Latin alphabet extraction for pinyin
+**外部ツール統合：**
+- `src/shell.py` - ⚠️ シェルコマンド実行（セキュリティ脆弱性を含む）
+- `src/make_template_jsons.py` - otfccを使用したフォントからJSONへの変換
+- `src/retrieve_latin_alphabet.py` - 拼音用ラテンアルファベット抽出
 
-### Font Styles and Configuration
+### フォントスタイルと設定
 
-The system supports two font styles defined in `src/config.py`:
-- **HAN_SERIF_TYPE (1)**: Uses Source Han Serif + M+ fonts
-- **HANDWRITTEN_TYPE (2)**: Uses Xiaolai Font + SetoFont
+システムは`src/config.py`で定義された2つのフォントスタイルをサポートします：
+- **HAN_SERIF_TYPE (1)**: Source Han Serif + M+ フォントを使用
+- **HANDWRITTEN_TYPE (2)**: Xiaolai Font + SetoFontを使用
 
-Each style has specific canvas dimensions and tracking settings for optimal pinyin display.
+各スタイルには最適な拼音表示のための特定のキャンバス寸法とトラッキング設定があります。
 
-### Homograph Processing
+### 多音字処理
 
-The project implements sophisticated homograph (多音字) handling:
-- **Pattern One**: Single character pronunciation changes in phrases
-- **Pattern Two**: Multiple character pronunciation changes  
-- **Exception Patterns**: Manual overrides for special cases
+プロジェクトは洗練された多音字処理を実装しています：
+- **パターン1**: フレーズ内の単一文字発音変化
+- **パターン2**: 複数文字発音変化
+- **例外パターン**: 特殊ケース用の手動オーバーライド
 
-Pattern files are located in `res/phonics/duo_yin_zi/` and processed by scripts in the `scripts/` subdirectory.
+パターンファイルは`res/phonics/duo_yin_zi/`にあり、`scripts/`サブディレクトリのスクリプトによって処理されます。
 
-## File Structure
+## ファイル構造
 
-**Input Assets:**
-- `res/fonts/han-serif/` - Source Han Serif base fonts
-- `res/fonts/handwritten/` - Handwritten style base fonts
-- `res/phonics/` - Pinyin and homograph data
+**入力アセット：**
+- `res/fonts/han-serif/` - Source Han Serif ベースフォント
+- `res/fonts/handwritten/` - 手書きスタイルベースフォント
+- `res/phonics/` - 拼音と多音字データ
 
-**Generated Outputs:**
-- `outputs/` - Final TTF font files and pattern tables
-- `tmp/json/` - Intermediate JSON representations of fonts
+**生成出力：**
+- `outputs/` - 最終TTFフォントファイルとパターンテーブル
+- `tmp/json/` - フォントの中間JSON表現
 
-**Tools:**
-- `tools/` - Utility scripts for font conversion and analysis
+**ツール：**
+- `tools/` - フォント変換と分析のユーティリティスクリプト
 
-## Important Notes
+## 重要な注意事項
 
-### TDD Development Rules
-**MANDATORY**: All code changes must follow TDD methodology:
+### TDD開発ルール
+**必須**：すべてのコード変更はTDD手法に従う必要があります：
 
-1. **Never write production code without a failing test first**
-2. **Write only enough test code to demonstrate a failure**  
-3. **Write only enough production code to make the failing test pass**
-4. **Refactor both test and production code while keeping tests passing**
+1. **失敗するテストなしに本番コードを書かない**
+2. **失敗を実証するのに十分なテストコードのみを書く**
+3. **失敗するテストを通すのに十分な本番コードのみを書く**
+4. **テストを通したままテストコードと本番コードの両方をリファクタリングする**
 
-### Security Warning (TDD Priority)
-The `src/shell.py` file contains a critical security vulnerability with `subprocess.run(cmd, shell=True)`. 
+### セキュリティ警告（TDD優先）
+`src/shell.py`ファイルには`subprocess.run(cmd, shell=True)`による重大なセキュリティ脆弱性があります。
 
-**TDD Fix Approach**:
+**TDD修正アプローチ**：
 ```bash
-# 1. Write security tests first (Red)
+# 1. 最初にセキュリティテストを書く（Red）
 def test_no_shell_injection_vulnerability():
     assert not contains_shell_true("src/shell.py")
 
-# 2. Fix implementation (Green)  
-# 3. Refactor safely (Blue)
+# 2. 実装を修正（Green）
+# 3. 安全にリファクタリング（Blue）
 ```
 
-This allows arbitrary command injection and must be fixed using TDD before any other work.
+これは任意のコマンドインジェクションを可能にし、他の作業の前にTDDを使用して修正する必要があります。
 
-### External Dependencies
-- **otfcc**: Font parsing and generation (required)
-- **jq**: JSON processing (required)
-- Python packages listed in requirements.txt
+### 外部依存関係
+- **otfcc**: フォント解析と生成（必須）
+- **jq**: JSON処理（必須）
+- requirements.txtにリストされたPythonパッケージ
 
-### Font Sources
-- Source Han Serif CN Regular (han_serif style)
-- M+ M Type-1 medium (pinyin for han_serif)
-- Xiaolai MonoSC (handwritten style)
-- SetoFont SP (pinyin for handwritten)
+### フォントソース
+- Source Han Serif CN Regular（han_serifスタイル）
+- M+ M Type-1 medium（han_serif用拼音）
+- Xiaolai MonoSC（handwrittenスタイル）
+- SetoFont SP（handwritten用拼音）
 
-### Character Coverage
-- Simplified Chinese: Based on Table of General Standard Chinese Characters
-- Traditional Chinese: Based on Big-5-2003 standard  
-- Japanese: Based on Jōyō kanji list
-- Includes hiragana and katakana support
+### 文字カバレッジ
+- 簡体字中国語：通用規範漢字表に基づく
+- 繁体字中国語：Big-5-2003標準に基づく
+- 日本語：常用漢字表に基づく
+- ひらがなとカタカナサポートを含む
 
-## Refactoring Guidelines
+## リファクタリングガイドライン
 
-### TDD-First Refactoring
-For detailed refactoring strategy and modernization plans, see `REFACTOR.md`. **ALL refactoring must follow TDD principles**:
+### TDD優先リファクタリング
+詳細なリファクタリング戦略と近代化計画については、`REFACTOR.md`を参照してください。**すべてのリファクタリングはTDD原則に従う必要があります**：
 
-**TDD Refactoring Process**:
-1. **Create characterization tests** for existing behavior
-2. **Write tests for desired new behavior** (Red)
-3. **Refactor incrementally** while keeping tests green
-4. **Ensure no regression** in font output quality
+**TDDリファクタリングプロセス**：
+1. **既存動作の特性化テストを作成**
+2. **望ましい新動作のテストを書く**（Red）
+3. **テストを通したまま段階的にリファクタリング**
+4. **フォント出力品質の回帰がないことを確認**
 
-### Refactoring Phases (TDD-Driven)
-- **Phase 1**: Security fixes with security tests first
-- **Phase 2**: Python 3.11+ migration with modernization tests
-- **Phase 3**: Data structure improvements with type safety tests
-- **Phase 4**: Architecture refactoring with integration tests  
-- **Phase 5**: Performance optimization with benchmark tests
-- **Phase 6**: Pinyin data integration with data consistency tests
-- **Phase 7**: Docker containerization with deployment tests
+### リファクタリング段階（TDD駆動）
+- **段階1**: セキュリティテストを最初に行うセキュリティ修正
+- **段階2**: 近代化テストを伴うPython 3.11+移行
+- **段階3**: 型安全性テストを伴うデータ構造改善
+- **段階4**: 統合テストを伴うアーキテクチャリファクタリング
+- **段階5**: ベンチマークテストを伴うパフォーマンス最適化
+- **段階6**: データ一貫性テストを伴う拼音データ統合
+- **段階7**: デプロイメントテストを伴うDockerコンテナ化
 
-**Critical TDD Rule**: No phase can be considered complete without:
-- [ ] 🔴 All tests written and initially failing
-- [ ] 🟢 All tests passing with implementation
-- [ ] 🔵 Code refactored to high quality
-- [ ] 🧪 Complete pipeline validation (dictionary + font generation)
-- [ ] 🎯 Integration tests passing
-- [ ] ✅ No regression in output quality
-- [ ] 95%+ test coverage achieved
+**重要なTDDルール**：以下なしには段階は完了とみなせません：
+- [ ] 🔴 すべてのテストが書かれ、最初に失敗
+- [ ] 🟢 実装によりすべてのテストが通る
+- [ ] 🔵 高品質にコードがリファクタリング
+- [ ] 🧪 完全なパイプライン検証（辞書+フォント生成）
+- [ ] 🎯 統合テストが通る
+- [ ] ✅ 出力品質の回帰なし
+- [ ] 95%以上のテストカバレッジ達成
 
-**Pipeline Validation Commands** (must pass for each phase):
+**パイプライン検証コマンド**（各段階で通る必要がある）：
 ```bash
-# Quick pipeline validation
+# クイックパイプライン検証
 cd res/phonics/duo_yin_zi/scripts && python make_pattern_table.py
 cd ../../unicode_mapping_table && python make_unicode_pinyin_map_table.py  
 cd ../../../.. && python src/main.py -t han_serif
 
-# Full validation
+# 完全検証
 python -m pytest tests/integration/test_complete_pipeline.py -v
 ```
 
-## Refactoring Documentation Requirements
+## リファクタリングドキュメント要件
 
-### REFACTOR.md Update Policy
-**MANDATORY**: When completing any refactoring work, you MUST update `REFACTOR.md` to reflect the current status:
+### REFACTOR.md更新ポリシー
+**必須**：リファクタリング作業を完了する際は、現在の状況を反映するために`REFACTOR.md`を更新する必要があります：
 
-1. **Phase Status Updates**: Change phase status from "未着手" → "🔄 実装中" → "✅ 完了"
-2. **Implementation Details**: Update code examples to reflect actual implementation
-3. **Completion Criteria**: Mark completed items with ✅ and update checklists
-4. **Benefits Documentation**: Update benefits section to reflect actual improvements achieved
-5. **File Changes**: Document specific files modified and their new functionality
+1. **段階状況更新**: 段階状況を「未着手」→「🔄 実装中」→「✅ 完了」に変更
+2. **実装詳細**: 実際の実装を反映するようにコード例を更新
+3. **完了基準**: 完了項目に✅マークを付け、チェックリストを更新
+4. **利益ドキュメント**: 達成された実際の改善を反映するように利益セクションを更新
+5. **ファイル変更**: 修正された特定のファイルとその新機能を文書化
 
-### Required Updates After Each Phase
+### 各段階後の必要更新
 ```markdown
 **Phase X: [Name]** ✅ 完了
 **状態**: ✅ 完了
@@ -288,10 +312,10 @@ python -m pytest tests/integration/test_complete_pipeline.py -v
 - **保守性**: 実装された改善内容
 ```
 
-### Documentation Workflow
-1. **開始時**: Phase status を "🔄 実装中" に更新
+### ドキュメントワークフロー
+1. **開始時**: Phase status を「🔄 実装中」に更新
 2. **実装完了時**: 実装内容を詳細に記録
-3. **テスト完了時**: 検証結果とメリットを更新  
-4. **Phase完了時**: 全チェックボックスを ✅ に変更
+3. **テスト完了時**: 検証結果とメリットを更新
+4. **Phase完了時**: 全チェックボックスを✅に変更
 
-**Critical Rule**: リファクタリング作業完了後は必ず `REFACTOR.md` を最新状態に更新してください。これにより、プロジェクトの進捗と現在の実装状況を正確に把握できます。
+**重要なルール**：リファクタリング作業完了後は必ず`REFACTOR.md`を最新状態に更新してください。これにより、プロジェクトの進捗と現在の実装状況を正確に把握できます。
