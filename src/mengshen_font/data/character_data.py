@@ -7,7 +7,6 @@ from dataclasses import dataclass
 from functools import lru_cache
 from typing import Iterator, List, Optional, Protocol
 
-from ..config import FontConstants
 from .pinyin_data import PinyinDataManager, get_default_pinyin_manager
 
 

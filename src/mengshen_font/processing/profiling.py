@@ -11,11 +11,8 @@ import threading
 from dataclasses import dataclass, field
 from functools import wraps
 from contextlib import contextmanager
-from typing import Dict, List, Any, Optional, Callable, Iterator
+from typing import Dict, List, Optional, Callable, Iterator
 from pathlib import Path
-
-from ..config import FontConstants
-
 
 @dataclass
 class PerformanceMetrics:

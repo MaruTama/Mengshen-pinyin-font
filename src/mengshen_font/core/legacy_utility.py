@@ -11,8 +11,6 @@ all original comments and functionality.
 
 from __future__ import annotations
 
-import os
-import orjson
 from functools import lru_cache
 from typing import Iterator, List, Dict, Any
 from dataclasses import dataclass
@@ -91,11 +89,12 @@ class LegacyUtility:
     All original functionality and comments preserved.
     """
     
-    def __init__(self, pinyin_data_manager: PinyinDataManager = None):
+    def __init__(self, pinyin_data_manager: PinyinDataManager = None, template_main_path: str | None = None):
         """Initialize with optional pinyin data manager."""
         self._pinyin_manager = pinyin_data_manager or PinyinDataManager()
         self._cmap_table: Dict[str, str] = {}
         self._pinyin_mapping_table: Dict[str, List[str]] = {}
+        self._template_main_path = template_main_path
         self._initialize_data()
     
     def _initialize_data(self) -> None:
@@ -108,8 +107,10 @@ class LegacyUtility:
         import orjson
         from pathlib import Path
         
-        # Use the same path as in the font builder
-        template_path = Path("tmp/json/template_main.json")
+        if not self._template_main_path:
+            raise ValueError("Template main path is not set in LegacyUtility")
+
+        template_path = Path(self._template_main_path)
         
         if not template_path.exists():
             raise FileNotFoundError(f"Template file not found: {template_path}")
@@ -122,7 +123,6 @@ class LegacyUtility:
                 raise KeyError("No 'cmap' section found in template file")
             
             self._cmap_table = template_data["cmap"]
-            print(f"DEBUG: Loaded cmap table with {len(self._cmap_table)} entries")
             
         except Exception as e:
             raise RuntimeError(f"Failed to load cmap table from {template_path}: {e}")
@@ -253,35 +253,3 @@ class LegacyUtility:
             else:
                 dict_base[k] = v
 
-
-# Global instance for backward compatibility
-_global_utility = None
-
-def get_legacy_utility() -> LegacyUtility:
-    """Get global legacy utility instance."""
-    global _global_utility
-    if _global_utility is None:
-        _global_utility = LegacyUtility()
-    return _global_utility
-
-
-# Legacy function exports for backward compatibility
-def simplification_pronunciation(pronunciation: str) -> str:
-    """Legacy function wrapper."""
-    return get_legacy_utility().simplification_pronunciation(pronunciation)
-
-def get_has_single_pinyin_hanzi() -> List[HanziPinyin]:
-    """Legacy function wrapper."""
-    return get_legacy_utility().get_has_single_pinyin_hanzi()
-
-def get_has_multiple_pinyin_hanzi() -> List[HanziPinyin]:
-    """Legacy function wrapper."""
-    return get_legacy_utility().get_has_multiple_pinyin_hanzi()
-
-def convert_str_hanzi_2_cid(str_hanzi: str) -> str:
-    """Legacy function wrapper."""
-    return get_legacy_utility().convert_str_hanzi_2_cid(str_hanzi)
-
-def deepupdate(dict_base: Dict[str, Any], other: Dict[str, Any]) -> None:
-    """Legacy function wrapper."""
-    return get_legacy_utility().deepupdate(dict_base, other)

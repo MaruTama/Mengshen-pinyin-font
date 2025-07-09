@@ -7,7 +7,7 @@ import copy
 import orjson
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Set
+from typing import Dict, Any, Optional, Set
 
 from ..config import FontType, FontMetadata, FontConstants
 from ..data import CharacterDataManager, MappingDataManager

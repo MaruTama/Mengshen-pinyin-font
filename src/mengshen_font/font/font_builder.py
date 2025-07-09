@@ -5,12 +5,13 @@ from __future__ import annotations
 
 import orjson
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Protocol
+from typing import Dict, Any, Optional, Protocol
 
 from ..config import FontType, FontConfig, ProjectPaths, FontConstants
 from ..data import PinyinDataManager, CharacterDataManager, MappingDataManager
 from .glyph_manager import GlyphManager
 from .font_assembler import FontAssembler
+from ..core.legacy_utility import LegacyUtility
 
 
 class ExternalToolInterface(Protocol):
@@ -61,6 +62,8 @@ class FontBuilder:
             cmap_source = JsonCmapDataSource(self.template_main_path)
             mapping_manager = MappingDataManager(cmap_source=cmap_source, paths=self.paths)
         self.mapping_manager = mapping_manager
+
+        self.legacy_utility = LegacyUtility(template_main_path=self.template_main_path)
         
         # Font processing components
         self.glyph_manager = GlyphManager(
@@ -329,7 +332,8 @@ class FontBuilder:
             pattern_two_path=self.pattern_two_path,
             exception_pattern_path=self.exception_pattern_path,
             character_manager=self.character_manager,
-            mapping_manager=self.mapping_manager
+            mapping_manager=self.mapping_manager,
+            legacy_utility=self.legacy_utility
         )
         
         # Generate and add GSUB table

@@ -6,7 +6,7 @@ from __future__ import annotations
 import asyncio
 import concurrent.futures
 from functools import partial
-from typing import Any, Callable, Iterable, List, Optional, TypeVar, Union
+from typing import Any, Callable, Iterable, List, Optional, TypeVar
 from dataclasses import dataclass
 from multiprocessing import cpu_count
 

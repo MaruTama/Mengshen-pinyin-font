@@ -5,41 +5,14 @@ from __future__ import annotations
 
 import orjson
 import re
-import sys
-import os
 from pathlib import Path
-from typing import Dict, List, Any, Set
+from typing import Dict, Any
 
 from ..config import FontConstants
 from ..data import CharacterDataManager, MappingDataManager
 
 # Import migrated legacy utility
-from ..core.legacy_utility import LegacyUtility, get_legacy_utility
-
-# Create utility instance for backward compatibility
-_legacy_utility_instance = get_legacy_utility()
-
-# Create compatibility wrapper to maintain exact interface
-class _LegacyUtilityWrapper:
-    """Wrapper to maintain exact legacy utility interface."""
-    
-    def __init__(self, utility_instance: LegacyUtility):
-        self._utility = utility_instance
-    
-    def get_has_single_pinyin_hanzi(self):
-        return self._utility.get_has_single_pinyin_hanzi()
-    
-    def get_has_multiple_pinyin_hanzi(self):
-        return self._utility.get_has_multiple_pinyin_hanzi()
-    
-    def convert_str_hanzi_2_cid(self, str_hanzi: str):
-        return self._utility.convert_str_hanzi_2_cid(str_hanzi)
-    
-    def simplification_pronunciation(self, pronunciation: str):
-        return self._utility.simplification_pronunciation(pronunciation)
-
-_legacy_utility = _LegacyUtilityWrapper(_legacy_utility_instance)
-print("DEBUG: Legacy utility imported successfully from migrated module")
+from ..core.legacy_utility import LegacyUtility
 
 
 class GSUBTableGenerator:
@@ -51,7 +24,8 @@ class GSUBTableGenerator:
         pattern_two_path: Path,
         exception_pattern_path: Path,
         character_manager: CharacterDataManager,
-        mapping_manager: MappingDataManager
+        mapping_manager: MappingDataManager,
+        legacy_utility: LegacyUtility
     ):
         """Initialize with pattern files and data managers."""
         self.pattern_one_path = pattern_one_path
@@ -59,6 +33,7 @@ class GSUBTableGenerator:
         self.exception_pattern_path = exception_pattern_path
         self.character_manager = character_manager
         self.mapping_manager = mapping_manager
+        self.legacy_utility = legacy_utility
         
         # Track dynamically created lookups
         self.lookup_order = set()
@@ -168,24 +143,19 @@ class GSUBTableGenerator:
     
     def _make_aalt_feature(self) -> None:
         """Generate aalt feature (exact legacy compatibility)."""
-        if not _legacy_utility:
-            raise RuntimeError("Legacy utility module not available")
-        
-        utility = _legacy_utility
-        
         aalt_0_subtables = self.gsub_data["lookups"]["lookup_aalt_0"]["subtables"][0]
         aalt_1_subtables = self.gsub_data["lookups"]["lookup_aalt_1"]["subtables"][0]
         
         # Single pronunciation characters -> lookup_aalt_0 (legacy method)
-        for hanzi, _ in utility.get_has_single_pinyin_hanzi():
-            cid = utility.convert_str_hanzi_2_cid(hanzi)
+        for hanzi, _ in self.legacy_utility.get_has_single_pinyin_hanzi():
+            cid = self.legacy_utility.convert_str_hanzi_2_cid(hanzi)
             aalt_0_subtables[cid] = f"{cid}.ss00"
         
         self.lookup_order.add("lookup_aalt_0")
         
         # Multiple pronunciation characters -> lookup_aalt_1 (legacy method)
-        for hanzi, pinyins in utility.get_has_multiple_pinyin_hanzi():
-            cid = utility.convert_str_hanzi_2_cid(hanzi)
+        for hanzi, pinyins in self.legacy_utility.get_has_multiple_pinyin_hanzi():
+            cid = self.legacy_utility.convert_str_hanzi_2_cid(hanzi)
             alternate_list = []
             # ss00 はピンインのないグリフなので、ピンインのグリフは ss01 から ss{len(pinyins)}まで
             for i in range(len(pinyins) + 1):
@@ -199,13 +169,7 @@ class GSUBTableGenerator:
     
     def _make_rclt0_feature(self) -> None:
         """Generate pattern one -> creates lookup_11_* tables (legacy structure)."""
-        if not _legacy_utility:
-            raise RuntimeError("Legacy utility module not available")
-        
-        utility = _legacy_utility
-        
         max_num_patterns = len(self.pattern_one)
-        
         if max_num_patterns > 10:
             raise ValueError("Maximum 10 pronunciation patterns supported")
         
@@ -233,7 +197,7 @@ class GSUBTableGenerator:
                 if not self.mapping_manager.has_glyph_for_character(hanzi):
                     continue
                 
-                cid = utility.convert_str_hanzi_2_cid(hanzi)
+                cid = self.legacy_utility.convert_str_hanzi_2_cid(hanzi)
                 
                 # Add to pattern lookup: cid -> cid.ss{XX} (legacy method)
                 ss_index = FontConstants.SS_VARIATIONAL_PRONUNCIATION + idx
@@ -251,7 +215,7 @@ class GSUBTableGenerator:
                 # Left context patterns: [context] target'
                 if left_match:
                     context_chars = [p.replace("~", "") for p in left_match]
-                    context_cids = [utility.convert_str_hanzi_2_cid(char) for char in context_chars]
+                    context_cids = [self.legacy_utility.convert_str_hanzi_2_cid(char) for char in context_chars]
                     
                     if context_cids:
                         rclt_2_subtables.append({
@@ -267,7 +231,7 @@ class GSUBTableGenerator:
                 # Right context patterns: target' [context]
                 if right_match:
                     context_chars = [p.replace("~", "") for p in right_match]
-                    context_cids = [utility.convert_str_hanzi_2_cid(char) for char in context_chars]
+                    context_cids = [self.legacy_utility.convert_str_hanzi_2_cid(char) for char in context_chars]
                     
                     if context_cids:
                         rclt_2_subtables.append({
@@ -284,7 +248,7 @@ class GSUBTableGenerator:
                 for pattern in other_match:
                     at_pos = pattern.index("~")
                     chars = list(pattern.replace("~", hanzi))
-                    match_cids = [[utility.convert_str_hanzi_2_cid(char)] for char in chars]
+                    match_cids = [[self.legacy_utility.convert_str_hanzi_2_cid(char)] for char in chars]
                     
                     if match_cids:
                         rclt_2_subtables.append({
@@ -302,11 +266,6 @@ class GSUBTableGenerator:
         if not self.pattern_two:
             return
         
-        if not _legacy_utility:
-            raise RuntimeError("Legacy utility module not available")
-        
-        utility = _legacy_utility
-        
         lookups = self.gsub_data["lookups"]
         
         # Create additional lookup tables from pattern_two (legacy method)
@@ -321,7 +280,7 @@ class GSUBTableGenerator:
                 # Add substitutions using legacy logic
                 lookup_subtables = lookups[lookup_name]["subtables"][0]
                 for hanzi, target in table.items():
-                    cid = utility.convert_str_hanzi_2_cid(hanzi)
+                    cid = self.legacy_utility.convert_str_hanzi_2_cid(hanzi)
                     # Replace hanzi with cid in target (exact legacy method)
                     target_cid = target.replace(hanzi, cid)
                     lookup_subtables[cid] = target_cid
@@ -347,7 +306,7 @@ class GSUBTableGenerator:
                         })
                 
                 if applies:
-                    match_cids = [[utility.convert_str_hanzi_2_cid(char)] for char in phrase]
+                    match_cids = [[self.legacy_utility.convert_str_hanzi_2_cid(char)] for char in phrase]
                     
                     if match_cids:
                         rclt_3_subtables.append({
@@ -361,11 +320,6 @@ class GSUBTableGenerator:
         """Generate exception patterns -> updates lookup_rclt_4."""
         if not self.exception_pattern:
             return
-        
-        if not _legacy_utility:
-            raise RuntimeError("Legacy utility module not available")
-        
-        utility = _legacy_utility
         
         lookups = self.gsub_data["lookups"]
         
@@ -381,7 +335,7 @@ class GSUBTableGenerator:
                 # Add substitutions
                 lookup_subtables = lookups[lookup_name]["subtables"][0]
                 for hanzi, target in table.items():
-                    cid = utility.convert_str_hanzi_2_cid(hanzi)
+                    cid = self.legacy_utility.convert_str_hanzi_2_cid(hanzi)
                     # Replace hanzi with cid in target (exact legacy method)
                     target_cid = target.replace(hanzi, cid)
                     lookup_subtables[cid] = target_cid
@@ -410,7 +364,7 @@ class GSUBTableGenerator:
                     
                     if target_char and at_pos >= 0:
                         ignore_phrase = ignore_pattern.replace(" ", "").replace("'", "")
-                        match_cids = [[utility.convert_str_hanzi_2_cid(char)] for char in ignore_phrase]
+                        match_cids = [[self.legacy_utility.convert_str_hanzi_2_cid(char)] for char in ignore_phrase]
                         
                         if match_cids:
                             rclt_4_subtables.append({
@@ -434,7 +388,7 @@ class GSUBTableGenerator:
                         })
                 
                 if applies:
-                    match_cids = [[utility.convert_str_hanzi_2_cid(char)] for char in phrase]
+                    match_cids = [[self.legacy_utility.convert_str_hanzi_2_cid(char)] for char in phrase]
                     
                     if match_cids:
                         rclt_4_subtables.append({

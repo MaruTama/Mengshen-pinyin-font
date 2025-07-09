@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import orjson
 from functools import lru_cache
 from typing import Iterator, List, Dict, Any, Optional, Tuple
 from dataclasses import dataclass

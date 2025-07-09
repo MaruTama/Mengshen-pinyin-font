@@ -3,10 +3,8 @@
 
 from __future__ import annotations
 
-import os
 from functools import lru_cache
 from typing import Dict, List, Optional, Protocol
-from pathlib import Path
 
 from ..config import ProjectPaths, FontConstants
 

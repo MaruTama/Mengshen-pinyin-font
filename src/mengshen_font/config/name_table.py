@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 from typing import TypedDict, List
-from .constants import FontConstants
 
 
 class FontNameEntry(TypedDict):

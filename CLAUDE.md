@@ -75,17 +75,17 @@ python make_unicode_pinyin_map_table.py
 # ベースにするフォントを編集可能の状態（json）にダンプする  
 # glyf table はサイズが大きく閲覧のときに不便なので他のテーブルと分離する。  
 # han-serif
-python src/make_template_jsons.py ./res/fonts/han-serif/SourceHanSerifCN-Regular.ttf
+python src/make_template_jsons.py --style han_serif
 # handwritten
-python src/make_template_jsons.py ./res/fonts/handwritten/XiaolaiMonoSC-without-Hangul-Regular.ttf
+python src/make_template_jsons.py --style handwritten
 
 
 # 拼音表示のための文字を抽出する  
 # 固定幅の英字フォントのみ対応  
 # han-serif
-python src/retrieve_latin_alphabet.py ./res/fonts/han-serif/mplus-1m-medium.ttf
+python src/retrieve_latin_alphabet.py --style han_serif
 # handwritten
-python src/retrieve_latin_alphabet.py ./res/fonts/handwritten/latin-alphabet-of-SetoFont-SP.ttf
+python src/retrieve_latin_alphabet.py --style handwritten
 
 # フォント生成
 cd ../../../..
