@@ -58,7 +58,58 @@ class PinyinGlyphGenerator:
     def load_alphabet_glyphs(self, alphabet_path: Path) -> None:
         """Load pinyin alphabet glyphs from template."""
         with open(alphabet_path, "rb") as f:
-            self._pinyin_alphabets = orjson.loads(f.read())
+            alphabet_data = orjson.loads(f.read())
+        
+        # CRITICAL FIX: Convert alphabet glyphs to py_alphablet_ naming convention
+        # Legacy code expects glyphs named like "py_alphablet_a", "py_alphablet_i1", etc.
+        self._pinyin_alphabets = {}
+        
+        # Add the special v3 glyph used for height calculations (using highest character)
+        if 'ǘ' in alphabet_data:
+            self._pinyin_alphabets["py_alphablet_v3"] = alphabet_data['ǘ']
+        elif 'ǚ' in alphabet_data:
+            self._pinyin_alphabets["py_alphablet_v3"] = alphabet_data['ǚ']
+        elif 'ǜ' in alphabet_data:
+            self._pinyin_alphabets["py_alphablet_v3"] = alphabet_data['ǜ']
+        else:
+            # Fallback to any character if special ones not found
+            first_char = next(iter(alphabet_data.values()))
+            self._pinyin_alphabets["py_alphablet_v3"] = first_char
+        
+        # Convert alphabet characters to simplified names with py_alphablet_ prefix
+        # Use exact same logic as legacy code for tone mapping
+        for char, glyph_data in alphabet_data.items():
+            # Map tones to simplified forms exactly as legacy code does
+            if char in ['ā', 'á', 'ǎ', 'à']:
+                tone_map = {'ā': 'a1', 'á': 'a2', 'ǎ': 'a3', 'à': 'a4'}
+                alphabet_glyph_name = f"py_alphablet_{tone_map[char]}"
+            elif char in ['ē', 'é', 'ě', 'è']:
+                tone_map = {'ē': 'e1', 'é': 'e2', 'ě': 'e3', 'è': 'e4'}
+                alphabet_glyph_name = f"py_alphablet_{tone_map[char]}"
+            elif char in ['ī', 'í', 'ǐ', 'ì']:
+                tone_map = {'ī': 'i1', 'í': 'i2', 'ǐ': 'i3', 'ì': 'i4'}
+                alphabet_glyph_name = f"py_alphablet_{tone_map[char]}"
+            elif char in ['ō', 'ó', 'ǒ', 'ò']:
+                tone_map = {'ō': 'o1', 'ó': 'o2', 'ǒ': 'o3', 'ò': 'o4'}
+                alphabet_glyph_name = f"py_alphablet_{tone_map[char]}"
+            elif char in ['ū', 'ú', 'ǔ', 'ù']:
+                tone_map = {'ū': 'u1', 'ú': 'u2', 'ǔ': 'u3', 'ù': 'u4'}
+                alphabet_glyph_name = f"py_alphablet_{tone_map[char]}"
+            elif char in ['ǖ', 'ǘ', 'ǚ', 'ǜ']:
+                tone_map = {'ǖ': 'v1', 'ǘ': 'v2', 'ǚ': 'v3', 'ǜ': 'v4'}
+                alphabet_glyph_name = f"py_alphablet_{tone_map[char]}"
+            elif char == 'ü':
+                alphabet_glyph_name = "py_alphablet_v"
+            elif char in ['ń', 'ň', 'ǹ']:
+                tone_map = {'ń': 'n2', 'ň': 'n3', 'ǹ': 'n4'}
+                alphabet_glyph_name = f"py_alphablet_{tone_map[char]}"
+            elif char == 'ḿ':
+                alphabet_glyph_name = "py_alphablet_m2"
+            else:
+                # For basic alphabet characters (a-z)
+                alphabet_glyph_name = f"py_alphablet_{char}"
+            
+            self._pinyin_alphabets[alphabet_glyph_name] = glyph_data
         
         # Initialize empty pronunciation glyphs dictionary
         # These will be generated on-demand
@@ -107,23 +158,24 @@ class PinyinGlyphGenerator:
             references = []
             
             # Character spacing calculation from legacy code
-            char_count = len(simplified_pronunciation)
+            char_count = len(pronunciation)
             if char_count > 0:
                 # Get pinyin character width
                 pinyin_width = self._pinyin_alphabets["py_alphablet_v3"]["advanceWidth"] * pinyin_scale
                 
-                # Calculate positions using legacy logic
+                # Calculate positions using legacy logic (use original pronunciation for positioning)
                 width_positions = self._get_pinyin_position_on_canvas(
-                    simplified_pronunciation, 
+                    pronunciation, 
                     pinyin_width, 
                     target_pinyin_canvas_width, 
                     self.font_config.pinyin_canvas.tracking * hanzi_canvas_width_scale,
                     hanzi_advance_width
                 )
                 
-                for i, char in enumerate(simplified_pronunciation):
-                    # Map simplified character to alphabet glyph
-                    alphabet_glyph_name = f"py_alphablet_{char}"
+                for i, char in enumerate(pronunciation):
+                    # Map each character individually (legacy logic)
+                    simplified_char = self._simplify_pronunciation(char)
+                    alphabet_glyph_name = f"py_alphablet_{simplified_char}"
                     
                     if alphabet_glyph_name in self._pinyin_alphabets:
                         # Calculate scaling with exact legacy logic
@@ -509,110 +561,73 @@ class GlyphManager:
         self._all_glyphs: Dict[str, Any] = {}
     
     def initialize(self, font_data: Dict[str, Any], glyf_data: Dict[str, Any], alphabet_pinyin_path: Path, template_main_json_path: Path) -> None:
-        """Initialize with font data and templates using legacy pinyin generation."""
-        # Initialize legacy pinyin glyph generator for exact compatibility
-        import sys
-        import os
-        # Add src directory to Python path for legacy imports
-        src_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../src"))
-        if src_path not in sys.path:
-            sys.path.insert(0, src_path)
-        
-        try:
-            import pinyin_glyph as legacy_pinyin_glyph
-            import config as legacy_config
-            
-            # Create legacy pinyin glyph generator with exact same parameters
-            template_main_json = str(template_main_json_path)  # Use provided path
-            
-            # Map refactored FontType to legacy font type constants
-            if self.font_type == FontType.HAN_SERIF:
-                legacy_font_type = legacy_config.HAN_SERIF_TYPE
-            elif self.font_type == FontType.HANDWRITTEN:
-                legacy_font_type = legacy_config.HANDWRITTEN_TYPE  
-            else:
-                legacy_font_type = legacy_config.HAN_SERIF_TYPE  # Default fallback
-            
-            print(f"DEBUG: Using legacy font type {legacy_font_type} for refactored font type {self.font_type}")
-            
-            # Create legacy pinyin glyph generator with proper font type
-            self.legacy_pinyin_generator = legacy_pinyin_glyph.PinyinGlyph(
-                template_main_json, str(alphabet_pinyin_path), legacy_font_type
-            )
-            
-            # Generate pinyin glyphs using legacy method
-            self.legacy_pinyin_generator.add_references_of_pronunciation()
-            
-            # Get generated pronunciation glyphs for compatibility
-            self._pronunciation_glyphs = self.legacy_pinyin_generator.get_pronunciation_glyf_table()
-            self._alphabet_glyphs = self.legacy_pinyin_generator.get_py_alphablet_glyf_table()
-            
-            self._legacy_mode = True
-            
-            # Set legacy pronunciation glyphs in hanzi generator
-            self.hanzi_generator.set_legacy_pronunciation_glyphs(self._pronunciation_glyphs)
-            
-        except ImportError as e:
-            print(f"WARNING: Could not import legacy pinyin_glyph: {e}")
-            # Fallback to basic pinyin generator
-            self.pinyin_generator.load_alphabet_glyphs(alphabet_pinyin_path)
-            self._pronunciation_glyphs = {}
-            self._alphabet_glyphs = {}
-            self._legacy_mode = False
+        """Initialize with font data and templates."""
+        # Use refactored pinyin generator (no legacy mode for now)
+        self.pinyin_generator.load_alphabet_glyphs(alphabet_pinyin_path)
+        self._pronunciation_glyphs = {}
+        self._alphabet_glyphs = {}
+        self._legacy_mode = False
         
         self._font_data = font_data
         self._glyf_data = glyf_data
     
     def generate_pinyin_glyphs(self) -> None:
-        """Generate all pinyin-related glyphs using legacy mode if available."""
-        if hasattr(self, '_legacy_mode') and self._legacy_mode:
-            # Use legacy generated glyphs
-            self._all_glyphs.update(self._alphabet_glyphs)
-        else:
-            # Fallback to original implementation
-            all_pronunciations = set()
-            
-            # Collect pronunciations from single-pronunciation characters (only existing in font)
-            for char_info in self.character_manager.iter_single_pronunciation_characters():
-                if self.mapping_manager.has_glyph_for_character(char_info.character):
-                    pronunciation = char_info.pronunciations[0]  # Single pronunciation
+        """Generate all pinyin-related glyphs."""
+        all_pronunciations = set()
+        
+        # Collect pronunciations from single-pronunciation characters (only existing in font)
+        for char_info in self.character_manager.iter_single_pronunciation_characters():
+            if self.mapping_manager.has_glyph_for_character(char_info.character):
+                pronunciation = char_info.pronunciations[0]  # Single pronunciation
+                all_pronunciations.add(pronunciation)
+        
+        # Collect pronunciations from multiple-pronunciation characters (only existing in font)
+        for char_info in self.character_manager.iter_multiple_pronunciation_characters():
+            if self.mapping_manager.has_glyph_for_character(char_info.character):
+                for pronunciation in char_info.pronunciations:
                     all_pronunciations.add(pronunciation)
-            
-            # Collect pronunciations from multiple-pronunciation characters (only existing in font)
-            for char_info in self.character_manager.iter_multiple_pronunciation_characters():
-                if self.mapping_manager.has_glyph_for_character(char_info.character):
-                    for pronunciation in char_info.pronunciations:
-                        all_pronunciations.add(pronunciation)
-            
-            # Get hanzi metrics for pronunciation glyph generation
-            sample_char = "一"  # Use "一" as reference
-            sample_cid = self.mapping_manager.convert_hanzi_to_cid(sample_char)
-            if sample_cid and sample_cid in self._glyf_data:
-                glyph = self._glyf_data[sample_cid]
-                hanzi_advance_width = glyph.get("advanceWidth", 1000.0)
-                hanzi_advance_height = glyph.get("advanceHeight", hanzi_advance_width)
-            else:
-                hanzi_advance_width = 1000.0
-                hanzi_advance_height = 1000.0
-            
-            # Generate pronunciation glyphs with proper parameters
-            self.pinyin_generator.generate_pronunciation_glyphs(
-                hanzi_advance_width=hanzi_advance_width,
-                hanzi_advance_height=hanzi_advance_height,
-                pinyin_canvas_width=self.font_config.pinyin_canvas.width,
-                pinyin_canvas_height=self.font_config.pinyin_canvas.height,
-                pinyin_canvas_base_line=self.font_config.pinyin_canvas.base_line,
-                all_pronunciations=all_pronunciations
-            )
-            
-            # Add all generated glyphs to the collection
-            pinyin_alphabets = self.pinyin_generator.get_pinyin_alphabets()
-            self._all_glyphs.update(pinyin_alphabets)
-        # Do NOT add pronunciation_glyphs to actual font glyphs (legacy compatibility)
+        
+        print(f"DEBUG: Found {len(all_pronunciations)} unique pronunciations")
+        
+        # Get hanzi metrics for pronunciation glyph generation
+        sample_char = "一"  # Use "一" as reference
+        sample_cid = self.mapping_manager.convert_hanzi_to_cid(sample_char)
+        if sample_cid and sample_cid in self._glyf_data:
+            glyph = self._glyf_data[sample_cid]
+            hanzi_advance_width = glyph.get("advanceWidth", 1000.0)
+            hanzi_advance_height = glyph.get("advanceHeight", hanzi_advance_width)
+        else:
+            hanzi_advance_width = 1000.0
+            hanzi_advance_height = 1000.0
+        
+        print(f"DEBUG: Hanzi metrics - width: {hanzi_advance_width}, height: {hanzi_advance_height}")
+        
+        # Generate pronunciation glyphs with proper parameters
+        self.pinyin_generator.generate_pronunciation_glyphs(
+            hanzi_advance_width=hanzi_advance_width,
+            hanzi_advance_height=hanzi_advance_height,
+            pinyin_canvas_width=self.font_config.pinyin_canvas.width,
+            pinyin_canvas_height=self.font_config.pinyin_canvas.height,
+            pinyin_canvas_base_line=self.font_config.pinyin_canvas.base_line,
+            all_pronunciations=all_pronunciations
+        )
+        
+        # Add all generated glyphs to the collection
+        pinyin_alphabets = self.pinyin_generator.get_pinyin_alphabets()
+        pronunciation_glyphs = self.pinyin_generator.get_pronunciation_glyphs()
+        
+        print(f"DEBUG: Generated {len(pinyin_alphabets)} alphabet glyphs and {len(pronunciation_glyphs)} pronunciation glyphs")
+        
+        self._all_glyphs.update(pinyin_alphabets)
+        # Store pronunciation glyphs separately for hanzi generator
+        self._pronunciation_glyphs = pronunciation_glyphs
     
     def generate_hanzi_glyphs(self) -> None:
         """Generate all hanzi glyphs with pinyin."""
-        # Get correct pinyin metrics from legacy generator if available
+        # Set the pronunciation glyphs in the hanzi generator
+        self.hanzi_generator.set_legacy_pronunciation_glyphs(self._pronunciation_glyphs)
+        
+        # Get correct pinyin metrics
         pinyin_metrics = self.get_pinyin_metrics()
         
         single_glyphs = self.hanzi_generator.generate_single_pronunciation_glyphs(self._glyf_data, pinyin_metrics)
@@ -640,35 +655,28 @@ class GlyphManager:
         return self.pinyin_generator.get_glyph_names()
     
     def get_pinyin_metrics(self) -> PinyinMetrics:
-        """Get pinyin glyph metrics using legacy mode if available."""
-        if hasattr(self, '_legacy_mode') and self._legacy_mode and hasattr(self, 'legacy_pinyin_generator'):
-            # Get metrics from legacy generator - use pronunciation glyphs (e.g., "yi1")
+        """Get pinyin glyph metrics."""
+        # Try to get metrics from generated pronunciation glyphs first
+        if hasattr(self, '_pronunciation_glyphs') and self._pronunciation_glyphs:
             try:
-                # Legacy approach: use a sample pronunciation to get metrics (like Font.get_advance_size_of_pinyin_glyf)
-                sample_pronunciation = "yi1"
-                pronunciation_glyphs = self.legacy_pinyin_generator.get_pronunciation_glyf_table()
+                # Use a sample pronunciation to get metrics
+                sample_pronunciation = next(iter(self._pronunciation_glyphs.keys()))
+                sample_glyph = self._pronunciation_glyphs[sample_pronunciation]
+                advance_width = sample_glyph["advanceWidth"]
+                advance_height = sample_glyph["advanceHeight"]
+                vertical_origin = sample_glyph["verticalOrigin"]
                 
-                if sample_pronunciation in pronunciation_glyphs:
-                    sample_glyph = pronunciation_glyphs[sample_pronunciation]
-                    advance_width = sample_glyph["advanceWidth"]
-                    advance_height = sample_glyph["advanceHeight"]
-                    vertical_origin = sample_glyph["verticalOrigin"]
-                    
-                    print(f"DEBUG: Legacy pinyin metrics from {sample_pronunciation} - width: {advance_width}, height: {advance_height}, vertical_origin: {vertical_origin}")
-                    return PinyinMetrics(
-                        width=advance_width,
-                        height=advance_height,
-                        vertical_origin=vertical_origin
-                    )
-                else:
-                    raise KeyError(f"Sample pronunciation '{sample_pronunciation}' not found in pronunciation glyphs")
+                print(f"DEBUG: Pinyin metrics from {sample_pronunciation} - width: {advance_width}, height: {advance_height}, vertical_origin: {vertical_origin}")
+                return PinyinMetrics(
+                    width=advance_width,
+                    height=advance_height,
+                    vertical_origin=vertical_origin
+                )
                     
             except Exception as e:
-                print(f"WARNING: Could not get legacy pinyin metrics: {e}")
-                fallback = self.pinyin_generator.get_metrics()
-                print(f"DEBUG: Fallback pinyin metrics - width: {fallback.width}, height: {fallback.height}, vertical_origin: {fallback.vertical_origin}")
-                return fallback
-        else:
-            fallback = self.pinyin_generator.get_metrics()
-            print(f"DEBUG: Non-legacy pinyin metrics - width: {fallback.width}, height: {fallback.height}, vertical_origin: {fallback.vertical_origin}")
-            return fallback
+                print(f"WARNING: Could not get pinyin metrics from pronunciation glyphs: {e}")
+        
+        # Fallback to pinyin generator metrics
+        fallback = self.pinyin_generator.get_metrics()
+        print(f"DEBUG: Fallback pinyin metrics - width: {fallback.width}, height: {fallback.height}, vertical_origin: {fallback.vertical_origin}")
+        return fallback

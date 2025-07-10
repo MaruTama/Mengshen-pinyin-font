@@ -125,3 +125,71 @@ def get_default_pinyin_manager() -> PinyinDataManager:
 def get_pinyin_table_with_mapping_table() -> Dict[str, List[str]]:
     """Backward compatibility function for legacy code."""
     return get_default_pinyin_manager().get_all_mappings()
+
+
+# Legacy compatibility functions from pinyin_getter.py
+BAIDU_URL = "https://hanyu.baidu.com/s?wd={}&from=zici"
+ZDIC_URL = "https://www.zdic.net/hans/{}"
+MERGED_MAPPING_TABLE = "merged-mapping-table.txt"
+
+NORMAL_PRONUNCIATION = 0
+VARIATIONAL_PRONUNCIATION = 1
+
+SS_NORMAL_PRONUNCIATION = 1
+SS_VARIATIONAL_PRONUNCIATION = 2
+
+
+@lru_cache(maxsize=512)
+def get_pinyin_with_baidu(hanzi: str) -> Optional[List[str]]:
+    """
+    DEPRECATED: This function is only used for manual verification, not in production.
+    """
+    try:
+        import requests
+        from bs4 import BeautifulSoup
+        
+        html = requests.get(BAIDU_URL.format(hanzi))
+        soup = BeautifulSoup(html.content, "html.parser")
+        elem = soup.find("div", id="pinyin")
+        raw_text = elem.find("b")
+        # [ chóng xiāo ] こんな感じの文字列
+        text = raw_text.get_text()
+        text = text.replace("[ ", "")
+        text = text.replace(" ]", "")
+        pinyins = text.split(" ")
+        return pinyins
+    except:
+        return None
+
+
+@lru_cache(maxsize=512)
+def get_pinyin_with_zdic(hanzi: str) -> Optional[List[str]]:
+    """
+    DEPRECATED: This function is only used for manual verification, not in production.
+    """
+    try:
+        import requests
+        from bs4 import BeautifulSoup
+        
+        html = requests.get(ZDIC_URL.format(hanzi))
+        soup = BeautifulSoup(html.content, "html.parser")
+        elem = soup.find("span", class_="dicpy")
+        raw_text = elem.get_text()
+        # [ chóng xiāo ] こんな感じの文字列
+        text = raw_text.replace("[ ", "")
+        text = text.replace(" ]", "")
+        pinyins = text.split(" ")
+        return pinyins
+    except:
+        return None
+
+
+def get_pinyin_with_pypinyin(hanzi: str) -> List[str]:
+    """
+    Get pinyin using pypinyin library.
+    """
+    try:
+        from pypinyin import lazy_pinyin, Style
+        return lazy_pinyin(hanzi, style=Style.TONE)
+    except:
+        return []

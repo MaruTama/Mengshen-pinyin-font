@@ -253,7 +253,12 @@ class FontBuilder:
         
         # 2. Add pinyin alphabet glyphs (from legacy py_alphablet)
         pinyin_alphabet_glyphs = {k: v for k, v in generated_glyphs.items() if k.startswith('py_alphablet')}
+        print(f"DEBUG: Found {len(pinyin_alphabet_glyphs)} pinyin alphabet glyphs in generated_glyphs")
+        print(f"DEBUG: First few pinyin alphabet glyph names: {list(pinyin_alphabet_glyphs.keys())[:5]}")
+        print(f"DEBUG: Total generated_glyphs keys: {len(generated_glyphs)}")
+        print(f"DEBUG: All generated_glyphs keys starting with 'py': {[k for k in generated_glyphs.keys() if k.startswith('py')][:10]}")
         new_glyf.update(pinyin_alphabet_glyphs)
+        print(f"DEBUG: new_glyf now has {len(new_glyf)} glyphs after adding pinyin alphabets")
         
         # 3. Add substance glyphs (CRITICAL: use glyf template for contour data)
         # This is the missing piece - we need to use _glyf_data for actual glyph contours

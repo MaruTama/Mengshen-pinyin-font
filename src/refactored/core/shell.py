@@ -95,8 +95,8 @@ def validate_file_path(file_path: str) -> Path:
     except Exception as e:
         raise SecurityError(f"Invalid path: {e}")
     
-    # Ensure path is within project directory
-    project_root = Path(__file__).parent.parent.resolve()
+    # Ensure path is within project directory (go up to workspace root)
+    project_root = Path(__file__).parent.parent.parent.parent.resolve()
     try:
         path.relative_to(project_root)
     except ValueError:
@@ -297,3 +297,21 @@ def secure_shell_process(cmd: List[str]) -> None:
     if result.returncode != 0:
         error_msg = result.stderr or f"Command failed with return code {result.returncode}"
         raise SecurityError(f"Font conversion failed: {error_msg}")
+
+
+class ShellExecutor:
+    """Shell command executor for backward compatibility."""
+    
+    def __init__(self, working_directory: str = None):
+        self.working_directory = working_directory
+    
+    def execute(self, command: str, capture_output: bool = False) -> str:
+        """Execute a command safely."""
+        try:
+            if capture_output:
+                return legacy_shell_process_replacement(command)
+            else:
+                legacy_shell_process_replacement(command)
+                return ""
+        except Exception as e:
+            raise SecurityError(f"Command execution failed: {e}")

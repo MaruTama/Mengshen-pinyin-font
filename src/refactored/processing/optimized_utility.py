@@ -48,7 +48,15 @@ SIMPLED_ALPHABET = {
 @lru_cache(maxsize=512)
 def simplification_pronunciation(pronunciation: str) -> str:
     """Simplify pinyin pronunciation with caching for performance."""
-    return "".join([SIMPLED_ALPHABET[c] for c in pronunciation])
+    try:
+        return "".join([SIMPLED_ALPHABET[c] for c in pronunciation])
+    except KeyError as e:
+        # Handle missing characters - fallback to original character
+        result = []
+        for c in pronunciation:
+            result.append(SIMPLED_ALPHABET.get(c, c))
+        print(f"DEBUG: simplification_pronunciation fallback for '{pronunciation}' -> {''.join(result)}")
+        return "".join(result)
 
 
 # Global cmap table for legacy compatibility

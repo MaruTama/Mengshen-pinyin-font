@@ -124,3 +124,15 @@ def get_legacy_paths():
         'DIR_OUTPUT': str(paths.outputs_dir),
         'DIR_TOOLS': str(paths.tools_dir)
     }
+
+
+# Legacy constants for direct import
+paths = get_default_paths()
+DIR_ROOT = str(paths.project_root)
+DIR_SRC = str(paths.src_dir)
+DIR_RES = str(paths.resources_dir)
+DIR_FONTS = str(paths.fonts_dir)
+DIR_PHONICS = str(paths.phonics_dir)
+DIR_TEMP = str(paths.json_temp_dir)  # Point to json temp dir for backward compatibility
+DIR_OUTPUT = str(paths.outputs_dir)
+DIR_TOOLS = str(paths.tools_dir)

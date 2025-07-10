@@ -75,17 +75,17 @@ python make_unicode_pinyin_map_table.py
 # ベースにするフォントを編集可能の状態（json）にダンプする  
 # glyf table はサイズが大きく閲覧のときに不便なので他のテーブルと分離する。  
 # han-serif
-python src/make_template_jsons.py --style han_serif
+PYTHONPATH=src python -m refactored.scripts.make_template_jsons --style han_serif
 # handwritten
-python src/make_template_jsons.py --style handwritten
+PYTHONPATH=src python -m refactored.scripts.make_template_jsons --style handwritten
 
 
 # 拼音表示のための文字を抽出する  
 # 固定幅の英字フォントのみ対応  
 # han-serif
-python src/retrieve_latin_alphabet.py --style han_serif
+PYTHONPATH=src python -m refactored.scripts.retrieve_latin_alphabet --style han_serif
 # handwritten
-python src/retrieve_latin_alphabet.py --style handwritten
+PYTHONPATH=src python -m refactored.scripts.retrieve_latin_alphabet --style handwritten
 
 # フォント生成
 cd ../../../..
@@ -116,10 +116,10 @@ time python3 src/main.py
 #### リファクタ版
 ```bash
 # han_serifフォントを生成
-PYTHONPATH=src python -m mengshen_font.cli.main -t han_serif
+PYTHONPATH=src python -m refactored.cli.main -t han_serif
 
 # handwrittenフォントを生成
-PYTHONPATH=src python -m mengshen_font.cli.main -t handwritten
+PYTHONPATH=src python -m refactored.cli.main -t handwritten
 ```
 
 ### 依存関係セットアップ
