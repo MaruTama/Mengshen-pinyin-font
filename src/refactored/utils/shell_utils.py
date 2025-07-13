@@ -151,7 +151,7 @@ def safe_command_execution(cmd: Union[List[str], str]) -> subprocess.CompletedPr
             capture_output=True,
             text=False,  # Return bytes for security testing compatibility
             shell=False,  # Explicitly disable shell
-            timeout=60,  # Increased timeout for font processing
+            timeout=600,  # Increased timeout for font processing
         )
         # Convert stderr to text for error handling while keeping stdout as bytes
         if result.stderr and isinstance(result.stderr, bytes):
