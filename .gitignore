@@ -5,7 +5,36 @@ res/fonts/glyphs
 tmp/json/template.json
 tmp/json/template_temp.json
 tmp/json/template_glyf.json
+tmp/json/template_output.json
+tmp/json/template_glyf_handwritten.json
+tmp/json/template_glyf_han_serif.json
 tmp/cmap.json
 tools/SVGCleaner.app
 tools/ttf2ufo.pe
 tools/ufo2ttf.pe
+
+# Development tools
+.lefthook-local.yml
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+dist/
+build/
+
+# CI/CD generated reports
+bandit-report.json
+safety-report.json
+benchmark.json
+coverage.xml
+
+# Python version management
+.python-version
+
+# Act (local GitHub Actions testing)
+.actrc
+act-commands.md
+
+# VS Code user-specific settings (keep shared settings in repo)
+.vscode/launch.json
+.vscode/tasks.json
