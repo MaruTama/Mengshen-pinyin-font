@@ -27,7 +27,7 @@ U+3C00: lí  #㰀
 U+3CC7: fù  #㳇
 U+3CD8: chōng  #㳘
 U+3CDA: xù  #㳚
-U+3D14: xī,jí,yì,sè  #㴔
+U+3D14: yì,xì,sè  #㴔
 U+3D50: jué  #㵐
 U+3DB2: yòng  #㶲
 U+3E06: kào  #㸆
@@ -242,7 +242,7 @@ U+4F1E: sǎn  #伞
 U+4F1F: wěi  #伟
 U+4F20: chuán,zhuàn  #传
 U+4F22: yá  #伢
-U+4F23: qiàn,xiàn  #伣
+U+4F23: qiàn  #伣
 U+4F24: shāng  #伤
 U+4F25: chāng  #伥
 U+4F26: lún  #伦
@@ -860,7 +860,7 @@ U+5472: cī,cí,zī  #呲
 U+5473: wèi,mèi  #味
 U+5475: hē,hā,ā,a,kē,huō,á,ǎ,à  #呵
 U+5476: náo,ná,nǔ  #呶
-U+5477: gā,xiā,jiǎ  #呷
+U+5477: gā,xiā,xiá,jiǎ  #呷
 U+5478: pēi  #呸
 U+547B: shēn  #呻
 U+547C: hū,xiāo,xū,hè,xià  #呼
@@ -3130,7 +3130,7 @@ U+69DB: kǎn,jiàn  #槛
 U+69DC: zuì  #槜
 U+69DF: bīn,bīng  #槟
 U+69E0: zhū  #槠
-U+69ED: qī,qì,zú,sè  #槭
+U+69ED: qī,qì,cù,zú,sè  #槭
 U+69F1: yǒu,chǎo  #槱
 U+69F2: hú  #槲
 U+69FD: cáo,zāo  #槽
@@ -3184,7 +3184,7 @@ U+6B32: yù  #欲
 U+6B38: āi,ǎi,ê̄,ế,ê̌,ề,xiè,éi,ěi,èi,ēi  #欸
 U+6B39: yī,qī  #欹
 U+6B3A: qī  #欺
-U+6B3B: chuā,xū  #欻
+U+6B3B: chuā,xū,hū  #欻
 U+6B3E: kuǎn,xīn  #款
 U+6B43: shà,xiá  #歃
 U+6B45: yīn  #歅
@@ -3406,7 +3406,7 @@ U+6D0C: liè  #洌
 U+6D0E: jì  #洎
 U+6D11: fú,fù  #洑
 U+6D12: sǎ,xǐ,xiǎn,sěn,cuǐ,xùn  #洒
-U+6D13: sè,qì,zì  #洓
+U+6D13: sè,qì,suǒ,zì  #洓
 U+6D17: xǐ,xiǎn  #洗
 U+6D18: kǎo,kào  #洘
 U+6D19: zhū  #洙
@@ -4242,7 +4242,7 @@ U+7533: shēn  #申
 U+7535: diàn  #电
 U+7537: nán  #男
 U+7538: diān,diàn,tián,shèng,yìng  #甸
-U+753A: tīng,dīng,tǐng,zhèng,tiǎn  #町
+U+753A: tīng,tǐng,dīng,zhèng,tiǎn  #町
 U+753B: huà  #画
 U+753E: zāi,zī  #甾
 U+7540: bì  #畀
@@ -5290,7 +5290,7 @@ U+8084: yì,sì  #肄
 U+8086: sì,tì  #肆
 U+8087: zhào  #肇
 U+8089: ròu,rù  #肉
-U+808B: lē,lèi,jīn  #肋
+U+808B: lē,lèi,lè,jīn  #肋
 U+808C: jī,jì  #肌
 U+8093: huāng  #肓
 U+8096: xiào,xiāo  #肖
@@ -5754,7 +5754,7 @@ U+8446: bǎo,bāo  #葆
 U+844E: lǜ  #葎
 U+8451: fēng,fèng  #葑
 U+8456: tū  #葖
-U+8457: zhù,zhe,zhuó,chú,zhāo,zháo  #著
+U+8457: zhù,zhuó,chú,zhāo,zháo,zhe  #著
 U+8459: xiāng  #葙
 U+845A: rèn,shèn  #葚
 U+845B: gé,gě  #葛
@@ -6297,7 +6297,7 @@ U+8BE0: quán  #诠
 U+8BE1: guǐ  #诡
 U+8BE2: xún  #询
 U+8BE3: yì  #诣
-U+8BE4: zhèng,zhēng  #诤
+U+8BE4: zhèng  #诤
 U+8BE5: gāi  #该
 U+8BE6: xiáng  #详
 U+8BE7: chà  #诧
@@ -6574,7 +6574,7 @@ U+8E4A: qī,xī  #蹊
 U+8E4B: tà  #蹋
 U+8E50: jí  #蹐
 U+8E51: niè  #蹑
-U+8E52: pán,mán  #蹒
+U+8E52: pán  #蹒
 U+8E59: cù  #蹙
 U+8E5A: tāng,tàng,chēng  #蹚
 U+8E5C: sù  #蹜
@@ -6759,7 +6759,7 @@ U+9053: dào,dǎo  #道
 U+9057: yí,wèi  #遗
 U+9058: gòu  #遘
 U+905B: liú,liù  #遛
-U+9062: tà,tā  #遢
+U+9062: tà,ta,tā  #遢
 U+9063: qiǎn,qiàn  #遣
 U+9065: yáo  #遥
 U+9068: áo  #遨
