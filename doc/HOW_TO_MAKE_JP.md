@@ -45,6 +45,64 @@ $ pyenv global 3.8.2
 $ pip install -r requirements.txt
 ```
 
+## 開発環境のセットアップ
+
+### 開発用依存関係のインストール
+```bash
+# 開発・テスト用のツールをインストール
+$ pip install -r requirements-dev.txt
+```
+
+### VS Code設定
+VS Codeを使用する場合、以下の拡張機能が推奨されます：
+```bash
+# 推奨拡張機能（.vscode/extensions.jsonに定義済み）
+- ms-python.black-formatter  # Blackコードフォーマッター
+- ms-python.isort           # import文整理
+- ms-python.flake8          # リンター
+- ms-python.mypy-type-checker # 型チェッカー
+- streetsidesoftware.code-spell-checker # スペルチェッカー
+```
+
+プロジェクトには `.vscode/settings.json` が含まれており、以下が自動設定されます：
+- 保存時の自動フォーマット（Black + isort）
+- Python 3.8対応の型アノテーション設定
+- フォーマッターが環境のツールを使用するよう設定済み
+
+### Git フック（Lefthook）
+開発時の品質管理のため、Lefthookを使用してGitフックを設定できます：
+
+```bash
+# Lefthookのインストール（macOS）
+$ brew install lefthook
+
+# Gitフックを有効化
+$ lefthook install
+
+# 設定確認
+$ lefthook version
+```
+
+設定されているフック：
+- **pre-commit**: コードフォーマット（Black + isort）、リンティング（flake8）、セキュリティチェック
+- **pre-push**: ユニットテスト + セキュリティテスト実行
+
+### 手動フォーマット実行
+```bash
+# コードフォーマット
+$ black src/ tests/
+$ isort src/ tests/
+
+# リンティング
+$ flake8 src/ tests/
+
+# 型チェック
+$ mypy src/
+
+# セキュリティチェック
+$ bandit -r src/
+```
+
 ## 生成手順
 1. 多音字の辞書を作る(省略可能)  
 [詳細へ](../res/phonics/duo_yin_zi/README_JP.md)  

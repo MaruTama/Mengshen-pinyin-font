@@ -1,0 +1,54 @@
+# Lefthook configuration for Mengshen Pinyin Font project
+# https://github.com/evilmartians/lefthook
+
+# 共通設定
+colors: true
+skip_output:
+  - summary
+  - execution_info
+
+# Gitフック設定
+pre-commit:
+  commands:
+    # Pythonコードフォーマット
+    format-python:
+      glob: "*.py"
+      run: |
+        # Import sorting with isort
+        isort {staged_files}
+        # Code formatting with black  
+        black {staged_files}
+      stage_fixed: true
+      fail_text: "Pythonコードフォーマットが完了しました。変更を確認してコミットしてください。"
+      
+    # Pythonコード品質チェック
+    python-syntax:
+      glob: "*.py"
+      run: python -m py_compile {staged_files}
+      stage_fixed: true
+      fail_text: "Python構文エラーが見つかりました。"
+      
+    # Pythonリンティング
+    python-lint:
+      glob: "*.py"
+      run: flake8 {staged_files}
+      fail_text: "Flake8リンティングエラーが見つかりました。修正してください。"
+
+pre-push:
+  commands:
+    # コア機能テスト実行
+    core-tests:
+      run: python -m pytest tests/unit/ tests/security/ -x --tb=short
+      fail_text: "コア機能テストが失敗しました。修正してからpushしてください。"
+
+commit-msg:
+  commands:
+    # コミットメッセージの品質チェック
+    message-check:
+      run: |
+        # WIPコミットの警告
+        if echo "$1" | grep -i "wip\|todo\|fixme" >/dev/null; then
+          echo "⚠️  WIP/TODO/FIXMEを含むコミットです。本当にコミットしますか？"
+          echo "継続するには Ctrl+C で中断するか、そのまま続行してください。"
+          read -t 5 -p "5秒で自動継続します..."
+        fi
