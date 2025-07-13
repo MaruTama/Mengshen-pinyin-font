@@ -4,6 +4,7 @@
 U+39D1: huī,wéi  #㧑
 U+3AF0: lǎng  #㫰
 U+3B0A: huǎn  #㬊
+U+3D14: xī,jí,yì,sè  #㴔
 U+4056: lōu,lóu,lǘ,lou  #䁖
 U+40CE: zhǎ  #䃎
 U+43F2: dié  #䏲
@@ -119,6 +120,7 @@ U+4F18: yōu  #优
 U+4F19: huǒ,huo,huō  #伙
 U+4F1A: huì,kuài,huǐ,guì,hui,huě  #会
 U+4F1B: yǔ,kòu,qū  #伛
+U+4F23: qiàn,xiàn  #伣
 U+4F25: chāng,chàng,chéng  #伥
 U+4F27: cāng,chen,chéng  #伧
 U+4F2A: wěi,wéi,wèi  #伪
@@ -5126,6 +5128,7 @@ U+8BD5: shì,shi  #试
 U+8BDA: chéng,cheng  #诚
 U+8BDD: huà,hua  #话
 U+8BDF: gòu,hòu  #诟
+U+8BE4: zhèng,zhēng  #诤
 U+8BE6: xiáng,yáng,xiang  #详
 U+8BE7: chà,dù  #诧
 U+8BEC: wū,wú  #诬
