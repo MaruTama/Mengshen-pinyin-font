@@ -1,0 +1,68 @@
+# Removed obsolete version declaration
+
+services:
+  mengshen-font:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      args:
+        - BUILDKIT_INLINE_CACHE=1
+      platforms:
+        - linux/amd64
+    container_name: mengshen-font-generator
+    platform: linux/amd64
+    healthcheck:
+      test: ["CMD", "otfccdump", "--version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    volumes:
+      # Mount source code for development
+      - ../src:/app/src:ro
+      # Mount resource files
+      - ../res:/app/res:ro
+      # Mount output directory for generated fonts
+      - ../outputs:/app/outputs
+      # Mount temp directory for intermediate files
+      - ../tmp:/app/tmp
+    environment:
+      - PYTHONPATH=/app/src
+      - PYTHONUNBUFFERED=1
+    working_dir: /app
+    
+  # Service for generating han_serif font
+  han-serif:
+    extends: mengshen-font
+    container_name: mengshen-han-serif
+    command: ["python", "-m", "refactored.cli.main", "-t", "han_serif"]
+    
+  # Service for generating handwritten font  
+  handwritten:
+    extends: mengshen-font
+    container_name: mengshen-handwritten
+    command: ["python", "-m", "refactored.cli.main", "-t", "handwritten"]
+    
+  # Service for complete pipeline
+  pipeline:
+    extends: mengshen-font
+    container_name: mengshen-pipeline
+    command: ["/app/docker/scripts/docker-pipeline.sh"]
+    
+  # Service for development and testing
+  dev:
+    extends: mengshen-font
+    container_name: mengshen-dev
+    command: ["bash"]
+    stdin_open: true
+    tty: true
+    volumes:
+      # Development mode - mount source as read-write
+      - ../src:/app/src
+      - ../tests:/app/tests
+      - ../res:/app/res:ro
+      - ../outputs:/app/outputs
+      - ../tmp:/app/tmp
+
+volumes:
+  outputs:
+  tmp:
