@@ -1,0 +1,3 @@
+[submodule "res/pinyin-data"]
+	path = res/pinyin-data
+	url = https://github.com/mozillazg/pinyin-data.git
