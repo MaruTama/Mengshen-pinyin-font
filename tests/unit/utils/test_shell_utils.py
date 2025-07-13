@@ -117,7 +117,7 @@ class TestSafeCommandExecution:
 
         # Verify subprocess.run was called correctly
         mock_run.assert_called_once_with(
-            ["echo", "hello"], capture_output=True, text=False, shell=False, timeout=60
+            ["echo", "hello"], capture_output=True, text=False, shell=False, timeout=600
         )
 
         assert result == mock_result
