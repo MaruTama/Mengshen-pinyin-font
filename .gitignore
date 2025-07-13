@@ -5,7 +5,27 @@ res/fonts/glyphs
 tmp/json/template.json
 tmp/json/template_temp.json
 tmp/json/template_glyf.json
+tmp/json/template_output.json
+tmp/json/template_glyf_handwritten.json
+tmp/json/template_glyf_han_serif.json
 tmp/cmap.json
 tools/SVGCleaner.app
 tools/ttf2ufo.pe
 tools/ufo2ttf.pe
+
+# Development tools
+.lefthook-local.yml
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+dist/
+build/
+
+# VS Code user-specific settings (keep shared settings in repo)
+.vscode/launch.json
+.vscode/tasks.json
+
+# Generated font outputs (large binary files)
+outputs/*.ttf
+outputs/*.otf
