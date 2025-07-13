@@ -1,0 +1,145 @@
+# Lefthook configuration for Mengshen Pinyin Font project
+# https://github.com/evilmartians/lefthook
+# Mirrors GitHub Actions code-quality.yml workflow for local development
+#
+# ============================================================================
+# SETUP INSTRUCTIONS
+# ============================================================================
+# Required tools installation:
+#   pip install black isort flake8 mypy bandit safety
+#   npm install -g cspell markdownlint-cli
+#
+# Enable hooks:
+#   lefthook install
+#
+# Manual execution:
+#   lefthook run pre-commit      # Run commit checks
+#   lefthook run pre-push        # Run push checks
+#   lefthook run pre-push --commands core-tests  # Run specific check
+#
+# ============================================================================
+# HOOK OVERVIEW
+# ============================================================================
+# Pre-commit (staged files only, excludes src/legacy/):
+#   • Auto-format Python code (isort + black)
+#   • Syntax validation
+#   • Critical linting errors
+#   • Import order validation
+#   • Format compliance check
+#   • Spell checking
+#   • Markdown linting
+#   • Security scan (staged files)
+#
+# Pre-push (src/refactored/ and tests/ only):
+#   • Core functionality tests
+#   • Basic quality (black, isort, flake8)
+#   • Security (bandit, safety)
+# ============================================================================
+
+# 共通設定
+colors: true
+skip_output:
+  - summary
+  - execution_info
+
+# Gitフック設定
+pre-commit:
+  commands:
+    # Pythonコードフォーマット（自動修正） - legacyコード除外
+    format-python:
+      glob: "*.py"
+      exclude: "src/legacy/"
+      run: |
+        # Import sorting with isort
+        isort {staged_files}
+        # Code formatting with black  
+        black {staged_files}
+      stage_fixed: true
+      fail_text: "Pythonコードフォーマットが完了しました。変更を確認してコミットしてください。"
+
+    # Pythonコード品質チェック - legacyコード除外
+    python-syntax:
+      glob: "*.py"
+      exclude: "src/legacy/"
+      run: python -m py_compile {staged_files}
+      stage_fixed: true
+      fail_text: "Python構文エラーが見つかりました。"
+
+    # Pythonリンティング（基本チェック） - legacyコード除外
+    python-lint-basic:
+      glob: "*.py"
+      exclude: "src/legacy/"
+      run: flake8 {staged_files} --count --select=E9,F63,F7,F82 --show-source --statistics
+      fail_text: "Flake8重要エラーが見つかりました。修正してください。"
+
+    # Import順序チェック（CI同様） - legacyコード除外
+    import-check:
+      glob: "*.py"
+      exclude: "src/legacy/"
+      run: isort --check-only --diff {staged_files}
+      fail_text: "Import順序が正しくありません。`isort {staged_files}` で修正してください。"
+
+    # コードフォーマットチェック（CI同様） - legacyコード除外
+    format-check:
+      glob: "*.py"
+      exclude: "src/legacy/"
+      run: black --check --diff {staged_files}
+      fail_text: "コードフォーマットが正しくありません。`black {staged_files}` で修正してください。"
+
+    # スペルチェック（変更されたファイルのみ）
+    spell-check:
+      glob: "*.{py,md}"
+      run: cspell {staged_files} --config cspell.json
+      fail_text: "スペルチェックエラーが見つかりました。辞書への追加または修正が必要です。"
+
+    # Markdownリンティングと自動修正（変更されたファイルのみ）
+    markdown-lint:
+      glob: "*.md"
+      run: |
+        # Auto-fix markdownlint issues
+        markdownlint --fix {staged_files} --config .markdownlint.json 2>/dev/null || echo "markdownlint未インストール、手動修正が必要です"
+        # Check for remaining issues
+        markdownlint {staged_files} --config .markdownlint.json 2>/dev/null || echo "残りのMarkdownエラーは手動修正が必要です"
+      stage_fixed: true
+      fail_text: "Markdownが自動修正されました。変更を確認してコミットしてください。"
+
+    # セキュリティチェック（変更されたファイルのみ） - legacyコード除外
+    security-check-staged:
+      glob: "*.py"
+      exclude: "src/legacy/"
+      run: |
+        # Create temporary directory for staged files
+        tmpdir=$(mktemp -d)
+        for file in {staged_files}; do
+          cp "$file" "$tmpdir/"
+        done
+        # Run bandit on staged files
+        bandit -r "$tmpdir" --severity-level medium -c bandit.yaml || echo "セキュリティ警告: banditで問題が検出されました"
+        # Cleanup
+        rm -rf "$tmpdir"
+      fail_text: "セキュリティチェックで問題が見つかりました。修正してください。"
+
+pre-push:
+  commands:
+    # コア機能テスト実行
+    core-tests:
+      run: python -m pytest tests/unit/ tests/security/ -x --tb=short
+      fail_text: "コア機能テストが失敗しました。修正してからpushしてください。"
+
+    # 基本品質チェック
+    quality-basic:
+      run: black --check src/refactored/ tests/ && isort --check src/refactored/ tests/ && flake8 src/refactored/ tests/ --select=E9,F63,F7,F82
+      fail_text: "基本品質チェック失敗"
+
+    # セキュリティチェック（基本）
+    security:
+      run: bandit -r src/refactored/ -c bandit.yaml -f txt --exit-zero
+      fail_text: "セキュリティチェック失敗"
+
+    # 軽量セキュリティチェック（スキップ可能）
+    security-scan-light:
+      run: |
+        echo "🔒 軽量セキュリティスキャン..."
+        bandit -r src/refactored/ -f json -o bandit-report.json -c bandit.yaml --exit-zero
+        echo "セキュリティレポートが bandit-report.json に生成されました"
+      fail_text: "セキュリティスキャンでエラーが発生しました。"

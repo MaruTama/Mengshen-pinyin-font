@@ -1,0 +1,23 @@
+{
+  "MD001": false,
+  "MD011": false,
+  "MD013": false,
+  "MD025": false,
+  "MD024": {
+    "siblings_only": true
+  },
+  "MD029": {
+    "style": "ordered"
+  },
+  "MD033": {
+    "allowed_elements": [
+      "img",
+      "div",
+      "details",
+      "summary"
+    ]
+  },
+  "MD036": false,
+  "MD045": false,
+  "MD059": false
+}
