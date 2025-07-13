@@ -142,7 +142,7 @@ def safe_command_execution(cmd: Union[List[str], str]) -> subprocess.CompletedPr
             capture_output=True,
             text=False,  # Return bytes for security testing compatibility
             shell=False,  # Explicitly disable shell
-            timeout=60,  # Increased timeout for font processing
+            timeout=600,  # Increased timeout for font processing
         )
         # Convert stderr to text for error handling while keeping stdout as bytes
         if result.stderr and isinstance(result.stderr, bytes):
@@ -280,12 +280,12 @@ def safe_pipeline_execution(cmd: str) -> str:
                         input=input_bytes,
                         capture_output=True,
                         shell=False,
-                        timeout=60,
+                        timeout=600,
                     )
                 else:
                     # First command in pipeline
                     result = subprocess.run(
-                        cmd_list, capture_output=True, shell=False, timeout=60
+                        cmd_list, capture_output=True, shell=False, timeout=600
                     )
 
                 if result.returncode != 0:
@@ -331,7 +331,7 @@ def safe_pipeline_execution(cmd: str) -> str:
         try:
             cmd_list = shlex.split(command_part)
             result = subprocess.run(
-                cmd_list, capture_output=True, shell=False, timeout=60
+                cmd_list, capture_output=True, shell=False, timeout=600
             )
 
             if result.returncode != 0:

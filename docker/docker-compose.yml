@@ -1,0 +1,178 @@
+version: '3.8'
+
+# Mengshen Pinyin Font Generator - Docker Compose Configuration
+#
+# Usage:
+#   docker-compose up pipeline-handwritten    # Generate handwritten font
+#   docker-compose up pipeline-han-serif      # Generate han_serif font  
+#   docker-compose up pipeline-all            # Generate both fonts
+#
+# Generated files are automatically copied to host via volume mounts:
+#   - Font files (.ttf): ./outputs/
+#   - Template files (.json): ./tmp/json/
+
+x-mengshen-font-base: &mengshen-font-base
+  build:
+    context: ..
+    dockerfile: docker/Dockerfile
+    args:
+      - BUILDKIT_INLINE_CACHE=1
+  healthcheck:
+    test: [ "CMD", "otfccdump", "--version" ]
+    interval: 30s
+    timeout: 10s
+    retries: 3
+  volumes:
+    # Mount source code for development
+    - ../src:/app/src:ro
+    # Mount resource files
+    - ../res:/app/res:ro
+    # Mount output directory for generated fonts
+    - ../outputs:/app/outputs
+    # Mount temp directory for intermediate files
+    - ../tmp:/app/tmp
+  environment:
+    - PYTHONPATH=/app/src
+    - PYTHONUNBUFFERED=1
+  working_dir: /app
+
+services:
+  mengshen-font:
+    <<: *mengshen-font-base
+    container_name: mengshen-font-generator
+
+  # Service for generating han_serif font
+  han-serif:
+    <<: *mengshen-font-base
+    container_name: mengshen-han-serif
+    command: [ "python", "-m", "refactored.cli.main", "-t", "han_serif" ]
+
+  # Service for generating handwritten font
+  handwritten:
+    <<: *mengshen-font-base
+    container_name: mengshen-handwritten
+    command: [ "python", "-m", "refactored.cli.main", "-t", "handwritten" ]
+
+  # Service for complete pipeline (both styles)
+  pipeline-all:
+    <<: *mengshen-font-base
+    container_name: mengshen-pipeline-all
+    command:
+      - /bin/bash
+      - -c
+      - |
+        set -e
+        echo "Starting complete font pipeline (both styles)..."
+        cd /app
+        cd res/phonics/duo_yin_zi/scripts && python make_pattern_table.py
+        cd ../../unicode_mapping_table && python make_unicode_pinyin_map_table.py
+        cd /app
+        
+        echo "Processing templates..."
+        PYTHONPATH=src python -m refactored.scripts.make_template_jsons --style han_serif
+        PYTHONPATH=src python -m refactored.scripts.make_template_jsons --style handwritten
+        
+        echo "Retrieving Latin alphabets..."
+        PYTHONPATH=src python -m refactored.scripts.retrieve_latin_alphabet --style han_serif
+        PYTHONPATH=src python -m refactored.scripts.retrieve_latin_alphabet --style handwritten
+        
+        echo "Generating fonts..."
+        PYTHONPATH=src python -m refactored.cli.main -t han_serif
+        PYTHONPATH=src python -m refactored.cli.main -t handwritten
+        
+        echo "Pipeline completed. Verifying generated files..."
+        ls -la /app/outputs/
+        ls -la /app/tmp/json/ || echo "tmp/json directory not found"
+        
+        echo "Files are automatically synchronized to host via volume mounts:"
+        echo "  - Font files: /app/outputs -> ../outputs"
+        echo "  - Temp files: /app/tmp -> ../tmp"
+        echo "All fonts generation completed successfully!"
+    volumes:
+      - ../src:/app/src:ro
+      - ../res:/app/res # Remove :ro to make it writable
+      - ../outputs:/app/outputs
+      - ../tmp:/app/tmp
+
+  # Service for han_serif pipeline
+  pipeline-han-serif:
+    <<: *mengshen-font-base
+    container_name: mengshen-pipeline-han-serif
+    command:
+      - /bin/bash
+      - -c
+      - |
+        set -e
+        echo "Starting han_serif font pipeline..."
+        cd /app
+        cd res/phonics/duo_yin_zi/scripts && python make_pattern_table.py
+        cd ../../unicode_mapping_table && python make_unicode_pinyin_map_table.py
+        cd /app
+        PYTHONPATH=src python -m refactored.scripts.make_template_jsons --style han_serif
+        PYTHONPATH=src python -m refactored.scripts.retrieve_latin_alphabet --style han_serif
+        PYTHONPATH=src python -m refactored.cli.main -t han_serif
+        
+        echo "Pipeline completed. Verifying generated files..."
+        ls -la /app/outputs/
+        ls -la /app/tmp/json/ || echo "tmp/json directory not found"
+        
+        echo "Files are automatically synchronized to host via volume mounts:"
+        echo "  - Font files: /app/outputs -> ../outputs"
+        echo "  - Temp files: /app/tmp -> ../tmp"
+        echo "Han_serif font generation completed successfully!"
+    volumes:
+      - ../src:/app/src:ro
+      - ../res:/app/res # Remove :ro to make it writable
+      - ../outputs:/app/outputs
+      - ../tmp:/app/tmp
+
+  # Service for handwritten pipeline
+  pipeline-handwritten:
+    <<: *mengshen-font-base
+    container_name: mengshen-pipeline-handwritten
+    command:
+      - /bin/bash
+      - -c
+      - |
+        set -e
+        echo "Starting handwritten font pipeline..."
+        cd /app
+        cd res/phonics/duo_yin_zi/scripts && python make_pattern_table.py
+        cd ../../unicode_mapping_table && python make_unicode_pinyin_map_table.py
+        cd /app
+        PYTHONPATH=src python -m refactored.scripts.make_template_jsons --style handwritten
+        PYTHONPATH=src python -m refactored.scripts.retrieve_latin_alphabet --style handwritten
+        PYTHONPATH=src python -m refactored.cli.main -t handwritten
+        
+        echo "Pipeline completed. Verifying generated files..."
+        ls -la /app/outputs/
+        ls -la /app/tmp/json/ || echo "tmp/json directory not found"
+        
+        echo "Files are automatically synchronized to host via volume mounts:"
+        echo "  - Font files: /app/outputs -> ../outputs"
+        echo "  - Temp files: /app/tmp -> ../tmp"
+        echo "Handwritten font generation completed successfully!"
+    volumes:
+      - ../src:/app/src:ro
+      - ../res:/app/res # Remove :ro to make it writable
+      - ../outputs:/app/outputs
+      - ../tmp:/app/tmp
+
+  # Service for development and testing
+  dev:
+    <<: *mengshen-font-base
+    container_name: mengshen-dev
+    command: [ "bash" ]
+    stdin_open: true
+    tty: true
+    volumes:
+      # Development mode - mount source as read-write
+      - ../src:/app/src
+      - ../tests:/app/tests
+      - ../res:/app/res:ro
+      - ../outputs:/app/outputs
+      - ../tmp:/app/tmp
+
+volumes:
+  outputs:
+  tmp:
