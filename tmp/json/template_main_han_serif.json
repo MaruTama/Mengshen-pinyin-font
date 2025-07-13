@@ -1,7 +1,7 @@
 {
   "head": {
-    "version": 1,
-    "fontRevision": 1.0009918212890625,
+    "version": 1.0,
+    "fontRevision": 1.0009918212890626,
     "flags": {
       "baselineAtY_0": true
     },
@@ -19,7 +19,7 @@
     "glyphDataFormat": 0
   },
   "hhea": {
-    "version": 1,
+    "version": 1.0,
     "ascender": 2357,
     "descender": -586,
     "lineGap": 0,
@@ -32,7 +32,7 @@
     "caretOffset": 0
   },
   "maxp": {
-    "version": 1,
+    "version": 1.0,
     "numGlyphs": 30938,
     "maxPoints": 545,
     "maxContours": 41,
@@ -62,7 +62,7 @@
     "caretOffset": 0
   },
   "post": {
-    "version": 2,
+    "version": 2.0,
     "italicAngle": 0,
     "underlinePosition": -307,
     "underlineThickness": 102,
