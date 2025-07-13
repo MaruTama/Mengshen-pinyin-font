@@ -20,13 +20,71 @@ And remove Hangul characters(a960 #ꥠ ~ d7fb #ퟻ) from this font to reduce gly
 [SetoFontSP](https://ja.osdn.net/projects/setofont/releases/p14368) is used for the pinyin part of this font.
 ## Dependencies
 - macOS 10.15(Catalina)
-- python 3.7
+- python 3.8
 - otfcc
 
 ### python
 ```
-$ pyenv global 3.7.2
+$ pyenv global 3.8.2
 $ pip install -r requirements.txt
+```
+
+## Development Environment Setup
+
+### Install Development Dependencies
+```bash
+# Install development and testing tools
+$ pip install -r requirements-dev.txt
+```
+
+### VS Code Configuration
+When using VS Code, the following extensions are recommended:
+```bash
+# Recommended extensions (defined in .vscode/extensions.json)
+- ms-python.black-formatter  # Black code formatter
+- ms-python.isort           # Import statement organizer
+- ms-python.flake8          # Linter
+- ms-python.mypy-type-checker # Type checker
+- streetsidesoftware.code-spell-checker # Spell checker
+```
+
+The project includes `.vscode/settings.json` with the following automatic configuration:
+- Auto-format on save (Black + isort)
+- Python 3.8 compatible type annotation settings
+- Formatters configured to use environment tools
+
+### Git Hooks (Lefthook)
+For development quality management, Lefthook can be used to set up Git hooks:
+
+```bash
+# Install Lefthook (macOS)
+$ brew install lefthook
+
+# Enable Git hooks
+$ lefthook install
+
+# Verify configuration
+$ lefthook version
+```
+
+Configured hooks:
+- **pre-commit**: Code formatting (Black + isort), linting (flake8), security checks
+- **pre-push**: Unit tests + security tests execution
+
+### Manual Format Execution
+```bash
+# Code formatting
+$ black src/ tests/
+$ isort src/ tests/
+
+# Linting
+$ flake8 src/ tests/
+
+# Type checking
+$ mypy src/
+
+# Security check
+$ bandit -r src/
 ```
 
 ### otfcc
