@@ -1,0 +1,57 @@
+{
+  "version": "0.2",
+  "language": "en,ja",
+  "words": [
+    "pinyin", "hanzi", "mengshen", "zhōng", "zhòng", "xuéxiào", "hěnhǎo", "míngtiān",
+    "guó", "xíng", "háng", "hǎo", "hào", "huó",
+    "glyf", "cmap", "gsub", "otfcc", "otfccdump", "woff", "cid", "uvs", "ivs",
+    "opentype", "ttf", "otf", "woff2",
+    "hiragana", "katakana", "kanji",
+    "charset", "unicode", "utf8", "utf16", "endian", "regex", "lookup", "subtable", "styleset",
+    "xiaolai", "serifcn", "setofont", "monospace", "sans", "serif",
+    "cli", "api", "gui", "tdd", "cicd", "yaml", "json", "utf", "ascii", "latin", "cjkv",
+    "src", "tmp", "res", "dir", "dirs", "pytest", "init", "config", "utils", "const",
+    "repo", "github", "workflow", "changelog", "readme", "todo", "fixme", "refactor", "deprecation",
+    "func", "param", "args", "kwargs", "bool", "int", "str", "dict", "tuple", "iter", "enum",
+    "lefthook",
+    "defination", "fucntion", "calss", "retrun", "lenght"
+  ],
+  "ignorePaths": [
+    ".git/**",
+    "__pycache__/**",
+    ".pytest_cache/**",
+    ".coverage",
+    "*.pyc",
+    "*.pyo",
+    "build/**",
+    "dist/**",
+    ".venv/**",
+    "venv/**",
+    "res/pinyin-data/**",
+    "outputs/**",
+    "tmp/**",
+    "tools/**",
+    "*.ttf",
+    "*.otf",
+    "*.woff",
+    "*.eot",
+    "*.json",
+    "*.log",
+    "*.dat",
+    "*.bin"
+  ],
+  "flagWords": [],
+  "dictionaries": ["python", "node", "html", "css", "bash"],
+  "import": [],
+  "overrides": [
+    {
+      "filename": "**/*.md",
+      "language": "en,ja"
+    },
+    {
+      "filename": "**/*.py",
+      "language": "en",
+      "dictionaries": ["python"]
+    }
+  ]
+}
