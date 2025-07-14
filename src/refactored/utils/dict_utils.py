@@ -106,26 +106,6 @@ def flatten_dict(
     return dict(items)
 
 
-def unflatten_dict(data: Dict[str, Any], separator: str = ".") -> Dict[str, Any]:
-    """
-    Unflatten dictionary structure.
-
-    Args:
-        data: Flattened dictionary to unflatten
-        separator: Separator used in flattened keys
-
-    Returns:
-        Nested dictionary
-    """
-    result = {}
-
-    for key, value in data.items():
-        keys = key.split(separator)
-        safe_set_nested(result, keys, value)
-
-    return result
-
-
 def merge_dicts(*dicts: Dict[str, Any]) -> Dict[str, Any]:
     """
     Merge multiple dictionaries with deep merging.

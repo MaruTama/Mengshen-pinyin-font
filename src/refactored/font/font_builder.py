@@ -283,9 +283,9 @@ class FontBuilder:
             if glyph_name not in new_glyf:
                 new_glyf[glyph_name] = glyph_data
 
-        # 2. Add pinyin alphabet glyphs (from legacy py_alphablet)
+        # 2. Add pinyin alphabet glyphs (from legacy py_alphabet)
         pinyin_alphabet_glyphs = {
-            k: v for k, v in generated_glyphs.items() if k.startswith("py_alphablet")
+            k: v for k, v in generated_glyphs.items() if k.startswith("py_alphabet")
         }
         self.logger.debug(
             f" Found {len(pinyin_alphabet_glyphs)} pinyin alphabet glyphs in generated_glyphs"
@@ -305,9 +305,7 @@ class FontBuilder:
         # 3. Add substance glyphs (CRITICAL: use glyf template for contour data)
         # This is the missing piece - we need to use _glyf_data for actual glyph contours
         substance_glyphs = {
-            k: v
-            for k, v in generated_glyphs.items()
-            if not k.startswith("py_alphablet")
+            k: v for k, v in generated_glyphs.items() if not k.startswith("py_alphabet")
         }
 
         self.logger.debug(f" Processing {len(substance_glyphs)} substance glyphs")

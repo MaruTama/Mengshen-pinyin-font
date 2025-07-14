@@ -65,54 +65,54 @@ class PinyinGlyphGenerator:
         with open(alphabet_path, "rb") as f:
             alphabet_data = orjson.loads(f.read())
 
-        # CRITICAL FIX: Convert alphabet glyphs to py_alphablet_ naming convention
-        # Legacy code expects glyphs named like "py_alphablet_a", "py_alphablet_i1", etc.
+        # CRITICAL FIX: Convert alphabet glyphs to py_alphabet_ naming convention
+        # Legacy code expects glyphs named like "py_alphabet_a", "py_alphabet_i1", etc.
         self._pinyin_alphabets = {}
 
         # Add the special v3 glyph used for height calculations (using highest character)
         if "ǘ" in alphabet_data:
-            self._pinyin_alphabets["py_alphablet_v3"] = alphabet_data["ǘ"]
+            self._pinyin_alphabets["py_alphabet_v3"] = alphabet_data["ǘ"]
         elif "ǚ" in alphabet_data:
-            self._pinyin_alphabets["py_alphablet_v3"] = alphabet_data["ǚ"]
+            self._pinyin_alphabets["py_alphabet_v3"] = alphabet_data["ǚ"]
         elif "ǜ" in alphabet_data:
-            self._pinyin_alphabets["py_alphablet_v3"] = alphabet_data["ǜ"]
+            self._pinyin_alphabets["py_alphabet_v3"] = alphabet_data["ǜ"]
         else:
             # Fallback to any character if special ones not found
             first_char = next(iter(alphabet_data.values()))
-            self._pinyin_alphabets["py_alphablet_v3"] = first_char
+            self._pinyin_alphabets["py_alphabet_v3"] = first_char
 
-        # Convert alphabet characters to simplified names with py_alphablet_ prefix
+        # Convert alphabet characters to simplified names with py_alphabet_ prefix
         # Use exact same logic as legacy code for tone mapping
         for char, glyph_data in alphabet_data.items():
             # Map tones to simplified forms exactly as legacy code does
             if char in ["ā", "á", "ǎ", "à"]:
                 tone_map = {"ā": "a1", "á": "a2", "ǎ": "a3", "à": "a4"}
-                alphabet_glyph_name = f"py_alphablet_{tone_map[char]}"
+                alphabet_glyph_name = f"py_alphabet_{tone_map[char]}"
             elif char in ["ē", "é", "ě", "è"]:
                 tone_map = {"ē": "e1", "é": "e2", "ě": "e3", "è": "e4"}
-                alphabet_glyph_name = f"py_alphablet_{tone_map[char]}"
+                alphabet_glyph_name = f"py_alphabet_{tone_map[char]}"
             elif char in ["ī", "í", "ǐ", "ì"]:
                 tone_map = {"ī": "i1", "í": "i2", "ǐ": "i3", "ì": "i4"}
-                alphabet_glyph_name = f"py_alphablet_{tone_map[char]}"
+                alphabet_glyph_name = f"py_alphabet_{tone_map[char]}"
             elif char in ["ō", "ó", "ǒ", "ò"]:
                 tone_map = {"ō": "o1", "ó": "o2", "ǒ": "o3", "ò": "o4"}
-                alphabet_glyph_name = f"py_alphablet_{tone_map[char]}"
+                alphabet_glyph_name = f"py_alphabet_{tone_map[char]}"
             elif char in ["ū", "ú", "ǔ", "ù"]:
                 tone_map = {"ū": "u1", "ú": "u2", "ǔ": "u3", "ù": "u4"}
-                alphabet_glyph_name = f"py_alphablet_{tone_map[char]}"
+                alphabet_glyph_name = f"py_alphabet_{tone_map[char]}"
             elif char in ["ǖ", "ǘ", "ǚ", "ǜ"]:
                 tone_map = {"ǖ": "v1", "ǘ": "v2", "ǚ": "v3", "ǜ": "v4"}
-                alphabet_glyph_name = f"py_alphablet_{tone_map[char]}"
+                alphabet_glyph_name = f"py_alphabet_{tone_map[char]}"
             elif char == "ü":
-                alphabet_glyph_name = "py_alphablet_v"
+                alphabet_glyph_name = "py_alphabet_v"
             elif char in ["ń", "ň", "ǹ"]:
                 tone_map = {"ń": "n2", "ň": "n3", "ǹ": "n4"}
-                alphabet_glyph_name = f"py_alphablet_{tone_map[char]}"
+                alphabet_glyph_name = f"py_alphabet_{tone_map[char]}"
             elif char == "ḿ":
-                alphabet_glyph_name = "py_alphablet_m2"
+                alphabet_glyph_name = "py_alphabet_m2"
             else:
                 # For basic alphabet characters (a-z)
-                alphabet_glyph_name = f"py_alphablet_{char}"
+                alphabet_glyph_name = f"py_alphabet_{char}"
 
             self._pinyin_alphabets[alphabet_glyph_name] = glyph_data
 
@@ -150,9 +150,9 @@ class PinyinGlyphGenerator:
         target_vertical_origin = target_advance_height * VERTICAL_ORIGIN_PER_HEIGHT
 
         # Get alphabet glyph height for scaling (legacy logic)
-        py_alphablet_v3_glyf = self._pinyin_alphabets["py_alphablet_v3"]
-        advanceHeight = py_alphablet_v3_glyf.get(
-            "advanceHeight", py_alphablet_v3_glyf.get("advanceWidth", 1000.0) * 1.4
+        py_alphabet_v3_glyf = self._pinyin_alphabets["py_alphabet_v3"]
+        advanceHeight = py_alphabet_v3_glyf.get(
+            "advanceHeight", py_alphabet_v3_glyf.get("advanceWidth", 1000.0) * 1.4
         )  # HEIGHT_RATE_OF_MONOSPACE
 
         # Legacy pinyin scale calculation (exact legacy logic)
@@ -170,7 +170,7 @@ class PinyinGlyphGenerator:
             if char_count > 0:
                 # Get pinyin character width
                 pinyin_width = (
-                    self._pinyin_alphabets["py_alphablet_v3"]["advanceWidth"]
+                    self._pinyin_alphabets["py_alphabet_v3"]["advanceWidth"]
                     * pinyin_scale
                 )
 
@@ -186,7 +186,7 @@ class PinyinGlyphGenerator:
                 for i, char in enumerate(pronunciation):
                     # Map each character individually (legacy logic)
                     simplified_char = self._simplify_pronunciation(char)
-                    alphabet_glyph_name = f"py_alphablet_{simplified_char}"
+                    alphabet_glyph_name = f"py_alphabet_{simplified_char}"
 
                     if alphabet_glyph_name in self._pinyin_alphabets:
                         # Calculate scaling with exact legacy logic

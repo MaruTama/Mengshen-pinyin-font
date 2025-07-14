@@ -25,10 +25,10 @@ cmap_table: Dict[str, str] = {}
 def get_cmap_table() -> None:
     """Load cmap table from template_main.json."""
     global cmap_table
-    TAMPLATE_MAIN_JSON = os.path.join(DIR_TEMP, "template_main.json")
-    with open(TAMPLATE_MAIN_JSON, "rb") as read_file:
-        marged_font = orjson.loads(read_file.read())
-    cmap_table = marged_font["cmap"]
+    TEMPLATE_MAIN_JSON = os.path.join(DIR_TEMP, "template_main.json")
+    with open(TEMPLATE_MAIN_JSON, "rb") as read_file:
+        merged_font = orjson.loads(read_file.read())
+    cmap_table = merged_font["cmap"]
 
 
 def load_cmap_table_from_path(template_path: str) -> Dict[str, str]:

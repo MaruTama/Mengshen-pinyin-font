@@ -11,7 +11,7 @@ from typing import Any, Dict, List, Optional
 from refactored.config.font_config import FontType
 from refactored.config.paths import DIR_TEMP
 
-from ..utils.logging_config import get_scripts_logger
+from ..utils.logging_config import get_scripts_logger, setup_logging
 from ..utils.shell_utils import ShellExecutor
 
 # 呣 m̀, 嘸 m̄ を使うが、これは unicode ではないので除外する。グリフが収録されていない事が多い。
@@ -206,6 +206,9 @@ def parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:
 
 def retrieve_alphabet_main(args: Optional[List[str]] = None) -> None:
     """Main function for alphabet retrieval."""
+    # Setup logging
+    setup_logging(level="INFO", verbose=False, quiet=False)
+
     options = parse_args(args)
 
     # Get font config based on style

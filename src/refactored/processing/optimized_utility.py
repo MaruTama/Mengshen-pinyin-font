@@ -17,9 +17,6 @@ from .cache_manager import cached_function, persistent_cache
 from .parallel_processor import FontProcessingOptimizer, parallel_map
 from .profiling import performance_monitor, profile_function
 
-# Legacy alias for backward compatibility
-SIMPLED_ALPHABET = PINYIN_TONE_TO_NUMERIC
-
 
 @lru_cache(maxsize=512)
 def simplification_pronunciation(pronunciation: str) -> str:
