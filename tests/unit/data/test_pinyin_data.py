@@ -12,7 +12,7 @@ import pytest
 
 from refactored.config import ProjectPaths
 from refactored.data.pinyin_data import (
-    OfflinePinyinDataSource,
+    MergedMappingPinyinDataSource,
     PinyinDataManager,
     PinyinDataSource,
     get_default_pinyin_manager,
@@ -29,7 +29,7 @@ class TestPinyinDataManager:
         # Test with default data source
         manager = PinyinDataManager()
         assert manager is not None
-        assert isinstance(manager._data_source, OfflinePinyinDataSource)
+        assert isinstance(manager._data_source, MergedMappingPinyinDataSource)
 
         # Test with custom data source
         mock_source = Mock(spec=PinyinDataSource)
@@ -161,21 +161,21 @@ class TestPinyinDataManager:
         mock_source.get_pinyin.assert_called_once_with("中")
 
 
-class TestOfflinePinyinDataSource:
-    """Test OfflinePinyinDataSource functionality."""
+class TestMergedMappingPinyinDataSource:
+    """Test MergedMappingPinyinDataSource functionality."""
 
     @pytest.mark.unit
     def test_offline_data_source_initialization(self):
-        """Test OfflinePinyinDataSource initialization."""
+        """Test MergedMappingPinyinDataSource initialization."""
         # Test with default paths
-        source = OfflinePinyinDataSource()
+        source = MergedMappingPinyinDataSource()
         assert source.paths is not None
         assert isinstance(source.paths, ProjectPaths)
         assert source._data is None
 
         # Test with custom paths
         custom_paths = ProjectPaths()
-        source = OfflinePinyinDataSource(paths=custom_paths)
+        source = MergedMappingPinyinDataSource(paths=custom_paths)
         assert source.paths is custom_paths
 
     @pytest.mark.unit
@@ -186,7 +186,7 @@ class TestOfflinePinyinDataSource:
         mock_file.exists.return_value = False
         mock_paths.get_output_path.return_value = mock_file
 
-        source = OfflinePinyinDataSource(paths=mock_paths)
+        source = MergedMappingPinyinDataSource(paths=mock_paths)
 
         with pytest.raises(FileNotFoundError, match="Merged mapping table not found"):
             source._load_data()
@@ -209,7 +209,7 @@ U+884C: xíng,háng  # 行
         mock_file.exists.return_value = True
         mock_paths.get_output_path.return_value = mock_file
 
-        source = OfflinePinyinDataSource(paths=mock_paths)
+        source = MergedMappingPinyinDataSource(paths=mock_paths)
 
         with patch("builtins.open", mock_open(read_data=file_content)):
             source._load_data()
@@ -237,7 +237,7 @@ U+4EBA: rén  # 人
         mock_file.exists.return_value = True
         mock_paths.get_output_path.return_value = mock_file
 
-        source = OfflinePinyinDataSource(paths=mock_paths)
+        source = MergedMappingPinyinDataSource(paths=mock_paths)
 
         with patch("builtins.open", mock_open(read_data=file_content)):
             source._load_data()
@@ -257,7 +257,7 @@ U+4EBA: rén  # 人
         mock_file.exists.return_value = True
         mock_paths.get_output_path.return_value = mock_file
 
-        source = OfflinePinyinDataSource(paths=mock_paths)
+        source = MergedMappingPinyinDataSource(paths=mock_paths)
 
         with patch("builtins.open", mock_open(read_data=file_content)):
             result = source.get_pinyin("中")
@@ -279,7 +279,7 @@ U+4EBA: rén  # 人
         mock_file.exists.return_value = True
         mock_paths.get_output_path.return_value = mock_file
 
-        source = OfflinePinyinDataSource(paths=mock_paths)
+        source = MergedMappingPinyinDataSource(paths=mock_paths)
 
         with patch("builtins.open", mock_open(read_data=file_content)):
             result = source.get_all_mappings()
@@ -301,7 +301,7 @@ U+4EBA: rén  # 人
         mock_file.exists.return_value = True
         mock_paths.get_output_path.return_value = mock_file
 
-        source = OfflinePinyinDataSource(paths=mock_paths)
+        source = MergedMappingPinyinDataSource(paths=mock_paths)
 
         # Initially, data should not be loaded
         assert source._data is None
@@ -379,7 +379,7 @@ U+884C: xíng,háng  # 行 - multiple pronunciations
 
         with patch("builtins.open", mock_open(read_data=file_content)):
             # Create data source and manager
-            source = OfflinePinyinDataSource(paths=mock_paths)
+            source = MergedMappingPinyinDataSource(paths=mock_paths)
             manager = PinyinDataManager(data_source=source)
 
             # Test individual character lookups
@@ -413,7 +413,7 @@ U+884C: xíng,háng  # 行 - multiple pronunciations
         mock_file.exists.return_value = False
         mock_paths.get_output_path.return_value = mock_file
 
-        source = OfflinePinyinDataSource(paths=mock_paths)
+        source = MergedMappingPinyinDataSource(paths=mock_paths)
         manager = PinyinDataManager(data_source=source)
 
         with pytest.raises(FileNotFoundError):
@@ -440,7 +440,7 @@ U+884C: xíng,háng  # 行 - multiple pronunciations
         mock_paths.get_output_path.return_value = mock_file
 
         with patch("builtins.open", mock_open(read_data=large_file_content)):
-            source = OfflinePinyinDataSource(paths=mock_paths)
+            source = MergedMappingPinyinDataSource(paths=mock_paths)
             manager = PinyinDataManager(data_source=source)
 
             # Test that large dataset loads correctly

@@ -267,7 +267,7 @@ class TestCLIRunMethod:
         captured = capsys.readouterr()
         assert "Font type: HAN_SERIF" in captured.out
         assert "Output path:" in captured.out
-        assert "Template paths:" in captured.out
+        assert "Dry run mode" in captured.out
 
     @pytest.mark.unit
     def test_run_missing_files_error(self, capsys):
