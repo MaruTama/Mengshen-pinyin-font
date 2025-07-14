@@ -20,6 +20,13 @@ class ProjectPaths:
         else:
             self.project_root = Path(project_root)
 
+    def get_project_root(self) -> Path:
+        """Get the project root directory.
+
+        This method is primarily used in tests for mocking purposes.
+        """
+        return self.project_root
+
     @property
     def src_dir(self) -> Path:
         """Source code directory."""

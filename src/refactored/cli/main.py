@@ -124,52 +124,43 @@ Examples:
         try:
             # Get configuration
             font_type = self._get_font_type(parsed_args.style)
-            template_paths = self._get_template_paths(font_type)
             output_path = self._get_output_path(font_type, parsed_args.output)
 
             if parsed_args.verbose:
                 print(f"Font type: {font_type.name}")
                 print(f"Output path: {output_path}")
-                print(f"Template paths: {template_paths}")
-
-            # Validate prerequisites
-            missing_files = self._validate_prerequisites(template_paths)
-            if missing_files:
-                print("Error: Missing required files:", file=sys.stderr)
-                for missing_file in missing_files:
-                    print(f"  {missing_file}", file=sys.stderr)
-                return 1
 
             if parsed_args.dry_run:
-                print("Dry run mode - would generate font with these settings:")
-                print(f"  Type: {font_type.name}")
-                print(f"  Output: {output_path}")
+                # For dry run, we still need to validate prerequisites
+                template_paths = self._get_template_paths(font_type)
+                missing_files = self._validate_prerequisites(template_paths)
+                if missing_files:
+                    print("Dry run - Missing required files:", file=sys.stderr)
+                    for missing_file in missing_files:
+                        print(f"  {missing_file}", file=sys.stderr)
+                else:
+                    print("Dry run mode - would generate font with these settings:")
+                    print(f"  Type: {font_type.name}")
+                    print(f"  Output: {output_path}")
                 return 0
 
-            # Ensure output directory exists
-            output_path.parent.mkdir(parents=True, exist_ok=True)
-
-            # Create and run font builder
-            font_builder = FontBuilder(
-                font_type=font_type,
-                template_main_path=template_paths["template_main"],
-                template_glyf_path=template_paths["template_glyf"],
-                alphabet_pinyin_path=template_paths["alphabet_pinyin"],
-                pattern_one_path=template_paths["pattern_one"],
-                pattern_two_path=template_paths["pattern_two"],
-                exception_pattern_path=template_paths["exception_pattern"],
-                paths=self.paths,
-            )
-
-            font_builder.build(output_path)
+            # Use the generate_font method for actual generation
+            final_output_path = self.generate_font(font_type, output_path)
 
             if parsed_args.verbose:
-                stats = font_builder.get_build_statistics()
-                print("\\nBuild statistics:")
-                for key, value in stats.items():
-                    print(f"  {key}: {value}")
+                # Try to get build statistics if available
+                try:
+                    from ..font.font_builder import get_last_build_statistics
 
-            print(f"Font generation completed successfully: {output_path}")
+                    stats = get_last_build_statistics()
+                    if stats:
+                        print("\\nBuild statistics:")
+                        for key, value in stats.items():
+                            print(f"  {key}: {value}")
+                except (ImportError, AttributeError):
+                    pass  # Statistics not available
+
+            print(f"Font generation completed successfully: {final_output_path}")
             return 0
 
         except KeyboardInterrupt:
@@ -182,6 +173,44 @@ Examples:
 
                 traceback.print_exc()
             return 1
+
+    def generate_font(
+        self, font_type: FontType, output_path: Optional[Path] = None
+    ) -> Path:
+        """Generate font programmatically (for testing and API usage).
+
+        Args:
+            font_type: Type of font to generate
+            output_path: Optional custom output path
+
+        Returns:
+            Path to generated font file
+        """
+        template_paths = self._get_template_paths(font_type)
+        final_output_path = self._get_output_path(font_type, output_path)
+
+        # Validate prerequisites
+        missing_files = self._validate_prerequisites(template_paths)
+        if missing_files:
+            raise FileNotFoundError(f"Missing required files: {missing_files}")
+
+        # Ensure output directory exists
+        final_output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Create and run font builder
+        font_builder = FontBuilder(
+            font_type=font_type,
+            template_main_path=template_paths["template_main"],
+            template_glyf_path=template_paths["template_glyf"],
+            alphabet_pinyin_path=template_paths["alphabet_pinyin"],
+            pattern_one_path=template_paths["pattern_one"],
+            pattern_two_path=template_paths["pattern_two"],
+            exception_pattern_path=template_paths["exception_pattern"],
+            paths=self.paths,
+        )
+
+        font_builder.build(final_output_path)
+        return final_output_path
 
 
 def main(args: Optional[list[str]] = None) -> int:
