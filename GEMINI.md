@@ -113,10 +113,10 @@ diff -u tmp/legacy_head.json tmp/refactored_head.json > tmp/head_diff.txt
 
 After running the comparison commands, examine the generated `_diff.txt` files (e.g., `tmp/glyf_diff.txt`, `tmp/cmap_diff.txt`, `tmp/head_diff.txt`). These files will show the line-by-line differences between the corresponding tables.
 
-*   **Large diff files:** If the diff files are very large, you might need to use `head`, `tail`, `grep`, or other command-line tools to narrow down the areas of interest.
-*   **Interpreting differences:**
-    *   Differences in `glyf` often mean changes in glyph outlines or components.
-    *   Differences in `cmap` mean changes in which characters are supported or how they map to glyphs.
-    *   Differences in `head` or other metadata tables might be due to build environment (timestamps, tool versions) or intentional changes in font properties.
+- **Large diff files:** If the diff files are very large, you might need to use `head`, `tail`, `grep`, or other command-line tools to narrow down the areas of interest.
+- **Interpreting differences:**
+  - Differences in `glyf` often mean changes in glyph outlines or components.
+  - Differences in `cmap` mean changes in which characters are supported or how they map to glyphs.
+  - Differences in `head` or other metadata tables might be due to build environment (timestamps, tool versions) or intentional changes in font properties.
 
 By systematically comparing these tables, you can identify the root cause of the binary differences and determine if they are intentional (e.g., due to new features) or unintentional regressions.
