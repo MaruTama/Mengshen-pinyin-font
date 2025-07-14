@@ -21,8 +21,8 @@ class PinyinDataSource(Protocol):
         ...
 
 
-class OfflinePinyinDataSource:
-    """Offline pinyin data source using processed mapping table."""
+class MergedMappingPinyinDataSource:
+    """Pinyin data source using merged-mapping-table.txt."""
 
     def __init__(self, paths: Optional[ProjectPaths] = None):
         """Initialize with project paths."""
@@ -79,7 +79,7 @@ class PinyinDataManager:
 
     def __init__(self, data_source: Optional[PinyinDataSource] = None):
         """Initialize with optional data source."""
-        self._data_source = data_source or OfflinePinyinDataSource()
+        self._data_source = data_source or MergedMappingPinyinDataSource()
 
     @lru_cache(maxsize=FontConstants.LRU_CACHE_SIZE_LARGE)
     def get_pinyin(self, hanzi: str) -> Optional[List[str]]:
