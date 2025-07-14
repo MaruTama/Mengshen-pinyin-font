@@ -15,10 +15,16 @@
     "hǎo",
     "hào",
     "huó",
+    "duoyinzi",
     // Font technology terms
     "glyf",
+    "aalt",
+    "DFLT",
+    "hani",
     "cmap",
     "gsub",
+    "rclt",
+    "HHEA",
     "otfcc",
     "otfccdump",
     "woff",
@@ -50,6 +56,10 @@
     "monospace",
     "sans",
     "serif",
+    "subtables",
+    "cids",
+    "unicodes",
+    "jsons",
     // Common abbreviations and acronyms
     "cli",
     "api",
@@ -97,6 +107,11 @@
     "enum",
     // Tool names
     "lefthook",
+    "cspell",
+    "pylint",
+    "mtimes",
+    // web site
+    "zdic",
     // Test words (intentionally misspelled for testing)
     "defination",
     "fucntion",
