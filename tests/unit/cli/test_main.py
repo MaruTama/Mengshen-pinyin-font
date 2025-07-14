@@ -284,7 +284,7 @@ class TestCLIRunMethod:
 
         assert result == 1
         captured = capsys.readouterr()
-        assert "Error: Missing required files" in captured.err
+        assert "Error: Missing required files" in captured.out
 
     @pytest.mark.unit
     def test_run_keyboard_interrupt_cli_behavior(self):
