@@ -12,6 +12,7 @@ import orjson
 
 from ..config import FontConstants, FontMetadata, FontType
 from ..data import CharacterDataManager, MappingDataManager
+from ..utils.logging_config import get_debug_logger
 
 
 @dataclass(frozen=True)
@@ -56,6 +57,7 @@ class PinyinGlyphGenerator:
         self.font_type = font_type
         self.font_config = font_config
         self._pinyin_alphabets: Optional[Dict[str, Any]] = None
+        self.logger = get_debug_logger()
         self._pronunciation_glyphs: Optional[Dict[str, Any]] = None
 
     def load_alphabet_glyphs(self, alphabet_path: Path) -> None:
@@ -328,6 +330,7 @@ class HanziGlyphGenerator:
         self.character_manager = character_manager
         self.mapping_manager = mapping_manager
         self.pinyin_generator = pinyin_generator
+        self.logger = get_debug_logger()
 
         # Duplicate definition tracking
         self._duplicate_unicode_groups = {
@@ -496,7 +499,7 @@ class HanziGlyphGenerator:
             self._mark_duplicate_definition_added(unicode_value)
             processed_count += 1
 
-        print(f"DEBUG: Single pronunciation - processed: {processed_count}")
+        self.logger.debug(f"Single pronunciation - processed: {processed_count}")
         return generated_glyphs
 
     def generate_multiple_pronunciation_glyphs(
@@ -591,6 +594,7 @@ class GlyphManager:
         self.hanzi_generator = HanziGlyphGenerator(
             font_config, character_manager, mapping_manager, self.pinyin_generator
         )
+        self.logger = get_debug_logger()
 
         self._all_glyphs: Dict[str, Any] = {}
 
@@ -629,7 +633,7 @@ class GlyphManager:
                 for pronunciation in char_info.pronunciations:
                     all_pronunciations.add(pronunciation)
 
-        print(f"DEBUG: Found {len(all_pronunciations)} unique pronunciations")
+        self.logger.debug(f"Found {len(all_pronunciations)} unique pronunciations")
 
         # Get hanzi metrics for pronunciation glyph generation
         sample_char = "一"  # Use "一" as reference
@@ -642,8 +646,8 @@ class GlyphManager:
             hanzi_advance_width = 1000.0
             hanzi_advance_height = 1000.0
 
-        print(
-            f"DEBUG: Hanzi metrics - width: {hanzi_advance_width}, height: {hanzi_advance_height}"
+        self.logger.debug(
+            f"Hanzi metrics - width: {hanzi_advance_width}, height: {hanzi_advance_height}"
         )
 
         # Generate pronunciation glyphs with proper parameters
@@ -660,8 +664,8 @@ class GlyphManager:
         pinyin_alphabets = self.pinyin_generator.get_pinyin_alphabets()
         pronunciation_glyphs = self.pinyin_generator.get_pronunciation_glyphs()
 
-        print(
-            f"DEBUG: Generated {len(pinyin_alphabets)} alphabet glyphs and {len(pronunciation_glyphs)} pronunciation glyphs"
+        self.logger.debug(
+            f"Generated {len(pinyin_alphabets)} alphabet glyphs and {len(pronunciation_glyphs)} pronunciation glyphs"
         )
 
         self._all_glyphs.update(pinyin_alphabets)
@@ -690,9 +694,11 @@ class GlyphManager:
         total_glyphs = len(self._font_data[FontConstants.GLYF_TABLE]) + len(
             self._all_glyphs
         )
-        print(f"DEBUG: Base glyphs: {len(self._font_data[FontConstants.GLYF_TABLE])}")
-        print(f"DEBUG: Generated glyphs: {len(self._all_glyphs)}")
-        print(f"DEBUG: Total glyphs: {total_glyphs}")
+        self.logger.debug(
+            f"Base glyphs: {len(self._font_data[FontConstants.GLYF_TABLE])}"
+        )
+        self.logger.debug(f"Generated glyphs: {len(self._all_glyphs)}")
+        self.logger.debug(f"Total glyphs: {total_glyphs}")
 
         # TODO: Re-enable glyph count validation after investigation
         # if total_glyphs > FontConstants.MAX_GLYPHS:
@@ -718,8 +724,8 @@ class GlyphManager:
                 advance_height = sample_glyph["advanceHeight"]
                 vertical_origin = sample_glyph["verticalOrigin"]
 
-                print(
-                    f"DEBUG: Pinyin metrics from {sample_pronunciation} - width: {advance_width}, height: {advance_height}, vertical_origin: {vertical_origin}"
+                self.logger.debug(
+                    f"Pinyin metrics from {sample_pronunciation} - width: {advance_width}, height: {advance_height}, vertical_origin: {vertical_origin}"
                 )
                 return PinyinMetrics(
                     width=advance_width,
@@ -728,13 +734,13 @@ class GlyphManager:
                 )
 
             except Exception as e:
-                print(
-                    f"WARNING: Could not get pinyin metrics from pronunciation glyphs: {e}"
+                self.logger.warning(
+                    f"Could not get pinyin metrics from pronunciation glyphs: {e}"
                 )
 
         # Fallback to pinyin generator metrics
         fallback = self.pinyin_generator.get_metrics()
-        print(
-            f"DEBUG: Fallback pinyin metrics - width: {fallback.width}, height: {fallback.height}, vertical_origin: {fallback.vertical_origin}"
+        self.logger.debug(
+            f"Fallback pinyin metrics - width: {fallback.width}, height: {fallback.height}, vertical_origin: {fallback.vertical_origin}"
         )
         return fallback

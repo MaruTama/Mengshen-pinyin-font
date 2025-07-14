@@ -10,6 +10,7 @@ from typing import List, Optional
 from refactored.config.font_config import FontType
 from refactored.config.paths import DIR_TEMP
 
+from ..utils.logging_config import get_scripts_logger
 from ..utils.shell_utils import ShellExecutor
 
 TAMPLATE_TEMP_JSON = "template_temp.json"
@@ -88,7 +89,8 @@ def make_template_main(args: Optional[List[str]] = None) -> None:
     maker = TemplateJsonMaker()
     maker.make_template(source_font, options.style)
 
-    print(f"Template JSON files created for {options.style} style")
+    logger = get_scripts_logger()
+    logger.info(f"Template JSON files created for {options.style} style")
 
 
 if __name__ == "__main__":

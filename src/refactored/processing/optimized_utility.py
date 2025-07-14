@@ -12,6 +12,7 @@ from ..data import CharacterDataManager, get_default_character_manager
 
 # Import from utils instead of duplicating
 from ..utils import PINYIN_TONE_TO_NUMERIC
+from ..utils.logging_config import get_debug_logger
 from .cache_manager import cached_function, persistent_cache
 from .parallel_processor import FontProcessingOptimizer, parallel_map
 from .profiling import performance_monitor, profile_function
@@ -30,8 +31,9 @@ def simplification_pronunciation(pronunciation: str) -> str:
         result = []
         for c in pronunciation:
             result.append(PINYIN_TONE_TO_NUMERIC.get(c, c))
-        print(
-            f"DEBUG: simplification_pronunciation fallback for '{pronunciation}' -> {''.join(result)}"
+        logger = get_debug_logger()
+        logger.debug(
+            f"simplification_pronunciation fallback for '{pronunciation}' -> {''.join(result)}"
         )
         return "".join(result)
 

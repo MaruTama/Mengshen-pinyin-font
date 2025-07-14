@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Optional
 from refactored.config.font_config import FontType
 from refactored.config.paths import DIR_TEMP
 
+from ..utils.logging_config import get_scripts_logger
 from ..utils.shell_utils import ShellExecutor
 
 # 呣 m̀, 嘸 m̄ を使うが、これは unicode ではないので除外する。グリフが収録されていない事が多い。
@@ -90,7 +91,8 @@ class LatinAlphabetRetriever:
         try:
             self.shell.execute(cmd)
         except Exception as e:
-            print(f"Error converting font to JSON: {e}")
+            logger = get_scripts_logger()
+            logger.error(f"Error converting font to JSON: {e}")
             raise
 
     def get_cmap_table(self, source_font_json: str) -> Dict[str, str]:
@@ -107,7 +109,8 @@ class LatinAlphabetRetriever:
                 output = result
             return json.loads(output)
         except Exception as e:
-            print(f"Error extracting cmap table: {e}")
+            logger = get_scripts_logger()
+            logger.error(f"Error extracting cmap table: {e}")
             return {}
 
     def get_glyf_table(self, source_font_json: str) -> Dict[str, Any]:
@@ -124,7 +127,8 @@ class LatinAlphabetRetriever:
                 output = result
             return json.loads(output)
         except Exception as e:
-            print(f"Error extracting glyf table: {e}")
+            logger = get_scripts_logger()
+            logger.error(f"Error extracting glyf table: {e}")
             return {}
 
     def filter_alphabet_glyphs(
@@ -151,7 +155,8 @@ class LatinAlphabetRetriever:
             with open(output_path, "w", encoding="utf-8") as f:
                 json.dump(alphabet_glyphs, f, ensure_ascii=False, indent=2)
         except Exception as e:
-            print(f"Error saving alphabet JSON: {e}")
+            logger = get_scripts_logger()
+            logger.error(f"Error saving alphabet JSON: {e}")
             raise
 
     def retrieve_alphabet(self, source_font_name: str, style: str) -> None:
@@ -174,7 +179,8 @@ class LatinAlphabetRetriever:
             # Save result
             self.save_alphabet_json(alphabet_glyphs, output_json_path)
 
-            print(
+            logger = get_scripts_logger()
+            logger.info(
                 f"Successfully extracted {len(alphabet_glyphs)} alphabet glyphs for {style} style"
             )
 
@@ -219,7 +225,8 @@ def retrieve_alphabet_main(args: Optional[List[str]] = None) -> None:
     retriever = LatinAlphabetRetriever()
     retriever.retrieve_alphabet(source_font, options.style)
 
-    print(f"Latin alphabet extraction completed for {options.style} style")
+    logger = get_scripts_logger()
+    logger.info(f"Latin alphabet extraction completed for {options.style} style")
 
 
 if __name__ == "__main__":

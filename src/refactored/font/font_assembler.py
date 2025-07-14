@@ -10,6 +10,7 @@ from typing import Any, Dict
 import orjson
 
 from ..config import FontConstants, FontType, ProjectPaths
+from ..utils.logging_config import get_builder_logger
 
 
 class FontAssembler:
@@ -19,6 +20,7 @@ class FontAssembler:
         """Initialize font assembler."""
         self.font_config = font_config
         self.paths = paths
+        self.logger = get_builder_logger()
 
     def _get_current_font_timestamp(self) -> int:
         """Get current time as TrueType font timestamp.
@@ -53,7 +55,7 @@ class FontAssembler:
 
         # Optional: Add generation timestamp info for debugging
         generation_time = datetime.now()
-        print(
+        self.logger.info(
             f"Font metadata set - Version: {VERSION}, Generated: {generation_time.strftime('%Y-%m-%d %H:%M:%S')}"
         )
 

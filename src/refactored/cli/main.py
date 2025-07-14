@@ -10,6 +10,7 @@ from typing import Optional
 
 from ..config import FontType, ProjectPaths
 from ..font import FontBuilder
+from ..utils.logging_config import get_cli_logger, setup_logging
 
 
 class FontGenerationCLI:
@@ -18,6 +19,7 @@ class FontGenerationCLI:
     def __init__(self, paths: Optional[ProjectPaths] = None):
         """Initialize CLI with project paths."""
         self.paths = paths or ProjectPaths()
+        self.logger = get_cli_logger()
 
     def _create_argument_parser(self) -> argparse.ArgumentParser:
         """Create command line argument parser."""
@@ -121,27 +123,36 @@ Examples:
         parser = self._create_argument_parser()
         parsed_args = parser.parse_args(args)
 
+        # Setup logging based on CLI arguments
+        setup_logging(
+            level="DEBUG" if parsed_args.verbose else "INFO",
+            verbose=parsed_args.verbose,
+            quiet=False,
+        )
+
         try:
             # Get configuration
             font_type = self._get_font_type(parsed_args.style)
             output_path = self._get_output_path(font_type, parsed_args.output)
 
             if parsed_args.verbose:
-                print(f"Font type: {font_type.name}")
-                print(f"Output path: {output_path}")
+                self.logger.info(f"Font type: {font_type.name}")
+                self.logger.info(f"Output path: {output_path}")
 
             if parsed_args.dry_run:
                 # For dry run, we still need to validate prerequisites
                 template_paths = self._get_template_paths(font_type)
                 missing_files = self._validate_prerequisites(template_paths)
                 if missing_files:
-                    print("Dry run - Missing required files:", file=sys.stderr)
+                    self.logger.warning("Dry run - Missing required files:")
                     for missing_file in missing_files:
-                        print(f"  {missing_file}", file=sys.stderr)
+                        self.logger.warning(f"  {missing_file}")
                 else:
-                    print("Dry run mode - would generate font with these settings:")
-                    print(f"  Type: {font_type.name}")
-                    print(f"  Output: {output_path}")
+                    self.logger.info(
+                        "Dry run mode - would generate font with these settings:"
+                    )
+                    self.logger.info(f"  Type: {font_type.name}")
+                    self.logger.info(f"  Output: {output_path}")
                 return 0
 
             # Use the generate_font method for actual generation
@@ -154,24 +165,24 @@ Examples:
 
                     stats = get_last_build_statistics()
                     if stats:
-                        print("\\nBuild statistics:")
+                        self.logger.info("Build statistics:")
                         for key, value in stats.items():
-                            print(f"  {key}: {value}")
+                            self.logger.info(f"  {key}: {value}")
                 except (ImportError, AttributeError):
                     pass  # Statistics not available
 
-            print(f"Font generation completed successfully: {final_output_path}")
+            self.logger.info(
+                f"Font generation completed successfully: {final_output_path}"
+            )
             return 0
 
         except KeyboardInterrupt:
-            print("\\nOperation cancelled by user", file=sys.stderr)
+            self.logger.warning("Operation cancelled by user")
             return 130
         except Exception as e:
-            print(f"Error: {e}", file=sys.stderr)
+            self.logger.error(f"Error: {e}")
             if parsed_args.verbose:
-                import traceback
-
-                traceback.print_exc()
+                self.logger.debug("Full traceback:", exc_info=True)
             return 1
 
     def generate_font(

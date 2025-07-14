@@ -14,6 +14,7 @@ from ..data import CharacterDataManager, MappingDataManager
 
 # Import utility functions
 from ..utils.cmap_utils import convert_hanzi_to_cid_safe
+from ..utils.logging_config import get_debug_logger
 
 
 class GSUBTableGenerator:
@@ -35,6 +36,7 @@ class GSUBTableGenerator:
         self.character_manager = character_manager
         self.mapping_manager = mapping_manager
         self.cmap_table = cmap_table
+        self.logger = get_debug_logger()
 
         # Track dynamically created lookups
         self.lookup_order = set()
@@ -172,7 +174,9 @@ class GSUBTableGenerator:
 
             aalt_1_subtables[cid] = alternate_list
 
-        print(f"DEBUG: aalt_1 subtables populated with {len(aalt_1_subtables)} entries")
+        self.logger.debug(
+            f"aalt_1 subtables populated with {len(aalt_1_subtables)} entries"
+        )
 
         self.lookup_order.add("lookup_aalt_1")
 
@@ -440,17 +444,17 @@ class GSUBTableGenerator:
     def _make_lookup_order(self) -> None:
         """Set final lookup order matching legacy structure."""
         # Convert set to sorted list (matches legacy order)
-        print(f"DEBUG: lookup_order contents: {self.lookup_order}")
-        print(f"DEBUG: lookup_order types: {[type(x) for x in self.lookup_order]}")
+        self.logger.debug(f"lookup_order contents: {self.lookup_order}")
+        self.logger.debug(f"lookup_order types: {[type(x) for x in self.lookup_order]}")
 
         # Filter to ensure only strings are included
         string_lookups = [x for x in self.lookup_order if isinstance(x, str)]
-        print(f"DEBUG: string_lookups: {string_lookups}")
+        self.logger.debug(f"string_lookups: {string_lookups}")
 
         order_list = list(string_lookups)
         order_list.sort()
 
-        print(f"DEBUG: All lookups in order: {order_list}")
+        self.logger.debug(f"All lookups in order: {order_list}")
 
         # Always include base lookups
         final_order = ["lookup_aalt_0"]
@@ -466,5 +470,5 @@ class GSUBTableGenerator:
         # Add rclt lookups
         final_order.extend(["lookup_rclt_2", "lookup_rclt_3", "lookup_rclt_4"])
 
-        print(f"DEBUG: Final lookup order: {final_order}")
+        self.logger.debug(f"Final lookup order: {final_order}")
         self.gsub_data["lookupOrder"] = final_order
