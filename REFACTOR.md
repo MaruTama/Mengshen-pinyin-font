@@ -160,7 +160,7 @@ src/refactored/
 │   ├── font_name_tables.py # フォント名テーブル定義
 │   └── name_table.py     # 名前テーブル処理
 ├── data/        # データ処理 ✅
-│   ├── pinyin_data.py    # PinyinDataManager, OfflinePinyinDataSource
+│   ├── pinyin_data.py    # PinyinDataManager, MergedMappingPinyinDataSource
 │   ├── character_data.py # CharacterDataManager, CharacterInfo
 │   └── mapping_data.py   # MappingDataManager, Unicode mappings
 ├── font/        # フォント生成 ✅
@@ -212,7 +212,7 @@ class FontMetadata:
 # データアクセスの分離  
 class PinyinDataManager:
     def __init__(self, data_source: Optional[PinyinDataSource] = None):
-        self._data_source = data_source or OfflinePinyinDataSource()
+        self._data_source = data_source or MergedMappingPinyinDataSource()
 
 # フォント生成の分離
 class FontBuilder:
