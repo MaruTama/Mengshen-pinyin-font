@@ -42,11 +42,59 @@ services:
     container_name: mengshen-handwritten
     command: ["python", "-m", "refactored.cli.main", "-t", "handwritten"]
     
-  # Service for complete pipeline
-  pipeline:
+  # Service for complete pipeline (both styles)
+  pipeline-all:
     extends: mengshen-font
-    container_name: mengshen-pipeline
-    command: ["/app/docker/scripts/docker-pipeline.sh"]
+    container_name: mengshen-pipeline-all
+    command: 
+      - /bin/bash
+      - -c
+      - |
+        set -e
+        cd /app
+        cd res/phonics/duo_yin_zi/scripts && python make_pattern_table.py
+        cd ../../unicode_mapping_table && python make_unicode_pinyin_map_table.py
+        cd /app
+        PYTHONPATH=src python -m refactored.scripts.make_template_jsons --style han_serif
+        PYTHONPATH=src python -m refactored.scripts.make_template_jsons --style handwritten
+        PYTHONPATH=src python -m refactored.scripts.retrieve_latin_alphabet --style han_serif
+        PYTHONPATH=src python -m refactored.scripts.retrieve_latin_alphabet --style handwritten
+        PYTHONPATH=src python -m refactored.cli.main -t han_serif
+        PYTHONPATH=src python -m refactored.cli.main -t handwritten
+
+  # Service for han_serif pipeline
+  pipeline-han-serif:
+    extends: mengshen-font
+    container_name: mengshen-pipeline-han-serif
+    command: 
+      - /bin/bash
+      - -c
+      - |
+        set -e
+        cd /app
+        cd res/phonics/duo_yin_zi/scripts && python make_pattern_table.py
+        cd ../../unicode_mapping_table && python make_unicode_pinyin_map_table.py
+        cd /app
+        PYTHONPATH=src python -m refactored.scripts.make_template_jsons --style han_serif
+        PYTHONPATH=src python -m refactored.scripts.retrieve_latin_alphabet --style han_serif
+        PYTHONPATH=src python -m refactored.cli.main -t han_serif
+
+  # Service for handwritten pipeline
+  pipeline-handwritten:
+    extends: mengshen-font
+    container_name: mengshen-pipeline-handwritten
+    command: 
+      - /bin/bash
+      - -c
+      - |
+        set -e
+        cd /app
+        cd res/phonics/duo_yin_zi/scripts && python make_pattern_table.py
+        cd ../../unicode_mapping_table && python make_unicode_pinyin_map_table.py
+        cd /app
+        PYTHONPATH=src python -m refactored.scripts.make_template_jsons --style handwritten
+        PYTHONPATH=src python -m refactored.scripts.retrieve_latin_alphabet --style handwritten
+        PYTHONPATH=src python -m refactored.cli.main -t handwritten
     
   # Service for development and testing
   dev:
