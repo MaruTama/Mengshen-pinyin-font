@@ -81,8 +81,7 @@ def make_template_main(args: Optional[List[str]] = None) -> None:
     else:
         font_type = FontType.HANDWRITTEN
 
-    # font_config = FontConfig.get_config(font_type)  # Unused
-    # For now, use a simple path construction since FontConfig doesn't have main_font_path
+    # Use simple path construction for font selection
     if font_type == FontType.HAN_SERIF:
         source_font = "res/fonts/han-serif/SourceHanSerifCN-Regular.ttf"
     else:

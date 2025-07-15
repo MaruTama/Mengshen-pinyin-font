@@ -15,7 +15,7 @@ from typing import List, TypedDict
 
 # Import version from package __init__.py for consistency
 from .. import __version__
-from ..config.constants import FontConstants
+from ..config.font_config import FontConstants
 from ..utils.version_utils import parse_version_to_float
 
 VERSION = parse_version_to_float(__version__)

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Logging configuration for the Mengshen Font project."""
+"""Simplified logging configuration for the Mengshen Font project."""
 
 from __future__ import annotations
 
@@ -31,128 +31,64 @@ def setup_logging(
     else:
         effective_level = getattr(logging, level.upper(), logging.INFO)
 
-    # Create formatters
-    detailed_formatter = logging.Formatter(
-        fmt="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-
-    simple_formatter = logging.Formatter(fmt="%(levelname)s: %(message)s")
+    # Simple formatter
+    formatter = logging.Formatter(fmt="%(levelname)s: %(message)s")
 
     # Console handler
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(effective_level)
-    console_handler.setFormatter(simple_formatter)
+    console_handler.setFormatter(formatter)
 
     # File handler (if specified)
     handlers = [console_handler]
     if log_file:
         log_file.parent.mkdir(parents=True, exist_ok=True)
         file_handler = logging.FileHandler(log_file, encoding="utf-8")
-        file_handler.setLevel(logging.DEBUG)  # Always log everything to file
-        file_handler.setFormatter(detailed_formatter)
+        file_handler.setLevel(logging.DEBUG)
+        file_handler.setFormatter(
+            logging.Formatter(
+                fmt="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+                datefmt="%Y-%m-%d %H:%M:%S",
+            )
+        )
         handlers.append(file_handler)
 
     # Configure root logger
     logging.basicConfig(
-        level=logging.DEBUG,  # Capture everything, handlers will filter
+        level=logging.DEBUG,
         handlers=handlers,
-        force=True,  # Override any existing configuration
+        force=True,
     )
 
-    # Set specific logger levels
-    logging.getLogger("mengshen.cli").setLevel(effective_level)
-    logging.getLogger("mengshen.builder").setLevel(effective_level)
-    logging.getLogger("mengshen.debug").setLevel(
-        logging.DEBUG if verbose else logging.INFO
-    )
-    logging.getLogger("mengshen.scripts").setLevel(effective_level)
 
-
-def get_logger(name: str) -> logging.Logger:
-    """Get a logger with the standard naming convention.
+def get_logger(name: str = "mengshen") -> logging.Logger:
+    """Get a logger instance.
 
     Args:
-        name: Logger name (usually __name__)
+        name: Logger name (defaults to 'mengshen')
 
     Returns:
         Configured logger instance
     """
-    # Convert module name to hierarchical logger name
-    if name.startswith("refactored."):
-        logger_name = name.replace("refactored.", "mengshen.", 1)
-    else:
-        logger_name = f"mengshen.{name}"
-
-    return logging.getLogger(logger_name)
+    return logging.getLogger(name)
 
 
+# Backward compatibility functions
 def get_cli_logger() -> logging.Logger:
     """Get logger for CLI operations."""
-    return logging.getLogger("mengshen.cli")
+    return get_logger("mengshen.cli")
 
 
 def get_builder_logger() -> logging.Logger:
     """Get logger for font building operations."""
-    return logging.getLogger("mengshen.builder")
+    return get_logger("mengshen.builder")
 
 
 def get_debug_logger() -> logging.Logger:
     """Get logger for debug information."""
-    return logging.getLogger("mengshen.debug")
+    return get_logger("mengshen.debug")
 
 
 def get_scripts_logger() -> logging.Logger:
     """Get logger for script operations."""
-    return logging.getLogger("mengshen.scripts")
-
-
-# Configuration for different environments
-LOGGING_CONFIGS = {
-    "development": {
-        "level": "DEBUG",
-        "verbose": True,
-        "log_file": Path("logs/mengshen_dev.log"),
-    },
-    "production": {
-        "level": "INFO",
-        "verbose": False,
-        "log_file": Path("logs/mengshen.log"),
-    },
-    "testing": {
-        "level": "WARNING",
-        "verbose": False,
-        "log_file": None,  # No file logging during tests
-    },
-    "ci": {
-        "level": "INFO",
-        "verbose": False,
-        "log_file": Path("logs/mengshen_ci.log"),
-    },
-}
-
-
-def setup_environment_logging(environment: str = "production") -> None:
-    """Set up logging for a specific environment.
-
-    Args:
-        environment: Environment name (development, production, testing, ci)
-    """
-    config = LOGGING_CONFIGS.get(environment, LOGGING_CONFIGS["production"])
-    setup_logging(**config)
-
-
-# Suppress verbose third-party logging
-def suppress_third_party_logs():
-    """Suppress verbose logging from third-party libraries."""
-    # Common third-party loggers that can be noisy
-    third_party_loggers = [
-        "urllib3",
-        "requests",
-        "fontTools",
-        "PIL",
-        "matplotlib",
-    ]
-
-    for logger_name in third_party_loggers:
-        logging.getLogger(logger_name).setLevel(logging.WARNING)
+    return get_logger("mengshen.scripts")

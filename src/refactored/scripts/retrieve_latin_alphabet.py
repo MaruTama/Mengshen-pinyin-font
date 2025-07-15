@@ -217,8 +217,7 @@ def retrieve_alphabet_main(args: Optional[List[str]] = None) -> None:
     else:
         font_type = FontType.HANDWRITTEN
 
-    # font_config = FontConfig.get_config(font_type)  # Unused
-    # For now, use a simple path construction since FontConfig doesn't have pinyin_font_path
+    # Use simple path construction for font selection
     if font_type == FontType.HAN_SERIF:
         source_font = "res/fonts/han-serif/mplus-1m-medium.ttf"
     else:

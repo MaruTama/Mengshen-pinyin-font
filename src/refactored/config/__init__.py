@@ -3,8 +3,14 @@
 
 from __future__ import annotations
 
-from .constants import FontConstants
-from .font_config import FontConfig, FontMetadata, FontType, HanziCanvas, PinyinCanvas
+from .font_config import (
+    FontConfig,
+    FontConstants,
+    FontMetadata,
+    FontType,
+    HanziCanvas,
+    PinyinCanvas,
+)
 from .name_table import HAN_SERIF, HANDWRITTEN, VERSION, FontNameEntry
 from .paths import ProjectPaths
 

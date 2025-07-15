@@ -7,8 +7,11 @@ from typing import Any, Dict
 
 import orjson
 
-from refactored.config.constants import METADATA_FOR_HAN_SERIF, METADATA_FOR_HANDWRITTEN
-from refactored.config.font_config import FontType
+from refactored.config.font_config import (
+    METADATA_FOR_HAN_SERIF,
+    METADATA_FOR_HANDWRITTEN,
+    FontType,
+)
 from refactored.data.pinyin_data import get_pinyin_table_with_mapping_table
 
 # advanceHeight に対する advanceHeight の割合 (適当に決めてるから調整)

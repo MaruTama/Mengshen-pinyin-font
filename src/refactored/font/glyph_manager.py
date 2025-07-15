@@ -231,7 +231,7 @@ class PinyinGlyphGenerator:
 
     def _simplify_pronunciation(self, pronunciation: str) -> str:
         """Simplify pinyin pronunciation for glyph lookup."""
-        from ..processing.optimized_utility import simplification_pronunciation
+        from ..utils.pinyin_utils import simplification_pronunciation
 
         return simplification_pronunciation(pronunciation)
 
@@ -381,7 +381,7 @@ class HanziGlyphGenerator:
 
     def _simplify_pronunciation(self, pronunciation: str) -> str:
         """Simplify pinyin pronunciation for glyph lookup."""
-        from ..processing.optimized_utility import simplification_pronunciation
+        from ..utils.pinyin_utils import simplification_pronunciation
 
         return simplification_pronunciation(pronunciation)
 
