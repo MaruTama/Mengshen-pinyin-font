@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
-#!/usr/bin/env python
 
 import os
-from pypinyin import pinyin, lazy_pinyin, Style
+
 import requests
 from bs4 import BeautifulSoup
+from pypinyin import pinyin
 
+BAIDU_URL = "https://hanyu.baidu.com/s?wd={}&from=zici"
+ZDIC_URL = "https://www.zdic.net/hans/{}"
 
-BAIDU_URL  = "https://hanyu.baidu.com/s?wd={}&from=zici"
-ZDIC_URL   = "https://www.zdic.net/hans/{}"
-
-MARGED_MAPPING_TABLE    = "marged-mapping-table.txt"
+MERGED_MAPPING_TABLE = "merged-mapping-table.txt"
 DIR_OT = "../../../../outputs"
 
 
@@ -27,9 +26,10 @@ def get_pinyin_with_baidu(hanzi):
         pinyins = text.split(" ")
         # print(pinyins)
         return pinyins
-    except:
+    except Exception:
         # print("not found pinyin")
         return None
+
 
 def get_pinyin_with_zdic(hanzi):
     try:
@@ -39,9 +39,10 @@ def get_pinyin_with_zdic(hanzi):
         text = elem[0].get_text()
         pinyins = text.split(" ")
         return pinyins
-    except:
+    except Exception:
         # print("not found pinyin")
         return None
+
 
 def get_pinyin_with_pypinyin(hanzi):
     return [p[0] for p in pinyin(hanzi)]
@@ -49,18 +50,23 @@ def get_pinyin_with_pypinyin(hanzi):
 
 def get_pinyin_table_with_mapping_table():
     pinyin_table = {}
-    with open(os.path.join(DIR_OT,MARGED_MAPPING_TABLE), encoding='utf-8') as read_file:
+    with open(
+        os.path.join(DIR_OT, MERGED_MAPPING_TABLE), encoding="utf-8"
+    ) as read_file:
         for line in read_file:
-            str_unicode = line.split(':')[0]
+            str_unicode = line.split(":")[0]
             int_unicode = int(str_unicode[2:], 16)
             hanzi = chr(int_unicode)
-            str_pinyins = line.split(' ')[1]
+            str_pinyins = line.split(" ")[1]
             pinyins = str_pinyins.split(",")
             pinyin_table[hanzi] = pinyins
     return pinyin_table
 
+
 def get_normal_pinyin():
     pass
+
+
 # U+4E3A: wéi,wèi  # 为
 # U+5174: xīng,xìng  # 兴
 # U+54BD: yān,yàn,yè,yuān  # 咽
@@ -76,12 +82,10 @@ if __name__ == "__main__":
 
     _pinyin = get_pinyin_with_pypinyin("兴兴头头")
     print(_pinyin)
-    
+
     pinyin_table = get_pinyin_table_with_mapping_table()
     _pinyin = pinyin_table["兴"]
     print(_pinyin)
 
     _pinyin = get_pinyin_with_zdic("兴兴头头")
     print(_pinyin)
-    
-
