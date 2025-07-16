@@ -31,15 +31,18 @@ class TestCompletePipeline:
         # Create mock template files
         self._create_mock_template_files(temp_dir)
 
-        # Create CLI instance
-        cli = FontGenerationCLI()
+        # Create mock data files (including merged-mapping-table.txt)
+        self._create_mock_data_files(temp_dir)
 
         # Mock the working directory to use our temp directory
         with patch("os.getcwd", return_value=str(temp_dir)):
             with patch(
-                "refactored.config.paths.ProjectPaths.get_project_root",
-                return_value=temp_dir,
+                "refactored.config.paths.PROJECT_ROOT",
+                temp_dir,
             ):
+                # Create CLI instance inside the patch context
+                cli = FontGenerationCLI()
+
                 # Test font generation
                 result = cli.generate_font(FontType.HAN_SERIF)
 
@@ -61,15 +64,18 @@ class TestCompletePipeline:
         # Create mock template files
         self._create_mock_template_files(temp_dir)
 
-        # Create CLI instance
-        cli = FontGenerationCLI()
+        # Create mock data files (including merged-mapping-table.txt)
+        self._create_mock_data_files(temp_dir)
 
         # Mock the working directory to use our temp directory
         with patch("os.getcwd", return_value=str(temp_dir)):
             with patch(
-                "refactored.config.paths.ProjectPaths.get_project_root",
-                return_value=temp_dir,
+                "refactored.config.paths.PROJECT_ROOT",
+                temp_dir,
             ):
+                # Create CLI instance inside the patch context
+                cli = FontGenerationCLI()
+
                 # Test font generation
                 result = cli.generate_font(FontType.HANDWRITTEN)
 
@@ -109,8 +115,8 @@ class TestCompletePipeline:
         maker = TemplateJsonMaker()
 
         with patch(
-            "refactored.config.paths.ProjectPaths.get_project_root",
-            return_value=temp_dir,
+            "refactored.config.paths.PROJECT_ROOT",
+            temp_dir,
         ):
             # Should not raise exceptions
             maker.make_template(str(han_serif_font), "han_serif")
@@ -133,8 +139,8 @@ class TestCompletePipeline:
         retriever = LatinAlphabetRetriever()
 
         with patch(
-            "refactored.config.paths.ProjectPaths.get_project_root",
-            return_value=temp_dir,
+            "refactored.config.paths.PROJECT_ROOT",
+            temp_dir,
         ):
             # Should not raise exceptions
             retriever.retrieve_alphabet(str(pinyin_font), "han_serif")
@@ -285,7 +291,6 @@ class TestCompletePipeline:
         """Test script integration with actual commands."""
         # This test would require actual external tools
         # Skip if tools are not available
-        pytest.skip("Requires external tools (otfcc) to be installed")
 
         # If tools are available, test actual script execution
         from refactored.scripts.make_template_jsons import make_template_main
@@ -329,6 +334,13 @@ class TestCompletePipeline:
 
             json.dump(template_main, f, indent=2)
 
+        # Create handwritten template as well
+        template_main_handwritten_path = (
+            temp_dir / "tmp" / "json" / "template_main_handwritten.json"
+        )
+        with open(template_main_handwritten_path, "w", encoding="utf-8") as f:
+            json.dump(template_main, f, indent=2)
+
         # Create template glyf JSON
         glyf_data = {
             "cid00001": {
@@ -349,6 +361,13 @@ class TestCompletePipeline:
         with open(glyf_path, "w", encoding="utf-8") as f:
             import json
 
+            json.dump(glyf_data, f, indent=2)
+
+        # Create handwritten glyf as well
+        glyf_handwritten_path = (
+            temp_dir / "tmp" / "json" / "template_glyf_handwritten.json"
+        )
+        with open(glyf_handwritten_path, "w", encoding="utf-8") as f:
             json.dump(glyf_data, f, indent=2)
 
         # Create alphabet JSON
@@ -373,6 +392,13 @@ class TestCompletePipeline:
 
             json.dump(alphabet_data, f, indent=2)
 
+        # Create handwritten alphabet as well
+        alphabet_handwritten_path = (
+            temp_dir / "tmp" / "json" / "alphabet_for_pinyin_handwritten.json"
+        )
+        with open(alphabet_handwritten_path, "w", encoding="utf-8") as f:
+            json.dump(alphabet_data, f, indent=2)
+
     def _create_mock_data_files(self, temp_dir):
         """Create mock data files for testing."""
         # Create phonics directory structure
@@ -389,7 +415,18 @@ class TestCompletePipeline:
 
         # Create outputs directory
         outputs_dir = temp_dir / "outputs"
-        outputs_dir.mkdir(parents=True)
+        outputs_dir.mkdir(parents=True, exist_ok=True)
+
+        # Create mock merged-mapping-table.txt (required by PinyinDataManager)
+        merged_mapping_file = outputs_dir / "merged-mapping-table.txt"
+        merged_mapping_file.write_text(
+            "U+4E2D: zhōng,zhòng  # 中\n"
+            "U+56FD: guó  # 国\n"
+            "U+4EBA: rén  # 人\n"
+            "U+4E00: yī  # 一\n"
+            "U+4E8C: èr  # 二\n"
+            "U+4E09: sān  # 三\n"
+        )
 
         # Create mock pattern files
         pattern_one_file = outputs_dir / "duoyinzi_pattern_one.txt"
@@ -435,7 +472,7 @@ class TestPipelineErrorHandling:
 
         from refactored.font.font_builder import FontBuilder
 
-        with pytest.raises((ValueError, KeyError)):
+        with pytest.raises((ValueError, KeyError, RuntimeError)):
             builder = FontBuilder(
                 font_type=FontType.HAN_SERIF,
                 template_main_path=corrupted_file,

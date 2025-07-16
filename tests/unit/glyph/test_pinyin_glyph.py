@@ -11,8 +11,11 @@ from unittest.mock import Mock, mock_open, patch
 
 import pytest
 
-from refactored.config.constants import METADATA_FOR_HAN_SERIF, METADATA_FOR_HANDWRITTEN
-from refactored.config.font_config import FontType
+from refactored.config.font_config import (
+    METADATA_FOR_HAN_SERIF,
+    METADATA_FOR_HANDWRITTEN,
+    FontType,
+)
 from refactored.glyph.pinyin_glyph import (
     DELTA_4_REFLECTION,
     HEIGHT_RATE_OF_MONOSPACE,

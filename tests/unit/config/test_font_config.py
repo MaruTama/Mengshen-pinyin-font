@@ -31,42 +31,64 @@ class TestFontConfig:
         assert isinstance(handwritten_config, FontMetadata)
 
     @pytest.mark.unit
-    def test_han_serif_configuration(self):
-        """Test HAN_SERIF font configuration values."""
-        config = FontConfig.get_config(FontType.HAN_SERIF)
+    @pytest.mark.parametrize(
+        "font_type,expected_values",
+        [
+            (
+                FontType.HAN_SERIF,
+                {
+                    "pinyin_canvas": {
+                        "width": 850.0,
+                        "height": 283.3,
+                        "base_line": 935.0,
+                        "tracking": 22.145,
+                    },
+                    "hanzi_canvas": {"width": 1000.0, "height": 1000.0},
+                    "is_avoid_overlapping_mode": False,
+                    "x_scale_reduction_for_avoid_overlapping": 0.1,
+                },
+            ),
+            (
+                FontType.HANDWRITTEN,
+                {
+                    "pinyin_canvas": {
+                        "width": 800.0,
+                        "height": 300.0,
+                        "base_line": 880.0,
+                        "tracking": 5.0,
+                    },
+                    "hanzi_canvas": {"width": 1000.0, "height": 1000.0},
+                    "is_avoid_overlapping_mode": True,
+                    "x_scale_reduction_for_avoid_overlapping": 0.1,
+                },
+            ),
+        ],
+    )
+    def test_font_configuration_values(self, font_type, expected_values):
+        """Test font configuration values for all font types."""
+        config = FontConfig.get_config(font_type)
 
         # Test pinyin canvas configuration
-        assert config.pinyin_canvas.width == 850.0
-        assert config.pinyin_canvas.height == 283.3
-        assert config.pinyin_canvas.base_line == 935.0
-        assert config.pinyin_canvas.tracking == 22.145
+        pinyin_expected = expected_values["pinyin_canvas"]
+        assert config.pinyin_canvas.width == pinyin_expected["width"]
+        assert config.pinyin_canvas.height == pinyin_expected["height"]
+        assert config.pinyin_canvas.base_line == pinyin_expected["base_line"]
+        assert config.pinyin_canvas.tracking == pinyin_expected["tracking"]
 
         # Test hanzi canvas configuration
-        assert config.hanzi_canvas.width == 1000.0
-        assert config.hanzi_canvas.height == 1000.0
+        hanzi_expected = expected_values["hanzi_canvas"]
+        assert config.hanzi_canvas.width == hanzi_expected["width"]
+        assert config.hanzi_canvas.height == hanzi_expected["height"]
 
         # Test overlap mode configuration
-        assert config.is_avoid_overlapping_mode is False
-        assert config.x_scale_reduction_for_avoid_overlapping == 0.1
-
-    @pytest.mark.unit
-    def test_handwritten_configuration(self):
-        """Test HANDWRITTEN font configuration values."""
-        config = FontConfig.get_config(FontType.HANDWRITTEN)
-
-        # Test pinyin canvas configuration
-        assert config.pinyin_canvas.width == 800.0
-        assert config.pinyin_canvas.height == 300.0
-        assert config.pinyin_canvas.base_line == 880.0
-        assert config.pinyin_canvas.tracking == 5.0
-
-        # Test hanzi canvas configuration
-        assert config.hanzi_canvas.width == 1000.0
-        assert config.hanzi_canvas.height == 1000.0
-
-        # Test overlap mode configuration (different from han_serif)
-        assert config.is_avoid_overlapping_mode is True
-        assert config.x_scale_reduction_for_avoid_overlapping == 0.1
+        assert (
+            config.is_avoid_overlapping_mode
+            == expected_values["is_avoid_overlapping_mode"]
+        )
+        assert (
+            config.x_scale_reduction_for_avoid_overlapping
+            == expected_values["x_scale_reduction_for_avoid_overlapping"]
+        )
 
     @pytest.mark.unit
     def test_configuration_differences(self):
