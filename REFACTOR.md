@@ -15,7 +15,7 @@
 ### 🔄 リファクタリング進捗サマリー
 
 **実施期間**: 2024年12月29日〜進行中  
-**実装状況**: **アーキテクチャ完了 / 最終統合作業中** 🚧
+**実装状況**: **アーキテクチャ完了 / 冗長性除去・最終統合作業中** 🚧
 
 ### 完了したフェーズ一覧
 
@@ -25,9 +25,10 @@
 | **Phase 2: Python環境モダン化** | 1週間 | ✅ **完了** | Python 3.11+移行、型ヒント100% |
 | **Phase 3: データ構造モダン化** | 1-2週間 | ✅ **完了** | dataclass移行、メモリ効率化 |
 | **Phase 4: アーキテクチャリファクタリング** | 2-3週間 | ✅ **完了** | 新パッケージ構造、依存性注入設計 |
-| **Phase 5: パフォーマンス最適化** | 1-2週間 | ✅ **完了** | 最適化モジュール実装 |
+| **Phase 5: パフォーマンス最適化** | 1-2週間 | ⚠️ **過実装** | 最適化モジュール実装（冗長性判明） |
 | **Phase 6: 拼音データ統合** | 1週間 | ✅ **完了** | Webスクラピング完全排除 |
 | **Phase 7: Docker コンテナ化** | 1週間 | ✅ **完了** | Multi-stage、CI/CD統合 |
+| **Phase 8: 冗長性除去** | 1週間 | 🔄 **進行中** | オーバーエンジニアリング解消 |
 
 ## 技術的達成事項
 
@@ -56,14 +57,15 @@
 - mypy型チェック対応
 - ログシステムの統合
 
-## 新パッケージ構造
+## パッケージ構造
 
+### 現在の構造（冗長性有り）
 ```
 src/refactored/
-├── config/      # 設定管理
+├── config/      # 設定管理（4ファイル → 統合予定）
 │   ├── font_config.py    # FontType, FontConfig, dataclasses
-│   ├── paths.py          # ProjectPaths, path management
-│   ├── constants.py      # FontConstants, 定数管理
+│   ├── paths.py          # ProjectPaths, path management ⚠️ 過度に複雑
+│   ├── constants.py      # FontConstants, 定数管理 ⚠️ 統合対象
 │   ├── font_name_tables.py # フォント名テーブル定義
 │   └── legacy_config.py  # レガシー設定サポート
 ├── data/        # データ処理
@@ -74,22 +76,56 @@ src/refactored/
 │   ├── font_builder.py   # FontBuilder (main orchestrator)
 │   ├── glyph_manager.py  # GlyphManager, PinyinGlyphGenerator
 │   └── font_assembler.py # FontAssembler, metadata management
-├── processing/  # パフォーマンス最適化
-│   ├── profiling.py      # Performance profiling
-│   ├── cache_manager.py  # Cache management
-│   ├── parallel_processor.py # Parallel processing
-│   ├── optimized_utility.py # 最適化ユーティリティ
-│   ├── benchmark.py      # ベンチマーク
-│   └── gsub_table_generator.py # GSUB テーブル生成
+├── processing/  # パフォーマンス最適化（🔴 大部分削除予定）
+│   ├── profiling.py      # Performance profiling ❌ 削除予定
+│   ├── cache_manager.py  # Cache management ❌ 削除予定
+│   ├── parallel_processor.py # Parallel processing ❌ 削除予定
+│   ├── optimized_utility.py # 最適化ユーティリティ ⚠️ 簡素化
+│   ├── benchmark.py      # ベンチマーク ❌ 削除予定
+│   └── gsub_table_generator.py # GSUB テーブル生成 ✅ 保持
 ├── scripts/     # スクリプト
 │   ├── make_template_jsons.py # テンプレートJSON生成
 │   └── retrieve_latin_alphabet.py # ラテン文字抽出
-├── utils/       # ユーティリティ
-│   ├── logging_config.py # ログ設定
-│   ├── shell_utils.py    # シェルユーティリティ
-│   └── ...
+├── utils/       # ユーティリティ（9ファイル → 統合予定）
+│   ├── logging_config.py # ログ設定 ⚠️ 簡素化
+│   ├── shell_utils.py    # シェルユーティリティ ✅ 保持
+│   ├── pinyin_utils.py   # 拼音ユーティリティ ✅ 保持
+│   ├── pinyin_conversion.py # 拼音変換 ❌ 削除予定（重複）
+│   ├── character_utils.py # 文字ユーティリティ ⚠️ 統合対象
+│   ├── hanzi_pinyin.py   # 漢字拼音処理 ❌ 削除予定（重複）
+│   └── ... # その他ユーティリティ
 └── cli/         # コマンドライン
     └── main.py          # FontGenerationCLI, argument parsing
+```
+
+### 改善後の構造（冗長性除去済み）
+```
+src/refactored/
+├── config/      # 設定管理（統合済み）
+│   ├── font_config.py    # 統合された設定
+│   ├── paths.py          # 簡素化されたパス管理
+│   └── font_name_tables.py # フォント名テーブル
+├── data/        # データ処理
+│   ├── pinyin_data.py    # PinyinDataManager
+│   ├── character_data.py # CharacterDataManager（統合済み）
+│   └── mapping_data.py   # MappingDataManager
+├── font/        # フォント生成
+│   ├── font_builder.py   # FontBuilder
+│   ├── glyph_manager.py  # GlyphManager
+│   └── font_assembler.py # FontAssembler
+├── processing/  # 必要最小限の処理
+│   ├── optimized_utility.py # 基本的な最適化
+│   └── gsub_table_generator.py # GSUB テーブル生成
+├── scripts/     # スクリプト
+│   ├── make_template_jsons.py
+│   └── retrieve_latin_alphabet.py
+├── utils/       # 統合されたユーティリティ
+│   ├── logging_config.py # 簡素化されたログ
+│   ├── shell_utils.py    # セキュアなシェル実行
+│   ├── pinyin_utils.py   # 拼音処理
+│   └── character_utils.py # 文字処理（統合済み）
+└── cli/         # コマンドライン
+    └── main.py          # CLI
 ```
 
 ## 現在の実装状況
@@ -119,7 +155,33 @@ src/refactored/
 
 ### 🔄 現在の作業
 
-#### 最終統合作業（進行中）
+#### Phase 8: 冗長性除去（進行中）
+
+**問題の特定**:
+- **コード量**: 8,053行（レガシー2,352行の3.4倍）
+- **冗長性**: 29.0%（2,339行）の不要なコード
+- **オーバーエンジニアリング**: 実際に使用されていない高機能モジュール
+
+**改善目標**:
+- **コード量**: 8,053行 → 5,714行（29.0%削減）
+- **レガシー比**: 3.4倍 → 2.4倍（適切な範囲）
+- **複雑性**: 過度に複雑 → 適切なレベル
+
+**優先度別改善計画**:
+
+1. **🔴 高優先度** (1,909行削除)
+   - 未使用のパフォーマンス最適化モジュール削除
+   - 重複実装の解消
+   - 過度な抽象化の簡素化
+
+2. **🟡 中優先度** (350行削除)
+   - 設定ファイル統合
+   - ユーティリティ統合
+
+3. **🟢 低優先度** (80行削除)
+   - ログシステム簡素化
+
+#### 最終統合作業（冗長性除去後）
 1. **新旧実装の並行運用**
    ```bash
    # レガシー実装（安定版）
@@ -191,14 +253,84 @@ PYTHONPATH=src python -m refactored.scripts.retrieve_latin_alphabet --style han_
 - **設定管理**: 中央集約
 - **エラーハンドリング**: 適切な例外処理
 
+## 冗長性除去の詳細
+
+### 🔴 削除対象ファイル（1,379行）
+```bash
+# 未使用のパフォーマンス最適化モジュール
+src/refactored/processing/cache_manager.py      # 331行
+src/refactored/processing/parallel_processor.py # 361行
+src/refactored/processing/profiling.py          # 270行
+src/refactored/processing/benchmark.py          # 417行
+```
+
+### ⚠️ 統合対象ファイル（710行削減）
+```bash
+# 重複実装の解消
+src/refactored/utils/pinyin_conversion.py       # 15行 → 削除
+src/refactored/utils/hanzi_pinyin.py           # 158行 → data/character_data.py に統合
+src/refactored/config/constants.py             # 67行 → config/font_config.py に統合
+src/refactored/utils/character_utils.py        # 統合対象
+src/refactored/utils/cmap_utils.py             # 統合対象
+```
+
+### 🟢 簡素化対象ファイル（250行削減）
+```bash
+# 過度な複雑化の解消
+src/refactored/config/paths.py                 # 224行 → 30行程度に簡素化
+src/refactored/utils/logging_config.py         # 158行 → 80行程度に簡素化
+```
+
+### 🧪 テストコードの冗長性除去
+
+#### 削除対象テストファイル（1,307行）
+```bash
+# 削除対象モジュールに対応するテスト
+tests/unit/utils/test_pinyin_conversion.py     # 517行
+tests/unit/utils/test_hanzi_pinyin.py         # 511行
+tests/unit/config/test_constants.py           # 279行
+```
+
+#### 統合・簡素化対象テストファイル（1,509行削減）
+```bash
+# 統合対象
+tests/unit/config/test_constants.py → test_font_config.py  # 115行削減
+
+# 簡素化対象（重複テストケース除去）
+tests/unit/processing/test_gsub_table_generator.py         # 341行削減
+tests/unit/utils/test_cmap_utils.py                       # 149行削減
+tests/unit/glyph/test_pinyin_glyph.py                     # 244行削減
+# その他の簡素化                                            # 770行削減
+```
+
+### 改善効果
+| 項目 | 改善前 | 改善後 | 効果 |
+|------|--------|--------|------|
+| **ソースコード行数** | 8,053行 | 5,714行 | 29.0%削減 |
+| **テストコード行数** | 8,931行 | 6,115行 | 31.5%削減 |
+| **総行数** | 16,984行 | 11,829行 | 30.3%削減 |
+| **レガシー比** | 3.4倍 | 2.4倍 | 適切な範囲 |
+| **ファイル数** | 67+ | 49程度 | 管理しやすい数 |
+| **複雑性** | 過度 | 適切 | 保守性向上 |
+
 ## 今後の展開
 
-### 短期的な改善
-1. **パフォーマンス検証**: 実測値での改善確認
-2. **テストカバレッジ**: 95%目標達成
-3. **ドキュメント**: 使用方法の詳細化
+### 短期的な改善（Phase 8完了後）
+1. **冗長性除去の完了**: 
+   - ソースコード: 2,339行削除・統合
+   - テストコード: 2,816行削除・統合
+   - 総削減: 5,155行（30.3%削減）
+2. **機能的同等性確認**: 品質保証テスト
+3. **テストカバレッジ維持**: 93%以上のカバレッジ保持
+4. **パフォーマンス検証**: 実測値での改善確認
 
-### 中長期的な拡張
+### 中期的な改善
+1. **テストカバレッジ向上**: 93% → 95%目標達成
+2. **テスト実行時間短縮**: 冗長性除去により高速化
+3. **ドキュメント**: 使用方法の詳細化
+4. **CI/CD統合**: 自動化パイプライン
+
+### 長期的な拡張
 1. **新フォントスタイル**: 追加スタイル対応
 2. **Web UI**: ブラウザインターフェース
 3. **API化**: REST API提供
@@ -244,7 +376,7 @@ PYTHONPATH=src python -m refactored.scripts.retrieve_latin_alphabet --style han_
 
 ## 📝 結論
 
-萌神拼音フォントプロジェクトのリファクタリングは**アーキテクチャレベルで成功**しています。セキュリティ、開発環境、コード構造の現代化は完了済み。現在は新実装の最終統合と品質確認の段階にあります。
+萌神拼音フォントプロジェクトのリファクタリングは**アーキテクチャレベルで成功**しています。セキュリティ、開発環境、コード構造の現代化は完了済み。現在は**冗長性除去**と最終統合の段階にあります。
 
 **実装の成果**:
 - ✅ モダンなPythonプロジェクト構造
@@ -253,5 +385,23 @@ PYTHONPATH=src python -m refactored.scripts.retrieve_latin_alphabet --style han_
 - ✅ 国際標準のコンテナ化対応
 - ✅ 高品質なコードベース
 
+**発見された課題**:
+- ⚠️ **オーバーエンジニアリング**: 29.0%（2,339行）の冗長性
+- ⚠️ **未使用モジュール**: 実際に使用されていない高機能システム
+- ⚠️ **重複実装**: 同じ機能の複数実装
+- ⚠️ **過度な抽象化**: 単純な処理の複雑化
+
+**改善計画**:
+- 🔴 **Phase 8**: 冗長性除去（8,053行 → 5,714行）
+- 🔴 **適切な規模**: レガシー比 3.4倍 → 2.4倍
+- 🔴 **保守性向上**: 複雑性の大幅削減
+- 🔴 **実用性重視**: 真に必要な機能のみ保持
+
 **今後の方針**:
-新実装の安定性確認を経て、段階的にレガシー実装から新実装への移行を進めます。既存機能の完全保持と後方互換性を維持しながら、より安全で効率的なフォント生成システムを提供します。
+冗長性除去により適切な規模と複雑性に調整した後、新実装の安定性確認を経て、段階的にレガシー実装から新実装への移行を進めます。既存機能の完全保持と後方互換性を維持しながら、より安全で効率的なフォント生成システムを提供します。
+
+**最終目標**:
+- **品質**: セキュリティ、型安全性、構造化を保持
+- **実用性**: 過度な複雑性を排除し、理解しやすいコード
+- **保守性**: 適切な規模で長期的に維持可能
+- **効率性**: 不要な機能を削除し、パフォーマンスを向上
