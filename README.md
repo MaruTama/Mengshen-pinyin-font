@@ -74,6 +74,54 @@ You can also use Unicode IVS (ideographic variant selector) to switch other diff
 - [日本語](./doc/HOW_TO_MAKE_JP.md)  
 - [English](./doc/HOW_TO_MAKE_EN.md)
 
+## リファクタコード構成 / Refactored Code Architecture
+
+プロジェクトは現在、レガシー版とリファクタ版の両方をサポートしています。リファクタ版は、モジュラー設計、型安全性、セキュリティ強化を特徴としています。
+
+The project currently supports both legacy and refactored versions. The refactored version features modular design, type safety, and enhanced security.
+
+### ディレクトリ構成 / Directory Structure
+
+```
+src/refactored/
+├── cli/                    # Command Line Interface
+│   └── main.py            # CLI entry point with dependency injection
+├── config/                 # Configuration Management
+│   ├── font_config.py     # Font types, canvas settings, constants
+│   ├── font_name_tables.py # Font naming and metadata
+│   └── paths.py           # Project path management
+├── data/                   # Data Processing Layer
+│   ├── character_data.py  # Character and pronunciation management
+│   ├── mapping_data.py    # Unicode to glyph mapping
+│   └── pinyin_data.py     # Pinyin data handling
+├── font/                   # Font Generation Core
+│   ├── font_assembler.py  # Font assembly and metadata
+│   ├── font_builder.py    # Main font construction orchestrator
+│   └── glyph_manager.py   # Glyph generation and management
+├── processing/             # Font Processing
+│   ├── gsub_table_generator.py # OpenType GSUB table generation
+│   └── optimized_utility.py   # Performance-optimized utilities
+├── scripts/                # Build Scripts
+│   ├── make_template_jsons.py     # Font to JSON conversion
+│   └── retrieve_latin_alphabet.py # Latin alphabet extraction
+└── utils/                  # Utilities and Support
+    ├── cmap_utils.py      # Character mapping utilities
+    ├── logging_config.py  # Structured logging configuration
+    ├── pinyin_utils.py    # Pinyin processing utilities
+    └── shell_utils.py     # Secure shell command execution
+```
+
+#### リファクタ版コマンド / Refactored Commands
+```bash
+# フォント生成 / Font generation
+PYTHONPATH=src python -m refactored.cli.main -t han_serif
+PYTHONPATH=src python -m refactored.cli.main -t handwritten
+
+# Dockerでの生成（推奨） / Docker generation (recommended)
+docker-compose -f docker/docker-compose.yml up pipeline-han-serif
+docker-compose -f docker/docker-compose.yml up pipeline-handwritten
+```
+
 ----
 
 # 謝辞 / Acknowledgments
