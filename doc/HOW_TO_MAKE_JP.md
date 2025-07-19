@@ -85,23 +85,8 @@ $ lefthook version
 
 設定されているフック：
 - **pre-commit**: コードフォーマット（Black + isort）、リンティング（flake8）、セキュリティチェック
-- **pre-push**: ユニットテスト + セキュリティテスト実行
+- **pre-push**: ユニットテスト
 
-### 手動フォーマット実行
-```bash
-# コードフォーマット
-$ black src/ tests/
-$ isort src/ tests/
-
-# リンティング
-$ flake8 src/ tests/
-
-# 型チェック
-$ mypy src/
-
-# セキュリティチェック
-$ bandit -r src/
-```
 
 ## 生成手順
 1. 多音字の辞書を作る(省略可能)  
@@ -118,8 +103,10 @@ $ cd <PROJECT-ROOT>/res/phonics/unicode_mapping_table/
 $ python make_unicode_pinyin_map_table.py 
 ```
 
-<!-- 3. ベースにするフォントを編集可能の状態（json）にダンプする  
+3. ベースにするフォントを編集可能の状態（json）にダンプする  
 glyf table はサイズが大きく閲覧のときに不便なので他のテーブルと分離する。  
+
+#### レガシー版
 ```
 $ cd <PROJECT-ROOT>
 $ python src/make_template_jsons.py <BASE-FONT-NAME>
@@ -127,25 +114,69 @@ $ python src/make_template_jsons.py <BASE-FONT-NAME>
 # python src/make_template_jsons.py ./res/fonts/han-serif/SourceHanSerifCN-Regular.ttf
 ```
 
+#### リファクタ版
+```
+$ cd <PROJECT-ROOT>
+# han-serif
+$ PYTHONPATH=src python -m refactored.scripts.make_template_jsons --style han_serif
+# handwritten
+$ PYTHONPATH=src python -m refactored.scripts.make_template_jsons --style handwritten
+```
+
 4. 拼音表示のための文字を抽出する  
 固定幅の英字フォントのみ対応  
+
+#### レガシー版
 ```
 $ cd <PROJECT-ROOT>
 $ python src/retrieve_latin_alphabet.py <FONT-NAME-FOR-PINYIN>
 # e,g.:
 # python src/retrieve_latin_alphabet.py ./res/fonts/han-serif/mplus-1m-medium.ttf
-``` -->
+```
 
-3. ビルドする  
+#### リファクタ版
+```
+$ cd <PROJECT-ROOT>
+# han-serif
+$ PYTHONPATH=src python -m refactored.scripts.retrieve_latin_alphabet --style han_serif
+# handwritten
+$ PYTHONPATH=src python -m refactored.scripts.retrieve_latin_alphabet --style handwritten
+```
+
+5. ビルドする  
 ```
 $ cd <PROJECT ROOT>
 ```
+
+#### レガシー版
 ```
 $ time python src/main.py --style han_serif
 ```
 or   
 ```
 $ time python src/main.py --style handwritten
+```
+
+#### リファクタ版
+```
+$ time PYTHONPATH=src python -m refactored.cli.main -t han_serif
+```
+or   
+```
+$ time PYTHONPATH=src python -m refactored.cli.main -t handwritten
+```
+
+#### Docker版（完全パイプライン）
+```
+$ cd <PROJECT ROOT>
+# han_serifフォントのみ生成
+$ docker-compose -f docker/docker-compose.yml up pipeline-han-serif
+
+# handwrittenフォントのみ生成
+$ docker-compose -f docker/docker-compose.yml up pipeline-handwritten
+
+# 両方のフォントを生成
+$ docker-compose -f docker/docker-compose.yml up pipeline-all
 ```
 
 
