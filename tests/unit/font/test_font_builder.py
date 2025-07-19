@@ -103,9 +103,7 @@ class TestFontBuilder:
             ),
             patch("refactored.font.font_builder.PinyinDataManager") as mock_pinyin_cls,
             patch("refactored.font.font_builder.CharacterDataManager") as mock_char_cls,
-            patch(
-                "refactored.font.font_builder.MappingDataManager"
-            ) as mock_mapping_cls,
+            patch("refactored.font.font_builder.MappingDataManager") as mock_mapping_cls,
             patch("refactored.font.font_builder.GlyphManager") as mock_glyph_cls,
             patch("refactored.font.font_builder.FontAssembler") as mock_assembler_cls,
         ):
