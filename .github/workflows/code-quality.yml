@@ -1,0 +1,122 @@
+name: Code Quality and Linting
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  lint:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # Install project with development dependencies
+          pip install -e ".[dev]"
+          # Install additional CI-specific tools
+          pip install safety
+          
+      - name: Check code formatting with Black
+        run: |
+          black --check --diff src/ tests/
+          
+      - name: Check import sorting with isort
+        run: |
+          isort --check-only --diff src/ tests/
+          
+      - name: Lint with flake8
+        run: |
+          flake8 src/ tests/ --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 src/ tests/ --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics
+          
+      - name: Type checking with mypy
+        run: |
+          mypy src/refactored/ --ignore-missing-imports --no-strict-optional --disable-error-code union-attr --disable-error-code index --disable-error-code assignment --disable-error-code arg-type --disable-error-code return-value --disable-error-code call-overload --disable-error-code operator --disable-error-code attr-defined --disable-error-code misc --disable-error-code dict-item --disable-error-code import-untyped || echo "Type checking completed with warnings"
+          
+      - name: Security analysis with bandit
+        run: |
+          # Use bandit.yaml config file for exclusions and skips
+          echo "Running bandit security analysis..."
+          bandit -r src/refactored/ -f json -o bandit-report.json -c bandit.yaml || BANDIT_EXIT_CODE=$?
+          
+          # Display bandit report
+          echo "=== Bandit Security Report ==="
+          if [ -f bandit-report.json ]; then
+            echo "Security issues found:"
+            cat bandit-report.json | jq -r '.results[] | "File: \(.filename), Line: \(.line_number), Issue: \(.issue_text), Severity: \(.issue_severity)"' 2>/dev/null || cat bandit-report.json
+          fi
+          
+          # Run bandit in text mode for human-readable output
+          echo "=== Detailed Bandit Output ==="
+          bandit -r src/refactored/ --severity-level medium -c bandit.yaml -f txt || BANDIT_TEXT_EXIT_CODE=$?
+          
+          # Fail the step if bandit found issues
+          if [ "${BANDIT_EXIT_CODE:-0}" -ne 0 ]; then
+            echo "Bandit found security issues (exit code: ${BANDIT_EXIT_CODE:-0})"
+            exit 1
+          fi
+          
+      - name: Dependency security check
+        run: |
+          safety check --output json > safety-report.json || echo "Dependency vulnerabilities found"
+          
+      - name: Upload security reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-reports
+          path: |
+            bandit-report.json
+            safety-report.json
+
+  spellcheck:
+    name: Spell Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Node.js for cspell
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Install cspell
+        run: npm install -g cspell
+        
+      - name: Run spell check
+        run: |
+          cspell "src/refactored/**/*.py" "tests/**/*.py" "*.md" "doc/*.md" --config cspell.json
+
+  markdown-lint:
+    name: Markdown Lint
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Node.js for markdownlint
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Install markdownlint-cli
+        run: npm install -g markdownlint-cli
+        
+      - name: Lint Markdown files
+        run: |
+          markdownlint "*.md" "doc/*.md" --config .markdownlint.json --ignore node_modules

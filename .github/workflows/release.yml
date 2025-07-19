@@ -1,0 +1,169 @@
+name: Release Fonts
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+env:
+  DOCKER_BUILDKIT: 1
+  COMPOSE_DOCKER_CLI_BUILD: 1
+
+jobs:
+  generate-and-release:
+    name: Generate and Release Fonts
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Create output directories
+        run: |
+          mkdir -p outputs
+          mkdir -p tmp/json
+
+      - name: Generate fonts (complete pipeline)
+        run: |
+          cd docker
+          docker compose -f docker-compose.yml up pipeline-all
+
+      - name: Verify generated fonts
+        run: |
+          echo "Generated fonts:"
+          ls -la outputs/
+
+      - name: Get release info
+        id: release_info
+        run: |
+          echo "date=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
+          echo "sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "full_sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+
+          # Get version from pyproject.toml
+          PROJECT_VERSION=$(grep -E '^version\s*=' pyproject.toml | sed -E 's/version\s*=\s*["\x27]([^"\x27]+)["\x27]/\1/')
+          echo "project_version=$PROJECT_VERSION" >> $GITHUB_OUTPUT
+
+          # Get commit message
+          COMMIT_MESSAGE=$(git log -1 --pretty=%B | head -1)
+          DELIMITER_MSG="EOF_$(openssl rand -hex 8)"
+          {
+            echo "message<<$DELIMITER_MSG"
+            echo "$COMMIT_MESSAGE"
+            echo "$DELIMITER_MSG"
+          } >> $GITHUB_OUTPUT
+
+          # Get commit details for release notes
+          COMMIT_DETAILS=$(
+            git log -1 --pretty=format:"**Commit:** %H%n**Author:** %an <%ae>%n**Date:** %ad%n%n**Message:**%n%B%n%n**Changes:**%n" --date=iso
+            git log -1 --name-status --pretty=format:""
+          )
+          DELIMITER_DETAILS="EOF_$(openssl rand -hex 8)"
+          {
+            echo "commit_details<<$DELIMITER_DETAILS"
+            echo "$COMMIT_DETAILS"
+            echo "$DELIMITER_DETAILS"
+          } >> $GITHUB_OUTPUT
+
+          # Get recent commits since last release/tag
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -n "$LAST_TAG" ]; then
+            RECENT_CHANGES=$(
+              echo "## Recent Changes (since $LAST_TAG):"
+              echo ""
+              git log ${LAST_TAG}..HEAD --pretty=format:"- %h %s (%an, %ar)" --reverse
+            )
+          else
+            RECENT_CHANGES=$(
+              echo "## Recent Changes:"
+              echo ""
+              git log --pretty=format:"- %h %s (%an, %ar)" --reverse -10
+            )
+          fi
+          DELIMITER_CHANGES="EOF_$(openssl rand -hex 8)"
+          {
+            echo "recent_changes<<$DELIMITER_CHANGES"
+            echo "$RECENT_CHANGES"
+            echo "$DELIMITER_CHANGES"
+          } >> $GITHUB_OUTPUT
+
+      - name: Create release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: "v${{ steps.release_info.outputs.date }}"
+          name: "Mengshen Pinyin Fonts v${{ steps.release_info.outputs.project_version }}"
+          body: |
+            ## Mengshen Pinyin Fonts Release
+
+            **Release Date:** ${{ steps.release_info.outputs.date }}  
+            **Commit:** ${{ steps.release_info.outputs.sha }}  
+            **Changes:** ${{ steps.release_info.outputs.message }}
+
+            ### 📁 Included Fonts:
+            - **Mengshen-HanSerif.ttf** - Serif style (based on Source Han Serif)
+            - **Mengshen-Handwritten.ttf** - Handwritten style
+
+            ---
+
+            ### 📝 Detailed Commit Information:
+            ${{ steps.release_info.outputs.commit_details }}
+
+            ${{ steps.release_info.outputs.recent_changes }}
+
+            ---
+
+            ### 🔗 Links:
+            - [Commit Details](https://github.com/${{ github.repository }}/commit/${{ steps.release_info.outputs.full_sha }})
+            - [Project Repository](https://github.com/${{ github.repository }})
+            - [Documentation](https://github.com/${{ github.repository }}/blob/master/README.md)
+          files: "outputs/*.ttf"
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update README badges
+        if: success()
+        run: |
+          # Get current date in format: Month_DD,_YYYY
+          CURRENT_DATE=$(date +'%b_%d,_%Y')
+          RELEASE_TAG="v${{ steps.release_info.outputs.date }}"
+          PROJECT_VERSION="v${{ steps.release_info.outputs.project_version }}"
+
+          # Update version badge with pyproject.toml version
+          sed -i "s|\[\!\[version\](https://img.shields.io/badge/Version-[^-]*-brightgreen.svg)\]([^)]*)|[![version](https://img.shields.io/badge/Version-${PROJECT_VERSION}-brightgreen.svg)](https://github.com/${{ github.repository }}/releases/tag/${RELEASE_TAG})|g" README.md
+
+          # Update date badge
+          sed -i "s|\!\[updated\](https://img.shields.io/badge/Updated-[^-]*-green.svg)|![updated](https://img.shields.io/badge/Updated-${CURRENT_DATE}-green.svg)|g" README.md
+
+          echo "Updated README.md badges:"
+          echo "- Version: ${PROJECT_VERSION} (from pyproject.toml)"
+          echo "- Release Tag: ${RELEASE_TAG} (timestamp-based)"
+          echo "- Date: ${CURRENT_DATE}"
+
+          # Show the updated lines
+          grep -n "version\|updated" README.md | head -2
+
+      - name: Commit updated README
+        if: success()
+        run: |
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+          if git diff --quiet README.md; then
+            echo "No changes to README.md"
+          else
+            git add README.md
+            git commit -m "docs: update README badges to ${{ steps.release_info.outputs.date }}"
+            git push origin master
+            echo "README.md updated and pushed to master"
+          fi
