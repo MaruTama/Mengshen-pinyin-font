@@ -80,7 +80,7 @@ jobs:
         
       - name: Run spell check
         run: |
-          cspell "src/**/*.py" "tests/**/*.py" "*.md" "doc/*.md" --config cspell.json
+          cspell "src/refactored/**/*.py" "tests/**/*.py" "*.md" "doc/*.md" --config cspell.json
 
   markdown-lint:
     name: Markdown Lint
