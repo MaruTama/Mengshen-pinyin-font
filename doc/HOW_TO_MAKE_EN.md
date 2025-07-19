@@ -71,21 +71,6 @@ Configured hooks:
 - **pre-commit**: Code formatting (Black + isort), linting (flake8), security checks
 - **pre-push**: Unit tests + security tests execution
 
-### Manual Format Execution
-```bash
-# Code formatting
-$ black src/ tests/
-$ isort src/ tests/
-
-# Linting
-$ flake8 src/ tests/
-
-# Type checking
-$ mypy src/
-
-# Security check
-$ bandit -r src/
-```
 
 ### otfcc
 [otfcc](https://github.com/caryll/otfcc) is lightweight and support IVS
@@ -122,8 +107,10 @@ $ cd <PROJECT-ROOT>/res/phonics/unicode_mapping_table/
 $ python make_unicode_pinyin_map_table.py 
 ```
 
-<!-- 3. Dump the base font to an editable file (json)
+3. Dump the base font to an editable file (json)  
 The glyf table is too large and inconvenient to browse, so it should be separated from the other tables.  
+
+#### Legacy version
 ```
 $ cd <PROJECT-ROOT>
 $ python src/make_template_jsons.py <BASE-FONT-NAME>
@@ -131,25 +118,69 @@ $ python src/make_template_jsons.py <BASE-FONT-NAME>
 # python src/make_template_jsons.py ./res/fonts/han-serif/SourceHanSerifCN-Regular.ttf
 ```
 
+#### Refactored version
+```
+$ cd <PROJECT-ROOT>
+# han-serif
+$ PYTHONPATH=src python -m refactored.scripts.make_template_jsons --style han_serif
+# handwritten
+$ PYTHONPATH=src python -m refactored.scripts.make_template_jsons --style handwritten
+```
+
 4. Extraction of latin characters for display at Pinyin  
 **Note: Fixed-width latin alphabet fonts only**
+
+#### Legacy version
 ```
 $ cd <PROJECT-ROOT>
 $ python src/retrieve_latin_alphabet.py <FONT-NAME-FOR-PINYIN>
 # e,g.:
 # python src/retrieve_latin_alphabet.py ./res/fonts/han-serif/mplus-1m-medium.ttf
-``` -->
+```
 
-3. Build the font
+#### Refactored version
+```
+$ cd <PROJECT-ROOT>
+# han-serif
+$ PYTHONPATH=src python -m refactored.scripts.retrieve_latin_alphabet --style han_serif
+# handwritten
+$ PYTHONPATH=src python -m refactored.scripts.retrieve_latin_alphabet --style handwritten
+```
+
+5. Build the font
 ```
 $ cd <PROJECT ROOT>
 ```
+
+#### Legacy version
 ```
 $ time python src/main.py --style han_serif
 ```
 or   
 ```
 $ time python src/main.py --style handwritten
+```
+
+#### Refactored version
+```
+$ time PYTHONPATH=src python -m refactored.cli.main -t han_serif
+```
+or   
+```
+$ time PYTHONPATH=src python -m refactored.cli.main -t handwritten
+```
+
+#### Docker version (Complete pipeline)
+```
+$ cd <PROJECT ROOT>
+# Generate han_serif font only
+$ docker-compose -f docker/docker-compose.yml up pipeline-han-serif
+
+# Generate handwritten font only
+$ docker-compose -f docker/docker-compose.yml up pipeline-handwritten
+
+# Generate both fonts
+$ docker-compose -f docker/docker-compose.yml up pipeline-all
 ```
 
 ## Technical Notes
