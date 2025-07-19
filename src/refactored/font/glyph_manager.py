@@ -6,7 +6,12 @@ from __future__ import annotations
 import copy
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Optional, Set
+from typing import Dict, List, Optional, Set, Union
+
+# Font data types
+GlyphData = Dict[str, Union[str, int, float, List[Dict[str, Union[str, int, float]]]]]
+FontGlyphDict = Dict[str, GlyphData]
+PinyinGlyphDict = Dict[str, GlyphData]
 
 import orjson
 
@@ -36,7 +41,7 @@ class GlyphReference:
     c: float = 0.0
     d: float = 1.0
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> Dict[str, Union[str, int, float]]:
         """Convert to dictionary for JSON serialization."""
         return {
             "glyph": self.glyph,
@@ -56,9 +61,9 @@ class PinyinGlyphGenerator:
         """Initialize with font configuration."""
         self.font_type = font_type
         self.font_config = font_config
-        self._pinyin_alphabets: Optional[Dict[str, Any]] = None
+        self._pinyin_alphabets: Optional[FontGlyphDict] = None
         self.logger = get_debug_logger()
-        self._pronunciation_glyphs: Optional[Dict[str, Any]] = None
+        self._pronunciation_glyphs: Optional[PinyinGlyphDict] = None
 
     def load_alphabet_glyphs(self, alphabet_path: Path) -> None:
         """Load pinyin alphabet glyphs from template."""
@@ -151,12 +156,23 @@ class PinyinGlyphGenerator:
 
         # Get alphabet glyph height for scaling (legacy logic)
         py_alphabet_v3_glyf = self._pinyin_alphabets["py_alphabet_v3"]
-        advanceHeight = py_alphabet_v3_glyf.get(
-            "advanceHeight", py_alphabet_v3_glyf.get("advanceWidth", 1000.0) * 1.4
-        )  # HEIGHT_RATE_OF_MONOSPACE
+        advance_width_raw = py_alphabet_v3_glyf.get("advanceWidth", 1000.0)
+        advance_width = (
+            float(advance_width_raw)
+            if isinstance(advance_width_raw, (int, float))
+            else 1000.0
+        )
+        advance_height_raw = py_alphabet_v3_glyf.get(
+            "advanceHeight", advance_width * 1.4
+        )
+        advance_height = (
+            float(advance_height_raw)
+            if isinstance(advance_height_raw, (int, float))
+            else 1000.0
+        )
 
         # Legacy pinyin scale calculation (exact legacy logic)
-        pinyin_scale = target_pinyin_canvas_height / advanceHeight
+        pinyin_scale = target_pinyin_canvas_height / advance_height
 
         # Generate pronunciation glyphs
         for pronunciation in all_pronunciations:
@@ -169,10 +185,11 @@ class PinyinGlyphGenerator:
             char_count = len(pronunciation)
             if char_count > 0:
                 # Get pinyin character width
-                pinyin_width = (
-                    self._pinyin_alphabets["py_alphabet_v3"]["advanceWidth"]
-                    * pinyin_scale
+                width_raw = self._pinyin_alphabets["py_alphabet_v3"]["advanceWidth"]
+                width_value = (
+                    float(width_raw) if isinstance(width_raw, (int, float)) else 1000.0
                 )
+                pinyin_width = width_value * pinyin_scale
 
                 # Calculate positions using legacy logic (use original pronunciation for positioning)
                 width_positions = self._get_pinyin_position_on_canvas(
@@ -220,7 +237,7 @@ class PinyinGlyphGenerator:
                         references.append(reference)
 
             # Create pronunciation glyph
-            pronunciation_glyph = {
+            pronunciation_glyph: GlyphData = {
                 "advanceWidth": hanzi_advance_width,
                 "advanceHeight": target_advance_height,
                 "verticalOrigin": target_vertical_origin,
@@ -275,7 +292,7 @@ class PinyinGlyphGenerator:
 
         return positions
 
-    def get_pinyin_alphabets(self) -> Dict[str, Any]:
+    def get_pinyin_alphabets(self) -> FontGlyphDict:
         """Get pinyin alphabet glyphs."""
         if self._pinyin_alphabets is None:
             raise RuntimeError(
@@ -283,7 +300,7 @@ class PinyinGlyphGenerator:
             )
         return self._pinyin_alphabets
 
-    def get_pronunciation_glyphs(self) -> Dict[str, Any]:
+    def get_pronunciation_glyphs(self) -> PinyinGlyphDict:
         """Get pronunciation glyphs."""
         if self._pronunciation_glyphs is None:
             # Return empty dict if not loaded (legacy mode handles this differently)
@@ -292,7 +309,7 @@ class PinyinGlyphGenerator:
 
     def get_glyph_names(self) -> Set[str]:
         """Get all pinyin glyph names."""
-        names = set()
+        names: set[str] = set()
         if self._pinyin_alphabets:
             names.update(self._pinyin_alphabets.keys())
         if self._pronunciation_glyphs:
@@ -308,10 +325,16 @@ class PinyinGlyphGenerator:
         # Use a sample pronunciation to get metrics
         sample_glyph = next(iter(self._pronunciation_glyphs.values()))
 
+        width_raw = sample_glyph.get("advanceWidth", 0)
+        height_raw = sample_glyph.get("advanceHeight", 0)
+        origin_raw = sample_glyph.get("verticalOrigin", 0)
+
         return PinyinMetrics(
-            width=sample_glyph.get("advanceWidth", 0),
-            height=sample_glyph.get("advanceHeight", 0),
-            vertical_origin=sample_glyph.get("verticalOrigin", 0),
+            width=float(width_raw) if isinstance(width_raw, (int, float)) else 0.0,
+            height=float(height_raw) if isinstance(height_raw, (int, float)) else 0.0,
+            vertical_origin=(
+                float(origin_raw) if isinstance(origin_raw, (int, float)) else 0.0
+            ),
         )
 
 
@@ -340,10 +363,10 @@ class HanziGlyphGenerator:
         self._added_duplicate_flags = [False, False]
 
         # Legacy pronunciation glyphs (set externally)
-        self._legacy_pronunciation_glyphs: Optional[Dict[str, Any]] = None
+        self._legacy_pronunciation_glyphs: Optional[PinyinGlyphDict] = None
 
     def set_legacy_pronunciation_glyphs(
-        self, pronunciation_glyphs: Dict[str, Any]
+        self, pronunciation_glyphs: PinyinGlyphDict
     ) -> None:
         """Set legacy pronunciation glyphs for compatibility."""
         self._legacy_pronunciation_glyphs = pronunciation_glyphs
@@ -362,7 +385,7 @@ class HanziGlyphGenerator:
                 self._added_duplicate_flags[index] = True
 
     def _get_hanzi_metrics(
-        self, sample_cid: str, glyf_data: Dict[str, Any]
+        self, sample_cid: str, glyf_data: FontGlyphDict
     ) -> tuple[float, float]:
         """Get hanzi glyph metrics from sample character."""
         if sample_cid not in glyf_data:
@@ -370,13 +393,23 @@ class HanziGlyphGenerator:
             return 1000.0, 1000.0
 
         glyph = glyf_data[sample_cid]
-        advance_width = glyph.get("advanceWidth", 1000)
+        advance_width_raw = glyph.get("advanceWidth", 1000)
+        advance_width = (
+            float(advance_width_raw)
+            if isinstance(advance_width_raw, (int, float))
+            else 1000.0
+        )
 
         # Ensure advanceHeight exists
         if "advanceHeight" not in glyph:
             glyph["advanceHeight"] = advance_width
 
-        advance_height = glyph.get("advanceHeight", 1000)
+        advance_height_raw = glyph.get("advanceHeight", 1000)
+        advance_height = (
+            float(advance_height_raw)
+            if isinstance(advance_height_raw, (int, float))
+            else 1000.0
+        )
         return advance_width, advance_height
 
     def _simplify_pronunciation(self, pronunciation: str) -> str:
@@ -391,7 +424,7 @@ class HanziGlyphGenerator:
         pronunciation: str,
         advance_width: float,
         pinyin_metrics: PinyinMetrics,
-    ) -> Dict[str, Any]:
+    ) -> GlyphData:
         """Create hanzi glyph with pinyin annotation using legacy logic."""
         # Use legacy utility for simplification
         simplified_pronunciation = self._simplify_pronunciation(pronunciation)
@@ -414,10 +447,13 @@ class HanziGlyphGenerator:
 
         # Get pinyin glyph data and copy references (EXACT legacy behavior)
         pinyin_glyph_data = pronunciation_glyphs[simplified_pronunciation]
-        references = copy.deepcopy(pinyin_glyph_data.get("references", []))
+        refs_raw = pinyin_glyph_data.get("references", [])
+        references: List[Dict[str, Union[str, int, float]]] = (
+            copy.deepcopy(refs_raw) if isinstance(refs_raw, list) else []
+        )
 
         # Add hanzi reference (ss00 = hanzi without pinyin) - EXACT legacy placement
-        hanzi_ref = {
+        hanzi_ref: Dict[str, Union[str, int, float]] = {
             "glyph": f"{cid}.ss00",
             "x": 0,
             "y": 0,
@@ -437,7 +473,7 @@ class HanziGlyphGenerator:
 
     def _create_hanzi_with_normal_pinyin_glyph(
         self, cid: str, advance_width: float, pinyin_metrics: PinyinMetrics
-    ) -> Dict[str, Any]:
+    ) -> GlyphData:
         """Create hanzi glyph referencing normal pinyin variant."""
         hanzi_ref = GlyphReference(glyph=f"{cid}.ss01")
 
@@ -449,8 +485,8 @@ class HanziGlyphGenerator:
         }
 
     def generate_single_pronunciation_glyphs(
-        self, glyf_data: Dict[str, Any], pinyin_metrics: PinyinMetrics
-    ) -> Dict[str, Any]:
+        self, glyf_data: FontGlyphDict, pinyin_metrics: PinyinMetrics
+    ) -> FontGlyphDict:
         """Generate glyphs for characters with single pronunciation."""
         generated_glyphs = {}
 
@@ -503,8 +539,8 @@ class HanziGlyphGenerator:
         return generated_glyphs
 
     def generate_multiple_pronunciation_glyphs(
-        self, glyf_data: Dict[str, Any], pinyin_metrics: PinyinMetrics
-    ) -> Dict[str, Any]:
+        self, glyf_data: FontGlyphDict, pinyin_metrics: PinyinMetrics
+    ) -> FontGlyphDict:
         """Generate glyphs for characters with multiple pronunciations."""
         generated_glyphs = {}
 
@@ -596,20 +632,20 @@ class GlyphManager:
         )
         self.logger = get_debug_logger()
 
-        self._all_glyphs: Dict[str, Any] = {}
+        self._all_glyphs: FontGlyphDict = {}
 
     def initialize(
         self,
-        font_data: Dict[str, Any],
-        glyf_data: Dict[str, Any],
+        font_data: FontGlyphDict,
+        glyf_data: FontGlyphDict,
         alphabet_pinyin_path: Path,
         template_main_json_path: Path,
     ) -> None:
         """Initialize with font data and templates."""
         # Use refactored pinyin generator (no legacy mode for now)
         self.pinyin_generator.load_alphabet_glyphs(alphabet_pinyin_path)
-        self._pronunciation_glyphs = {}
-        self._alphabet_glyphs = {}
+        self._pronunciation_glyphs: PinyinGlyphDict = {}
+        self._alphabet_glyphs: FontGlyphDict = {}
         self._legacy_mode = False
 
         self._font_data = font_data
@@ -640,8 +676,16 @@ class GlyphManager:
         sample_cid = self.mapping_manager.convert_hanzi_to_cid(sample_char)
         if sample_cid and sample_cid in self._glyf_data:
             glyph = self._glyf_data[sample_cid]
-            hanzi_advance_width = glyph.get("advanceWidth", 1000.0)
-            hanzi_advance_height = glyph.get("advanceHeight", hanzi_advance_width)
+            width_raw = glyph.get("advanceWidth", 1000.0)
+            hanzi_advance_width = (
+                float(width_raw) if isinstance(width_raw, (int, float)) else 1000.0
+            )
+            height_raw = glyph.get("advanceHeight", hanzi_advance_width)
+            hanzi_advance_height = (
+                float(height_raw)
+                if isinstance(height_raw, (int, float))
+                else hanzi_advance_width
+            )
         else:
             hanzi_advance_width = 1000.0
             hanzi_advance_height = 1000.0
@@ -704,7 +748,7 @@ class GlyphManager:
         # if total_glyphs > FontConstants.MAX_GLYPHS:
         #     raise RuntimeError(f"Glyph count exceeds limit: {total_glyphs} > {FontConstants.MAX_GLYPHS}")
 
-    def get_all_glyphs(self) -> Dict[str, Any]:
+    def get_all_glyphs(self) -> FontGlyphDict:
         """Get all generated glyphs."""
         return self._all_glyphs.copy()
 
@@ -720,9 +764,21 @@ class GlyphManager:
                 # Use a sample pronunciation to get metrics
                 sample_pronunciation = next(iter(self._pronunciation_glyphs.keys()))
                 sample_glyph = self._pronunciation_glyphs[sample_pronunciation]
-                advance_width = sample_glyph["advanceWidth"]
-                advance_height = sample_glyph["advanceHeight"]
-                vertical_origin = sample_glyph["verticalOrigin"]
+                width_raw = sample_glyph["advanceWidth"]
+                height_raw = sample_glyph["advanceHeight"]
+                origin_raw = sample_glyph["verticalOrigin"]
+
+                advance_width = (
+                    float(width_raw) if isinstance(width_raw, (int, float)) else 1000.0
+                )
+                advance_height = (
+                    float(height_raw)
+                    if isinstance(height_raw, (int, float))
+                    else 1000.0
+                )
+                vertical_origin = (
+                    float(origin_raw) if isinstance(origin_raw, (int, float)) else 880.0
+                )
 
                 self.logger.debug(
                     f"Pinyin metrics from {sample_pronunciation} - width: {advance_width}, height: {advance_height}, vertical_origin: {vertical_origin}"

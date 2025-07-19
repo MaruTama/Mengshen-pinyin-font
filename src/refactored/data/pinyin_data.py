@@ -152,7 +152,7 @@ def get_pinyin_with_baidu(hanzi: str) -> Optional[List[str]]:
         text = text.replace("[ ", "")
         text = text.replace(" ]", "")
         pinyins = text.split(" ")
-        return pinyins
+        return [p.strip() for p in pinyins if p.strip()]
     except Exception:
         return None
 
@@ -174,6 +174,6 @@ def get_pinyin_with_zdic(hanzi: str) -> Optional[List[str]]:
         text = raw_text.replace("[ ", "")
         text = text.replace(" ]", "")
         pinyins = text.split(" ")
-        return pinyins
+        return [p.strip() for p in pinyins if p.strip()]
     except Exception:
         return None

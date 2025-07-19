@@ -40,7 +40,7 @@ def setup_logging(
     console_handler.setFormatter(formatter)
 
     # File handler (if specified)
-    handlers = [console_handler]
+    handlers: list[logging.Handler] = [console_handler]
     if log_file:
         log_file.parent.mkdir(parents=True, exist_ok=True)
         file_handler = logging.FileHandler(log_file, encoding="utf-8")
