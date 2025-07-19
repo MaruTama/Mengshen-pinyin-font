@@ -5,18 +5,24 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict
+from typing import Dict, List, Union
+
+# Font data structure types
+FontTableData = Dict[
+    str, Union[str, int, float, List[Dict[str, Union[str, int, float]]]]
+]
+FontData = Dict[str, Union[str, int, float, FontTableData]]
 
 import orjson
 
-from ..config import FontConstants, FontType, ProjectPaths
+from ..config import FontConfig, FontConstants, FontType, ProjectPaths
 from ..utils.logging_config import get_builder_logger
 
 
 class FontAssembler:
     """Handles font assembly, metadata, and output generation."""
 
-    def __init__(self, font_config, paths: ProjectPaths):
+    def __init__(self, font_config: FontConfig, paths: ProjectPaths):
         """Initialize font assembler."""
         self.font_config = font_config
         self.paths = paths
@@ -40,7 +46,7 @@ class FontAssembler:
         generation_time = datetime.now(timezone.utc).timestamp()
         return round(generation_time - base_time)
 
-    def set_font_metadata(self, font_data: Dict[str, Any], font_type: FontType) -> None:
+    def set_font_metadata(self, font_data: FontData, font_type: FontType) -> None:
         """Set font metadata including version and creation date."""
         # Import migrated name table module
         from ..config.font_name_tables import VERSION
@@ -69,15 +75,16 @@ class FontAssembler:
         else:
             raise ValueError(f"Unsupported font type: {font_type}")
 
-    def save_font_json(self, font_data: Dict[str, Any], output_path: Path) -> None:
+    def save_font_json(self, font_data: FontData, output_path: Path) -> None:
         """Save font data as formatted JSON."""
-        self.paths.ensure_directories()
+        # Create output directories if they don't exist
+        output_path.parent.mkdir(parents=True, exist_ok=True)
 
         with open(output_path, "wb") as f:
             serialized_data = orjson.dumps(font_data, option=orjson.OPT_INDENT_2)
             f.write(serialized_data)
 
-    def validate_font_structure(self, font_data: Dict[str, Any]) -> list[str]:
+    def validate_font_structure(self, font_data: FontData) -> List[str]:
         """Validate font data structure and return list of issues."""
         issues = []
 
@@ -104,7 +111,9 @@ class FontAssembler:
 
         return issues
 
-    def get_font_statistics(self, font_data: Dict[str, Any]) -> Dict[str, Any]:
+    def get_font_statistics(
+        self, font_data: FontData
+    ) -> Dict[str, Union[str, int, float, Dict[str, int]]]:
         """Get statistics about the assembled font."""
         stats = {}
 
@@ -116,11 +125,12 @@ class FontAssembler:
             if cmap:
                 unicode_values = [int(k) for k in cmap.keys() if k.isdigit()]
                 if unicode_values:
-                    stats["unicode_range"] = {
+                    unicode_range_dict = {
                         "start": min(unicode_values),
                         "end": max(unicode_values),
                         "count": len(unicode_values),
                     }
+                    stats.update({"unicode_range": unicode_range_dict})
 
         if FontConstants.CMAP_UVS_TABLE in font_data:
             stats["uvs_mappings"] = len(font_data[FontConstants.CMAP_UVS_TABLE])

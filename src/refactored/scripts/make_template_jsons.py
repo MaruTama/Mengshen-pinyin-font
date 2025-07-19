@@ -31,7 +31,10 @@ def load_font_json_with_encoding(file_path: str) -> dict:
     for encoding in SUPPORTED_ENCODINGS:
         try:
             with open(file_path, "r", encoding=encoding) as f:
-                return json.load(f)
+                result = json.load(f)
+                if isinstance(result, dict):
+                    return result
+                return {}
         except UnicodeDecodeError:
             continue
     raise ValueError("Could not decode JSON file with any supported encoding")

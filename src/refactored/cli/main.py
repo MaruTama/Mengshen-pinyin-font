@@ -160,16 +160,8 @@ Examples:
 
             if parsed_args.verbose:
                 # Try to get build statistics if available
-                try:
-                    from ..font.font_builder import get_last_build_statistics
-
-                    stats = get_last_build_statistics()
-                    if stats:
-                        self.logger.info("Build statistics:")
-                        for key, value in stats.items():
-                            self.logger.info(f"  {key}: {value}")
-                except (ImportError, AttributeError):
-                    pass  # Statistics not available
+                # Build statistics will be shown by the builder itself
+                self.logger.info("Verbose mode: Build completed successfully")
 
             self.logger.info(
                 f"Font generation completed successfully: {final_output_path}"

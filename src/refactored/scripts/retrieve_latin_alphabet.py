@@ -6,7 +6,11 @@ from __future__ import annotations
 import argparse
 import json
 import os
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional, Union
+
+# Font glyph data types (Python 3.10+ syntax)
+GlyphData = Dict[str, Union[str, int, float, List[Dict[str, Union[str, int, float]]]]]
+FontTable = Dict[str, GlyphData]
 
 from refactored.config.font_config import FontConfig, FontType
 from refactored.config.paths import DIR_TEMP
@@ -107,13 +111,16 @@ class LatinAlphabetRetriever:
                     output = output.decode("utf-8")
             else:
                 output = result
-            return json.loads(output)
+            result_dict = json.loads(output)
+            if isinstance(result_dict, dict):
+                return {k: str(v) for k, v in result_dict.items()}
+            return {}
         except Exception as e:
             logger = get_scripts_logger()
             logger.error(f"Error extracting cmap table: {e}")
             return {}
 
-    def get_glyf_table(self, source_font_json: str) -> Dict[str, Any]:
+    def get_glyf_table(self, source_font_json: str) -> FontTable:
         """Extract glyf table from font JSON."""
         cmd = f"cat {source_font_json} | jq '.glyf'"
         try:
@@ -125,15 +132,18 @@ class LatinAlphabetRetriever:
                     output = output.decode("utf-8")
             else:
                 output = result
-            return json.loads(output)
+            result_dict = json.loads(output)
+            if isinstance(result_dict, dict):
+                return {k: str(v) for k, v in result_dict.items()}
+            return {}
         except Exception as e:
             logger = get_scripts_logger()
             logger.error(f"Error extracting glyf table: {e}")
             return {}
 
     def filter_alphabet_glyphs(
-        self, cmap_table: Dict[str, str], glyf_table: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, cmap_table: Dict[str, str], glyf_table: FontTable
+    ) -> FontTable:
         """Filter alphabet glyphs for pinyin display."""
         result = {}
 
@@ -147,9 +157,7 @@ class LatinAlphabetRetriever:
 
         return result
 
-    def save_alphabet_json(
-        self, alphabet_glyphs: Dict[str, Any], output_path: str
-    ) -> None:
+    def save_alphabet_json(self, alphabet_glyphs: FontTable, output_path: str) -> None:
         """Save filtered alphabet glyphs to JSON file."""
         try:
             with open(output_path, "w", encoding="utf-8") as f:

@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Iterator, List, Optional, Protocol
+from typing import Iterator, List, Optional, Protocol, Union
 
 from .pinyin_data import PinyinDataManager, get_default_pinyin_manager
 
@@ -32,11 +32,11 @@ class CharacterInfo:
         """Get number of pronunciations."""
         return len(self.pronunciations)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Union[str, List[str]]]:
         """Enable tuple unpacking for backward compatibility."""
         return iter((self.character, self.pronunciations))
 
-    def __getitem__(self, index: int):
+    def __getitem__(self, index: int) -> Union[str, List[str]]:
         """Enable index access for backward compatibility."""
         if index == 0:
             return self.character

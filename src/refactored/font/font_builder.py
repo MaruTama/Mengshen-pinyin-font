@@ -4,7 +4,13 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, Optional, Protocol
+from typing import Dict, List, Optional, Protocol, Union
+
+# Font data types
+FontTableData = Dict[
+    str, Union[str, int, float, List[Dict[str, Union[str, int, float]]]]
+]
+FontData = Dict[str, Union[str, int, float, FontTableData]]
 
 import orjson
 
@@ -74,7 +80,7 @@ class FontBuilder:
         self.mapping_manager = mapping_manager
 
         # Load cmap table for character conversion
-        self._cmap_table = load_cmap_table_from_path(self.template_main_path)
+        self._cmap_table = load_cmap_table_from_path(str(self.template_main_path))
 
         # Font processing components
         self.glyph_manager = GlyphManager(
@@ -92,8 +98,8 @@ class FontBuilder:
         self.external_tool = external_tool
 
         # Font data
-        self._font_data: Optional[Dict[str, Any]] = None
-        self._glyf_data: Optional[Dict[str, Any]] = None
+        self._font_data: Optional[FontData] = None
+        self._glyf_data: Optional[FontTableData] = None
 
     def build(self, output_path: Path) -> None:
         """Build the complete font."""
@@ -137,7 +143,7 @@ class FontBuilder:
             self.logger.error(f"Font build failed: {e}")
             raise
 
-    def get_build_statistics(self) -> Dict[str, Any]:
+    def get_build_statistics(self) -> Dict[str, Union[str, int, float]]:
         """Get statistics about the built font."""
         return {"status": "placeholder"}
 

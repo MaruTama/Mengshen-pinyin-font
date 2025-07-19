@@ -6,12 +6,19 @@ This module contains utility functions for handling Chinese characters,
 pinyin processing, and font operations.
 """
 
+from __future__ import annotations
+
+from typing import Any, Callable, Union
+
+# Dynamic import return type
+ModuleAttribute = Union[type, object, Callable]
+
 from .cmap_utils import convert_str_hanzi_2_cid, get_cmap_table
 from .dict_utils import deep_update
 
 
 # Use lazy imports to avoid circular dependencies
-def __getattr__(name: str):
+def __getattr__(name: str) -> Any:
     """Lazy import for circular dependency resolution."""
     if name in [
         "HanziPinyin",
@@ -26,7 +33,7 @@ def __getattr__(name: str):
         "iter_single_pinyin_hanzi",
         "iter_single_pronunciation_characters",
     ]:
-        return locals()[name]
+        return locals()[name]  # type: ignore[no-any-return]
     raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 

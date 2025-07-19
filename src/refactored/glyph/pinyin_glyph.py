@@ -3,7 +3,11 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Dict, List, Union
+
+# Pinyin glyph data types
+GlyphReference = Dict[str, Union[str, int, float]]
+PinyinGlyphData = Dict[str, Union[str, int, float, List[GlyphReference]]]
 
 import orjson
 
@@ -59,7 +63,7 @@ class PinyinGlyph:
             raise ValueError(f"Unsupported font type: {font_type}")
 
         # 発音の参照をもつ e.g.: {"làng":ref}
-        self.pronunciations: Dict[str, Any] = {}
+        self.pronunciations: Dict[str, PinyinGlyphData] = {}
 
     def __get_advance_size_of_hanzi(self) -> tuple[int, int]:
         """マージ先のフォントの漢字サイズを返す"""
@@ -87,7 +91,7 @@ class PinyinGlyph:
 
         return advance_width, advance_height
 
-    def get_pinyin_glyph_for_hanzi(self, hanzi: str) -> Dict[str, Any]:
+    def get_pinyin_glyph_for_hanzi(self, hanzi: str) -> PinyinGlyphData:
         """漢字に対応するピンイングリフを生成"""
         pinyins = self.PINYIN_MAPPING_TABLE.get(hanzi, [])
         if not pinyins:
@@ -97,7 +101,10 @@ class PinyinGlyph:
         pronunciation = pinyins[0]
 
         if pronunciation in self.pronunciations:
-            return self.pronunciations[pronunciation]
+            result = self.pronunciations[pronunciation]
+            if isinstance(result, dict):
+                return result
+            return {}
 
         # 新しい発音のグリフを作成
         glyph_data = self._create_pinyin_glyph(pronunciation)
@@ -105,7 +112,7 @@ class PinyinGlyph:
 
         return glyph_data
 
-    def _create_pinyin_glyph(self, pronunciation: str) -> Dict[str, Any]:
+    def _create_pinyin_glyph(self, pronunciation: str) -> PinyinGlyphData:
         """発音文字列からピンイングリフを作成"""
         hanzi_width, hanzi_height = self.__get_advance_size_of_hanzi()
         pinyin_width, pinyin_height = self.__get_advance_size_of_pinyin(pronunciation)
@@ -143,21 +150,24 @@ class PinyinGlyph:
                 char_glyph = self.PY_ALPHABET_GLYF[char]
 
                 # 参照を追加
-                glyph_data["references"].append(
-                    {
-                        "glyph": char,
-                        "x": x_offset * scale_x,
-                        "y": self.METADATA_FOR_PINYIN.pinyin_canvas.base_line,
-                        "scaleX": scale_x,
-                        "scaleY": scale_y,
-                    }
-                )
+                if "references" in glyph_data and isinstance(
+                    glyph_data["references"], list
+                ):
+                    glyph_data["references"].append(
+                        {
+                            "glyph": char,
+                            "x": x_offset * scale_x,
+                            "y": self.METADATA_FOR_PINYIN.pinyin_canvas.base_line,
+                            "scaleX": scale_x,
+                            "scaleY": scale_y,
+                        }
+                    )
 
                 x_offset += char_glyph.get("advanceWidth", 0)
 
         return glyph_data
 
-    def get_all_pinyin_glyphs(self) -> Dict[str, Dict[str, Any]]:
+    def get_all_pinyin_glyphs(self) -> Dict[str, PinyinGlyphData]:
         """すべてのピンイングリフを取得"""
         all_glyphs = {}
 
