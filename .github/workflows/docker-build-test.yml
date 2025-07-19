@@ -148,7 +148,7 @@ jobs:
           test -f outputs/Mengshen-HanSerif.ttf || (echo "Font file not generated" && exit 1)
           
       - name: Upload font artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: generated-fonts
           path: outputs/*.ttf
@@ -180,7 +180,7 @@ jobs:
           PYTHONPATH=src pytest tests/performance/ --benchmark-only --benchmark-json=benchmark.json -v
           
       - name: Upload benchmark results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: benchmark-results
           path: benchmark.json
