@@ -11,11 +11,13 @@ Migrated to work independently in the refactored architecture.
 
 from __future__ import annotations
 
-from typing import List, TypedDict
+from typing import TYPE_CHECKING, List, TypedDict
+
+if TYPE_CHECKING:
+    from . import FontType
 
 # Import version from package __init__.py for consistency
 from .. import __version__
-from ..config.font_config import FontConstants
 from ..utils.version_utils import parse_version_to_float
 
 VERSION = parse_version_to_float(__version__)
@@ -490,23 +492,25 @@ class FontNameTableManager:
 
     @staticmethod
     def get_name_table_by_font_type(
-        font_type: FontConstants.FontType,
+        font_type: FontType,
     ) -> List[FontNameEntry]:
         """Get name table entries by font type."""
-        if font_type == FontConstants.FontType.HAN_SERIF:
+        from . import FontType
+
+        if font_type == FontType.HAN_SERIF:
             return HAN_SERIF
-        elif font_type == FontConstants.FontType.HANDWRITTEN:
+        elif font_type == FontType.HANDWRITTEN:
             return HANDWRITTEN
         else:
             raise ValueError(f"Unknown font type: {font_type}")
 
 
 # Legacy exports for backward compatibility
-def get_han_serif_name_table():
+def get_han_serif_name_table() -> List[FontNameEntry]:
     """Legacy function wrapper."""
     return FontNameTableManager.get_han_serif_name_table()
 
 
-def get_handwritten_name_table():
+def get_handwritten_name_table() -> List[FontNameEntry]:
     """Legacy function wrapper."""
     return FontNameTableManager.get_handwritten_name_table()

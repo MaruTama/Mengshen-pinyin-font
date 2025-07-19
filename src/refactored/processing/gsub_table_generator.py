@@ -5,7 +5,16 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Any, Dict
+from typing import Dict, List, Union
+
+# GSUB table structure types
+GSUBLookup = Dict[
+    str, Union[str, Dict[str, Union[str, List[Dict[str, str]]]], List[Dict[str, str]]]
+]
+GSUBTable = Dict[
+    str,
+    Union[str, int, Dict[str, Union[str, List[str]]], Dict[str, GSUBLookup], List[str]],
+]
 
 import orjson
 
@@ -39,12 +48,12 @@ class GSUBTableGenerator:
         self.logger = get_debug_logger()
 
         # Track dynamically created lookups
-        self.lookup_order = set()
+        self.lookup_order: set[str] = set()
 
         # Pattern data
-        self.pattern_one = [{}]
-        self.pattern_two = {}
-        self.exception_pattern = {}
+        self.pattern_one: list[dict[str, str]] = [{}]
+        self.pattern_two: dict[str, dict[str, str]] = {}
+        self.exception_pattern: dict[str, dict[str, str]] = {}
 
         # Initialize base GSUB structure (matches legacy exactly)
         self.gsub_data = {
@@ -88,7 +97,7 @@ class GSUBTableGenerator:
             "lookupOrder": ["lookup_aalt_0"],
         }
 
-    def generate_gsub_table(self) -> Dict[str, Any]:
+    def generate_gsub_table(self) -> GSUBTable:
         """Generate complete GSUB table with legacy structure."""
         # Load pattern files
         self._load_pattern_data()
@@ -142,8 +151,8 @@ class GSUBTableGenerator:
 
     def _make_aalt_feature(self) -> None:
         """Generate aalt feature (exact legacy compatibility)."""
-        aalt_0_subtables = self.gsub_data["lookups"]["lookup_aalt_0"]["subtables"][0]
-        aalt_1_subtables = self.gsub_data["lookups"]["lookup_aalt_1"]["subtables"][0]
+        aalt_0_subtables = self.gsub_data["lookups"]["lookup_aalt_0"]["subtables"][0]  # type: ignore
+        aalt_1_subtables = self.gsub_data["lookups"]["lookup_aalt_1"]["subtables"][0]  # type: ignore
 
         # Single pronunciation characters -> lookup_aalt_0 (legacy method)
         single_pinyin_characters = (
@@ -192,7 +201,7 @@ class GSUBTableGenerator:
         # pattern_one[0] -> lookup_11_2, pattern_one[1] -> lookup_11_3, etc.
         for idx in range(max_num_patterns):
             lookup_name = f"lookup_11_{idx + 2}"  # Start from lookup_11_2
-            lookups[lookup_name] = {
+            lookups[lookup_name] = {  # type: ignore
                 "type": "gsub_single",
                 "flags": {},
                 "subtables": [{}],
@@ -204,7 +213,7 @@ class GSUBTableGenerator:
 
         for idx in range(max_num_patterns):
             lookup_name = f"lookup_11_{idx + 2}"
-            lookup_subtables = lookups[lookup_name]["subtables"][0]
+            lookup_subtables = lookups[lookup_name]["subtables"][0]  # type: ignore
 
             for hanzi, pattern_info in self.pattern_one[idx].items():
                 if not self.mapping_manager.has_glyph_for_character(hanzi):
@@ -302,19 +311,19 @@ class GSUBTableGenerator:
         # Create additional lookup tables from pattern_two (legacy method)
         if "lookup_table" in self.pattern_two:
             for lookup_name, table in self.pattern_two["lookup_table"].items():
-                lookups[lookup_name] = {
+                lookups[lookup_name] = {  # type: ignore
                     "type": "gsub_single",
                     "flags": {},
                     "subtables": [{}],
                 }
 
                 # Add substitutions using legacy logic
-                lookup_subtables = lookups[lookup_name]["subtables"][0]
+                lookup_subtables = lookups[lookup_name]["subtables"][0]  # type: ignore
                 for hanzi, target in table.items():
                     cid = convert_hanzi_to_cid_safe(hanzi, self.cmap_table)
                     # Replace hanzi with cid in target (exact legacy method)
                     target_cid = target.replace(hanzi, cid)
-                    lookup_subtables[cid] = target_cid
+                    lookup_subtables[cid] = target_cid  # type: ignore
 
                 self.lookup_order.add(lookup_name)
 
@@ -360,19 +369,19 @@ class GSUBTableGenerator:
         # Create additional lookup tables from exception_pattern
         if "lookup_table" in self.exception_pattern:
             for lookup_name, table in self.exception_pattern["lookup_table"].items():
-                lookups[lookup_name] = {
+                lookups[lookup_name] = {  # type: ignore
                     "type": "gsub_single",
                     "flags": {},
                     "subtables": [{}],
                 }
 
                 # Add substitutions
-                lookup_subtables = lookups[lookup_name]["subtables"][0]
+                lookup_subtables = lookups[lookup_name]["subtables"][0]  # type: ignore
                 for hanzi, target in table.items():
                     cid = convert_hanzi_to_cid_safe(hanzi, self.cmap_table)
                     # Replace hanzi with cid in target (exact legacy method)
                     target_cid = target.replace(hanzi, cid)
-                    lookup_subtables[cid] = target_cid
+                    lookup_subtables[cid] = target_cid  # type: ignore
 
                 self.lookup_order.add(lookup_name)
 

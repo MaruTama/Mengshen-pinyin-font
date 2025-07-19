@@ -9,10 +9,15 @@ Contains functions for working with nested dictionaries and data structures.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Dict, List, TypeVar, Union, cast
+
+# Type variables for generic dictionary operations
+T = TypeVar("T")
+# Flexible dict value type that covers most font data structures
+DictValue = Union[str, int, float, bool, list, dict, object]
 
 
-def deep_update(dict_base: Dict[str, Any], other: Dict[str, Any]) -> None:
+def deep_update(dict_base: Dict[str, DictValue], other: Dict[str, DictValue]) -> None:
     """
     Update nested dictionary structure recursively.
 
@@ -23,13 +28,17 @@ def deep_update(dict_base: Dict[str, Any], other: Dict[str, Any]) -> None:
         other: Dictionary with updates to apply
     """
     for k, v in other.items():
-        if isinstance(v, dict) and k in dict_base:
-            deep_update(dict_base[k], v)
+        if isinstance(v, dict) and k in dict_base and isinstance(dict_base[k], dict):
+            deep_update(
+                cast(Dict[str, DictValue], dict_base[k]), cast(Dict[str, DictValue], v)
+            )
         else:
             dict_base[k] = v
 
 
-def safe_get_nested(data: Dict[str, Any], keys: List[str], default: Any = None) -> Any:
+def safe_get_nested(
+    data: Dict[str, DictValue], keys: List[str], default: T = None
+) -> Union[DictValue, T]:
     """
     Safely get value from nested dictionary using key path.
 
@@ -41,7 +50,7 @@ def safe_get_nested(data: Dict[str, Any], keys: List[str], default: Any = None) 
     Returns:
         Value at the specified path, or default if not found
     """
-    current = data
+    current: DictValue = data
 
     for key in keys:
         if isinstance(current, dict) and key in current:
@@ -52,7 +61,9 @@ def safe_get_nested(data: Dict[str, Any], keys: List[str], default: Any = None) 
     return current
 
 
-def safe_set_nested(data: Dict[str, Any], keys: List[str], value: Any) -> None:
+def safe_set_nested(
+    data: Dict[str, DictValue], keys: List[str], value: DictValue
+) -> None:
     """
     Safely set value in nested dictionary using key path.
 
@@ -72,7 +83,7 @@ def safe_set_nested(data: Dict[str, Any], keys: List[str], value: Any) -> None:
         elif not isinstance(current[key], dict):
             # If existing value is not a dict, overwrite it
             current[key] = {}
-        current = current[key]
+        current = cast(Dict[str, DictValue], current[key])
 
     # Set the final value
     if keys:
@@ -80,8 +91,8 @@ def safe_set_nested(data: Dict[str, Any], keys: List[str], value: Any) -> None:
 
 
 def flatten_dict(
-    data: Dict[str, Any], parent_key: str = "", separator: str = "."
-) -> Dict[str, Any]:
+    data: Dict[str, DictValue], parent_key: str = "", separator: str = "."
+) -> Dict[str, DictValue]:
     """
     Flatten nested dictionary structure.
 
@@ -93,7 +104,7 @@ def flatten_dict(
     Returns:
         Flattened dictionary
     """
-    items = []
+    items: list[tuple[str, DictValue]] = []
 
     for k, v in data.items():
         new_key = f"{parent_key}{separator}{k}" if parent_key else k
@@ -106,7 +117,7 @@ def flatten_dict(
     return dict(items)
 
 
-def merge_dicts(*dicts: Dict[str, Any]) -> Dict[str, Any]:
+def merge_dicts(*dicts: Dict[str, DictValue]) -> Dict[str, DictValue]:
     """
     Merge multiple dictionaries with deep merging.
 
@@ -118,7 +129,7 @@ def merge_dicts(*dicts: Dict[str, Any]) -> Dict[str, Any]:
     Returns:
         Merged dictionary
     """
-    result = {}
+    result: Dict[str, DictValue] = {}
 
     for d in dicts:
         deep_update(result, d)
@@ -127,8 +138,8 @@ def merge_dicts(*dicts: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def filter_dict_by_keys(
-    data: Dict[str, Any], allowed_keys: List[str]
-) -> Dict[str, Any]:
+    data: Dict[str, DictValue], allowed_keys: List[str]
+) -> Dict[str, DictValue]:
     """
     Filter dictionary to only include specified keys.
 
@@ -142,7 +153,9 @@ def filter_dict_by_keys(
     return {k: v for k, v in data.items() if k in allowed_keys}
 
 
-def exclude_dict_keys(data: Dict[str, Any], excluded_keys: List[str]) -> Dict[str, Any]:
+def exclude_dict_keys(
+    data: Dict[str, DictValue], excluded_keys: List[str]
+) -> Dict[str, DictValue]:
     """
     Filter dictionary to exclude specified keys.
 

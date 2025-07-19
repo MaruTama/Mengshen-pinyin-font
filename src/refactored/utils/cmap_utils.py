@@ -58,7 +58,10 @@ def load_cmap_table_from_path(template_path: str) -> Dict[str, str]:
         if "cmap" not in template_data:
             raise KeyError("No 'cmap' section found in template file")
 
-        return template_data["cmap"]
+        cmap_data = template_data["cmap"]
+        if not isinstance(cmap_data, dict):
+            raise TypeError(f"cmap data is not a dictionary: {type(cmap_data)}")
+        return cmap_data
 
     except Exception as e:
         raise RuntimeError(f"Failed to load cmap table from {template_file}: {e}")

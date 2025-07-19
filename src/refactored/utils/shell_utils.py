@@ -146,7 +146,14 @@ def safe_command_execution(cmd: Union[List[str], str]) -> subprocess.CompletedPr
         )
         # Convert stderr to text for error handling while keeping stdout as bytes
         if result.stderr and isinstance(result.stderr, bytes):
-            result.stderr = result.stderr.decode("utf-8", "ignore")
+            stderr_text = result.stderr.decode("utf-8", "ignore")
+            # Create a new result with decoded stderr
+            result = subprocess.CompletedProcess(
+                args=result.args,
+                returncode=result.returncode,
+                stdout=result.stdout,
+                stderr=stderr_text.encode("utf-8"),
+            )
         return result
     except subprocess.TimeoutExpired as e:
         raise SecurityError(f"Command timed out: {e}")
@@ -376,11 +383,17 @@ def safe_pipeline_execution(cmd: str) -> str:
 
         if result.returncode != 0:
             error_msg = (
-                result.stderr or f"Command failed with return code {result.returncode}"
+                str(result.stderr)
+                if result.stderr
+                else f"Command failed with return code {result.returncode}"
             )
             raise Exception(error_msg)
 
-        return result.stdout
+        return (
+            result.stdout.decode("utf-8")
+            if isinstance(result.stdout, bytes)
+            else str(result.stdout)
+        )
 
 
 def legacy_shell_process_replacement(cmd: str) -> str:
@@ -447,7 +460,14 @@ class ShellExecutor:
             )
             # Convert stderr to text for error handling while keeping stdout as bytes
             if result.stderr and isinstance(result.stderr, bytes):
-                result.stderr = result.stderr.decode("utf-8", "ignore")
+                stderr_text = result.stderr.decode("utf-8", "ignore")
+                # Create a new result with decoded stderr
+                result = subprocess.CompletedProcess(
+                    args=result.args,
+                    returncode=result.returncode,
+                    stdout=result.stdout,
+                    stderr=stderr_text.encode("utf-8"),
+                )
             return result
         except subprocess.TimeoutExpired as e:
             # Re-raise timeout errors for test compatibility
@@ -593,18 +613,20 @@ class ShellExecutor:
                         if isinstance(output, str)
                         else (output if isinstance(output, bytes) else b"")
                     )
-                    return type(
-                        "MockResult",
-                        (),
-                        {"returncode": 0, "stdout": stdout_bytes, "stderr": b""},
-                    )()
+                    return subprocess.CompletedProcess(
+                        args=command if isinstance(command, list) else [command],
+                        returncode=0,
+                        stdout=stdout_bytes,
+                        stderr=b"",
+                    )
                 else:
                     legacy_shell_process_replacement(command)
-                    return type(
-                        "MockResult",
-                        (),
-                        {"returncode": 0, "stdout": b"", "stderr": b""},
-                    )()
+                    return subprocess.CompletedProcess(
+                        args=command if isinstance(command, list) else [command],
+                        returncode=0,
+                        stdout=b"",
+                        stderr=b"",
+                    )
         except subprocess.TimeoutExpired as e:
             # Re-raise timeout exceptions directly for test compatibility
             raise e
