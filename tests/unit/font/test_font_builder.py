@@ -96,19 +96,19 @@ class TestFontBuilder:
         pattern_two = Path("/mock/pattern_two.json")
         exception_pattern = Path("/mock/exception.json")
 
-        with patch(
-            "refactored.font.font_builder.load_cmap_table_from_path", return_value={}
-        ), patch(
-            "refactored.font.font_builder.PinyinDataManager"
-        ) as mock_pinyin_cls, patch(
-            "refactored.font.font_builder.CharacterDataManager"
-        ) as mock_char_cls, patch(
-            "refactored.font.font_builder.MappingDataManager"
-        ) as mock_mapping_cls, patch(
-            "refactored.font.font_builder.GlyphManager"
-        ) as mock_glyph_cls, patch(
-            "refactored.font.font_builder.FontAssembler"
-        ) as mock_assembler_cls:
+        with (
+            patch(
+                "refactored.font.font_builder.load_cmap_table_from_path",
+                return_value={},
+            ),
+            patch("refactored.font.font_builder.PinyinDataManager") as mock_pinyin_cls,
+            patch("refactored.font.font_builder.CharacterDataManager") as mock_char_cls,
+            patch(
+                "refactored.font.font_builder.MappingDataManager"
+            ) as mock_mapping_cls,
+            patch("refactored.font.font_builder.GlyphManager") as mock_glyph_cls,
+            patch("refactored.font.font_builder.FontAssembler") as mock_assembler_cls,
+        ):
 
             builder = FontBuilder(
                 font_type=FontType.HAN_SERIF,
@@ -140,10 +140,13 @@ class TestFontBuilder:
         }
         mock_glyf_data = {"cid00001": {"advanceWidth": 1000, "contours": []}}
 
-        with patch(
-            "refactored.font.font_builder.load_cmap_table_from_path", return_value={}
-        ), patch("builtins.open", mock_open()) as mock_file, patch(
-            "orjson.loads", side_effect=[mock_main_data, mock_glyf_data]
+        with (
+            patch(
+                "refactored.font.font_builder.load_cmap_table_from_path",
+                return_value={},
+            ),
+            patch("builtins.open", mock_open()) as mock_file,
+            patch("orjson.loads", side_effect=[mock_main_data, mock_glyf_data]),
         ):
 
             builder = FontBuilder(
@@ -172,9 +175,13 @@ class TestFontBuilder:
         template_main = Path("/nonexistent/template_main.json")
         template_glyf = Path("/nonexistent/template_glyf.json")
 
-        with patch(
-            "refactored.font.font_builder.load_cmap_table_from_path", return_value={}
-        ), patch("builtins.open", side_effect=FileNotFoundError("File not found")):
+        with (
+            patch(
+                "refactored.font.font_builder.load_cmap_table_from_path",
+                return_value={},
+            ),
+            patch("builtins.open", side_effect=FileNotFoundError("File not found")),
+        ):
 
             builder = FontBuilder(
                 font_type=FontType.HAN_SERIF,
@@ -195,10 +202,13 @@ class TestFontBuilder:
         template_main = Path("/mock/template_main.json")
         template_glyf = Path("/mock/template_glyf.json")
 
-        with patch(
-            "refactored.font.font_builder.load_cmap_table_from_path", return_value={}
-        ), patch("builtins.open", mock_open()), patch(
-            "orjson.loads", side_effect=ValueError("Invalid JSON")
+        with (
+            patch(
+                "refactored.font.font_builder.load_cmap_table_from_path",
+                return_value={},
+            ),
+            patch("builtins.open", mock_open()),
+            patch("orjson.loads", side_effect=ValueError("Invalid JSON")),
         ):
 
             builder = FontBuilder(
@@ -225,13 +235,19 @@ class TestFontBuilder:
         mock_glyph_manager = Mock()
         mock_mapping_manager = Mock(spec=MappingDataManager)
 
-        with patch(
-            "refactored.font.font_builder.load_cmap_table_from_path", return_value={}
-        ), patch(
-            "refactored.font.font_builder.GlyphManager", return_value=mock_glyph_manager
-        ), patch(
-            "refactored.processing.optimized_utility.set_cmap_table"
-        ) as mock_set_cmap:
+        with (
+            patch(
+                "refactored.font.font_builder.load_cmap_table_from_path",
+                return_value={},
+            ),
+            patch(
+                "refactored.font.font_builder.GlyphManager",
+                return_value=mock_glyph_manager,
+            ),
+            patch(
+                "refactored.processing.optimized_utility.set_cmap_table"
+            ) as mock_set_cmap,
+        ):
 
             builder = FontBuilder(
                 font_type=FontType.HAN_SERIF,
@@ -442,21 +458,23 @@ class TestFontBuilder:
         mock_paths = Mock(spec=ProjectPaths)
         mock_paths.get_temp_json_path.return_value = temp_json_path
 
-        with patch(
-            "refactored.font.font_builder.load_cmap_table_from_path", return_value={}
-        ), patch(
-            "refactored.font.font_builder.GlyphManager", return_value=mock_glyph_manager
-        ), patch(
-            "refactored.font.font_builder.FontAssembler",
-            return_value=mock_font_assembler,
-        ), patch(
-            "builtins.open", mock_open()
-        ), patch(
-            "orjson.loads", return_value={"cmap": {}}
-        ), patch(
-            "orjson.dumps", return_value=b'{"test": "data"}'
-        ), patch(
-            "refactored.processing.optimized_utility.set_cmap_table"
+        with (
+            patch(
+                "refactored.font.font_builder.load_cmap_table_from_path",
+                return_value={},
+            ),
+            patch(
+                "refactored.font.font_builder.GlyphManager",
+                return_value=mock_glyph_manager,
+            ),
+            patch(
+                "refactored.font.font_builder.FontAssembler",
+                return_value=mock_font_assembler,
+            ),
+            patch("builtins.open", mock_open()),
+            patch("orjson.loads", return_value={"cmap": {}}),
+            patch("orjson.dumps", return_value=b'{"test": "data"}'),
+            patch("refactored.processing.optimized_utility.set_cmap_table"),
         ):
 
             builder = FontBuilder(

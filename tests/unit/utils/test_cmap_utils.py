@@ -75,9 +75,11 @@ class TestCmapTableManagement:
             "other_data": "ignored",
         }
 
-        with patch("builtins.open", mock_open()), patch(
-            "orjson.loads", return_value=mock_template_data
-        ), patch("os.path.join", return_value="/mock/template_main.json"):
+        with (
+            patch("builtins.open", mock_open()),
+            patch("orjson.loads", return_value=mock_template_data),
+            patch("os.path.join", return_value="/mock/template_main.json"),
+        ):
 
             get_cmap_table()
 
@@ -99,9 +101,11 @@ class TestCmapTableManagement:
             "other_data": "ignored",
         }
 
-        with patch("pathlib.Path.exists", return_value=True), patch(
-            "builtins.open", mock_open()
-        ), patch("orjson.loads", return_value=mock_template_data):
+        with (
+            patch("pathlib.Path.exists", return_value=True),
+            patch("builtins.open", mock_open()),
+            patch("orjson.loads", return_value=mock_template_data),
+        ):
 
             result = load_cmap_table_from_path(template_path)
 
@@ -125,9 +129,11 @@ class TestCmapTableManagement:
         template_path = "/mock/template.json"
         mock_template_data = {"other_data": "no cmap section"}
 
-        with patch("pathlib.Path.exists", return_value=True), patch(
-            "builtins.open", mock_open()
-        ), patch("orjson.loads", return_value=mock_template_data):
+        with (
+            patch("pathlib.Path.exists", return_value=True),
+            patch("builtins.open", mock_open()),
+            patch("orjson.loads", return_value=mock_template_data),
+        ):
 
             with pytest.raises(RuntimeError, match="Failed to load cmap table"):
                 load_cmap_table_from_path(template_path)
@@ -137,9 +143,11 @@ class TestCmapTableManagement:
         """Test load_cmap_table_from_path with invalid JSON."""
         template_path = "/mock/template.json"
 
-        with patch("pathlib.Path.exists", return_value=True), patch(
-            "builtins.open", mock_open()
-        ), patch("orjson.loads", side_effect=ValueError("Invalid JSON")):
+        with (
+            patch("pathlib.Path.exists", return_value=True),
+            patch("builtins.open", mock_open()),
+            patch("orjson.loads", side_effect=ValueError("Invalid JSON")),
+        ):
 
             with pytest.raises(RuntimeError, match="Failed to load cmap table"):
                 load_cmap_table_from_path(template_path)
@@ -180,9 +188,11 @@ class TestCharacterConversion:
             }
         }
 
-        with patch("builtins.open", mock_open()), patch(
-            "orjson.loads", return_value=mock_template_data
-        ), patch("os.path.join", return_value="/mock/template_main.json"):
+        with (
+            patch("builtins.open", mock_open()),
+            patch("orjson.loads", return_value=mock_template_data),
+            patch("os.path.join", return_value="/mock/template_main.json"),
+        ):
 
             result = convert_str_hanzi_2_cid("中")
             assert result == "cid00001"
@@ -269,9 +279,11 @@ class TestCharacterConversion:
             }
         }
 
-        with patch("builtins.open", mock_open()), patch(
-            "orjson.loads", return_value=mock_template_data
-        ), patch("os.path.join", return_value="/mock/template_main.json"):
+        with (
+            patch("builtins.open", mock_open()),
+            patch("orjson.loads", return_value=mock_template_data),
+            patch("os.path.join", return_value="/mock/template_main.json"),
+        ):
 
             result = convert_hanzi_to_cid_safe("中")
             assert result == "cid00001"
@@ -335,9 +347,11 @@ class TestReverseLookup:
             }
         }
 
-        with patch("builtins.open", mock_open()), patch(
-            "orjson.loads", return_value=mock_template_data
-        ), patch("os.path.join", return_value="/mock/template_main.json"):
+        with (
+            patch("builtins.open", mock_open()),
+            patch("orjson.loads", return_value=mock_template_data),
+            patch("os.path.join", return_value="/mock/template_main.json"),
+        ):
 
             result = get_unicode_from_cid("cid00001")
             assert result == "20013"
@@ -479,9 +493,11 @@ class TestCmapUtilsIntegration:
             }
         }
 
-        with patch("pathlib.Path.exists", return_value=True), patch(
-            "builtins.open", mock_open()
-        ), patch("orjson.loads", return_value=mock_template_data):
+        with (
+            patch("pathlib.Path.exists", return_value=True),
+            patch("builtins.open", mock_open()),
+            patch("orjson.loads", return_value=mock_template_data),
+        ):
 
             # Load cmap table
             loaded_cmap = load_cmap_table_from_path(template_path)
@@ -521,9 +537,11 @@ class TestCmapUtilsIntegration:
 
         # Test conversions with empty table
         clear_cmap_table()
-        with patch("builtins.open", mock_open()), patch(
-            "orjson.loads", return_value={"cmap": {}}
-        ), patch("os.path.join", return_value="/mock/template_main.json"):
+        with (
+            patch("builtins.open", mock_open()),
+            patch("orjson.loads", return_value={"cmap": {}}),
+            patch("os.path.join", return_value="/mock/template_main.json"),
+        ):
             result = convert_hanzi_to_cid_safe("中")
             # Should return None since character not in empty table
             assert result is None
