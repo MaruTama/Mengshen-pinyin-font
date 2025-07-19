@@ -395,6 +395,9 @@ def safe_pipeline_execution(cmd: str) -> str:
             else str(result.stdout)
         )
 
+    # This should never be reached, but added for mypy
+    return ""
+
 
 def legacy_shell_process_replacement(cmd: str) -> str:
     """
