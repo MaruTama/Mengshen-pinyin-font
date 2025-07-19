@@ -20,14 +20,14 @@ pre-commit:
         black {staged_files}
       stage_fixed: true
       fail_text: "Pythonコードフォーマットが完了しました。変更を確認してコミットしてください。"
-      
+
     # Pythonコード品質チェック
     python-syntax:
       glob: "*.py"
       run: python -m py_compile {staged_files}
       stage_fixed: true
       fail_text: "Python構文エラーが見つかりました。"
-      
+
     # Pythonリンティング
     python-lint:
       glob: "*.py"
