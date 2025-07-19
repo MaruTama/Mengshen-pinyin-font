@@ -113,7 +113,8 @@ class LatinAlphabetRetriever:
                 output = result
             result_dict = json.loads(output)
             if isinstance(result_dict, dict):
-                return {k: str(v) for k, v in result_dict.items()}
+                # Return the original dict since type conversion is handled elsewhere
+                return result_dict
             return {}
         except Exception as e:
             logger = get_scripts_logger()
@@ -134,7 +135,8 @@ class LatinAlphabetRetriever:
                 output = result
             result_dict = json.loads(output)
             if isinstance(result_dict, dict):
-                return {k: str(v) for k, v in result_dict.items()}
+                # Return the original dict since type conversion is handled elsewhere
+                return result_dict
             return {}
         except Exception as e:
             logger = get_scripts_logger()
