@@ -1,0 +1,225 @@
+{
+  "cSpell.words": [
+    // Chinese/Pinyin specific terms
+    "pinyin",
+    "hanzi",
+    "mengshen",
+    "zhōng",
+    "zhòng",
+    "xuéxiào",
+    "hěnhǎo",
+    "míngtiān",
+    "guó",
+    "xíng",
+    "háng",
+    "hǎo",
+    "hào",
+    "huó",
+    "duoyinzi",
+    // Font technology terms
+    "glyf",
+    "aalt",
+    "DFLT",
+    "hani",
+    "cmap",
+    "gsub",
+    "rclt",
+    "HHEA",
+    "otfcc",
+    "otfccdump",
+    "woff",
+    "cid",
+    "uvs",
+    "ivs",
+    "opentype",
+    "ttf",
+    "otf",
+    "woff2",
+    // Japanese terms
+    "hiragana",
+    "katakana",
+    "kanji",
+    // Technical terms
+    "charset",
+    "unicode",
+    "utf8",
+    "utf16",
+    "endian",
+    "regex",
+    "lookup",
+    "subtable",
+    "styleset",
+    // Project specific terms
+    "xiaolai",
+    "serifcn",
+    "setofont",
+    "monospace",
+    "sans",
+    "serif",
+    "subtables",
+    "cids",
+    "unicodes",
+    "jsons",
+    // Common abbreviations and acronyms
+    "cli",
+    "api",
+    "gui",
+    "tdd",
+    "cicd",
+    "yaml",
+    "json",
+    "utf",
+    "ascii",
+    "latin",
+    "cjkv",
+    // File/directory names
+    "src",
+    "tmp",
+    "res",
+    "dir",
+    "dirs",
+    "pytest",
+    "init",
+    "config",
+    "utils",
+    "const",
+    // Git/Development terms
+    "repo",
+    "github",
+    "workflow",
+    "changelog",
+    "readme",
+    "todo",
+    "fixme",
+    "refactor",
+    "deprecation",
+    // Scientific/Mathematical terms
+    "func",
+    "param",
+    "args",
+    "kwargs",
+    "bool",
+    "int",
+    "str",
+    "dict",
+    "tuple",
+    "iter",
+    "enum",
+    // Tool names
+    "lefthook",
+    "cspell",
+    "pylint",
+    "mtimes",
+    // web site
+    "zdic",
+    // Test words (intentionally misspelled for testing)
+    "defination",
+    "fucntion",
+    "calss",
+    "retrun",
+    "lenght"
+  ],
+  "cSpell.ignorePaths": [
+    ".git/**",
+    "__pycache__/**",
+    ".pytest_cache/**",
+    ".coverage",
+    "*.pyc",
+    "*.pyo",
+    "build/**",
+    "dist/**",
+    ".venv/**",
+    "venv/**",
+    "res/pinyin-data/**",
+    "outputs/**",
+    "tmp/**",
+    "tools/**",
+    "*.ttf",
+    "*.otf",
+    "*.woff",
+    "*.eot",
+    "*.json",
+    "*.log",
+    "*.dat",
+    "*.bin"
+  ],
+  "cSpell.language": "en,ja",
+  // Enable spell checking for specific file types
+  "cSpell.enabledFileTypes": {
+    "python": true,
+    "markdown": true,
+    "yaml": true,
+    "json": true
+  },
+  // Exclude certain patterns from spell checking
+  "cSpell.patterns": [
+    {
+      "name": "git-hashes",
+      "pattern": "\\b[0-9a-f]{7,40}\\b"
+    },
+    {
+      "name": "all-caps",
+      "pattern": "\\b[A-Z]{2,}\\b"
+    },
+    {
+      "name": "unicode-escapes",
+      "pattern": "\\\\u[0-9a-f]{4}"
+    },
+    {
+      "name": "hex-escapes",
+      "pattern": "\\\\x[0-9a-f]{2}"
+    }
+  ],
+  "cSpell.ignoreRegExpList": [
+    "git-hashes",
+    "all-caps",
+    "unicode-escapes",
+    "hex-escapes"
+  ],
+  // Python formatting and linting
+  "python.defaultInterpreterPath": "python",
+  // Auto-format on save
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit"
+  },
+  // Python-specific settings
+  "[python]": {
+    "editor.formatOnSave": true,
+    "editor.insertSpaces": true,
+    "editor.tabSize": 4,
+    "editor.rulers": [
+      88
+    ],
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
+    }
+  },
+  // Black formatter settings
+  "black-formatter.importStrategy": "fromEnvironment",
+  "black-formatter.path": [
+    "black"
+  ],
+  "black-formatter.args": [
+    "--line-length",
+    "88"
+  ],
+  // isort settings
+  "isort.importStrategy": "fromEnvironment",
+  "isort.path": [
+    "isort"
+  ],
+  "isort.args": [
+    "--profile",
+    "black",
+    "--line-length",
+    "88"
+  ],
+  // Auto-save to trigger formatting
+  "files.autoSave": "onFocusChange",
+  // File associations
+  "files.associations": {
+    "*.py": "python"
+  }
+}

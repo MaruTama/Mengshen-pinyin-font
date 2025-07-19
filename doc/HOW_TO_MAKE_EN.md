@@ -20,14 +20,57 @@ And remove Hangul characters(a960 #ꥠ ~ d7fb #ퟻ) from this font to reduce gly
 [SetoFontSP](https://ja.osdn.net/projects/setofont/releases/p14368) is used for the pinyin part of this font.
 ## Dependencies
 - macOS 10.15(Catalina)
-- python 3.7
+- python 3.8
 - otfcc
 
 ### python
 ```
-$ pyenv global 3.7.2
+$ pyenv global 3.8.2
 $ pip install -r requirements.txt
 ```
+
+## Development Environment Setup
+
+### Install Development Dependencies
+```bash
+# Install development and testing tools
+$ pip install -r requirements-dev.txt
+```
+
+### VS Code Configuration
+When using VS Code, the following extensions are recommended:
+```bash
+# Recommended extensions (defined in .vscode/extensions.json)
+- ms-python.black-formatter  # Black code formatter
+- ms-python.isort           # Import statement organizer
+- ms-python.flake8          # Linter
+- ms-python.mypy-type-checker # Type checker
+- streetsidesoftware.code-spell-checker # Spell checker
+```
+
+The project includes `.vscode/settings.json` with the following automatic configuration:
+- Auto-format on save (Black + isort)
+- Python 3.8 compatible type annotation settings
+- Formatters configured to use environment tools
+
+### Git Hooks (Lefthook)
+For development quality management, Lefthook can be used to set up Git hooks:
+
+```bash
+# Install Lefthook (macOS)
+$ brew install lefthook
+
+# Enable Git hooks
+$ lefthook install
+
+# Verify configuration
+$ lefthook version
+```
+
+Configured hooks:
+- **pre-commit**: Code formatting (Black + isort), linting (flake8), security checks
+- **pre-push**: Unit tests + security tests execution
+
 
 ### otfcc
 [otfcc](https://github.com/caryll/otfcc) is lightweight and support IVS
@@ -64,8 +107,10 @@ $ cd <PROJECT-ROOT>/res/phonics/unicode_mapping_table/
 $ python make_unicode_pinyin_map_table.py 
 ```
 
-<!-- 3. Dump the base font to an editable file (json)
+3. Dump the base font to an editable file (json)  
 The glyf table is too large and inconvenient to browse, so it should be separated from the other tables.  
+
+#### Legacy version
 ```
 $ cd <PROJECT-ROOT>
 $ python src/make_template_jsons.py <BASE-FONT-NAME>
@@ -73,25 +118,69 @@ $ python src/make_template_jsons.py <BASE-FONT-NAME>
 # python src/make_template_jsons.py ./res/fonts/han-serif/SourceHanSerifCN-Regular.ttf
 ```
 
+#### Refactored version
+```
+$ cd <PROJECT-ROOT>
+# han-serif
+$ PYTHONPATH=src python -m refactored.scripts.make_template_jsons --style han_serif
+# handwritten
+$ PYTHONPATH=src python -m refactored.scripts.make_template_jsons --style handwritten
+```
+
 4. Extraction of latin characters for display at Pinyin  
 **Note: Fixed-width latin alphabet fonts only**
+
+#### Legacy version
 ```
 $ cd <PROJECT-ROOT>
 $ python src/retrieve_latin_alphabet.py <FONT-NAME-FOR-PINYIN>
 # e,g.:
 # python src/retrieve_latin_alphabet.py ./res/fonts/han-serif/mplus-1m-medium.ttf
-``` -->
+```
 
-3. Build the font
+#### Refactored version
+```
+$ cd <PROJECT-ROOT>
+# han-serif
+$ PYTHONPATH=src python -m refactored.scripts.retrieve_latin_alphabet --style han_serif
+# handwritten
+$ PYTHONPATH=src python -m refactored.scripts.retrieve_latin_alphabet --style handwritten
+```
+
+5. Build the font
 ```
 $ cd <PROJECT ROOT>
 ```
+
+#### Legacy version
 ```
 $ time python src/main.py --style han_serif
 ```
 or   
 ```
 $ time python src/main.py --style handwritten
+```
+
+#### Refactored version
+```
+$ time PYTHONPATH=src python -m refactored.cli.main -t han_serif
+```
+or   
+```
+$ time PYTHONPATH=src python -m refactored.cli.main -t handwritten
+```
+
+#### Docker version (Complete pipeline)
+```
+$ cd <PROJECT ROOT>
+# Generate han_serif font only
+$ docker-compose -f docker/docker-compose.yml up pipeline-han-serif
+
+# Generate handwritten font only
+$ docker-compose -f docker/docker-compose.yml up pipeline-handwritten
+
+# Generate both fonts
+$ docker-compose -f docker/docker-compose.yml up pipeline-all
 ```
 
 ## Technical Notes
