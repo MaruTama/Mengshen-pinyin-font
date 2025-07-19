@@ -1,0 +1,186 @@
+name: Docker Build and Test
+
+on:
+  push:
+    branches: [ master, feat/* ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  DOCKER_BUILDKIT: 1
+  COMPOSE_DOCKER_CLI_BUILD: 1
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov pytest-benchmark bandit safety
+          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          
+      - name: Run security checks
+        run: |
+          # Security vulnerability scan
+          bandit -r src/ -f json -o bandit-report.json || echo "Security issues found"
+          # Dependency security check
+          safety check --json --output safety-report.json || echo "Dependency vulnerabilities found"
+          
+      - name: Run unit tests with coverage
+        run: |
+          PYTHONPATH=src pytest tests/unit/ --cov=src --cov-report=xml --cov-report=html -v
+          
+      - name: Run security tests
+        run: |
+          PYTHONPATH=src pytest tests/security/ -v
+          
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+
+  docker-build:
+    name: Docker Build Test
+    runs-on: ubuntu-latest
+    needs: test
+    
+    strategy:
+      matrix:
+        font-style: [han_serif, handwritten]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
+      - name: Build Docker image
+        run: |
+          cd docker
+          docker compose build mengshen-font
+          
+      - name: Verify Docker image
+        run: |
+          cd docker
+          docker compose run --rm mengshen-font otfccdump --version
+          docker compose run --rm mengshen-font python --version
+          
+      - name: Test template JSON generation
+        run: |
+          cd docker
+          docker compose run --rm -v $(pwd)/../outputs:/app/outputs -v $(pwd)/../tmp:/app/tmp mengshen-font \
+            bash -c "
+              set -e
+              echo 'Testing template JSON generation for ${{ matrix.font-style }}'
+              PYTHONPATH=src python -m refactored.scripts.make_template_jsons --style ${{ matrix.font-style }}
+              ls -la /app/tmp/json/
+            "
+            
+      - name: Test Latin alphabet extraction
+        run: |
+          cd docker
+          docker compose run --rm -v $(pwd)/../outputs:/app/outputs -v $(pwd)/../tmp:/app/tmp mengshen-font \
+            bash -c "
+              set -e
+              echo 'Testing Latin alphabet extraction for ${{ matrix.font-style }}'
+              PYTHONPATH=src python -m refactored.scripts.retrieve_latin_alphabet --style ${{ matrix.font-style }}
+              ls -la /app/tmp/json/
+            "
+            
+      - name: Test pattern table generation
+        run: |
+          cd docker
+          docker compose run --rm -v $(pwd)/../outputs:/app/outputs -v $(pwd)/../res:/app/res mengshen-font \
+            bash -c "
+              set -e
+              echo 'Testing pattern table generation'
+              cd res/phonics/duo_yin_zi/scripts && python make_pattern_table.py
+              cd ../../unicode_mapping_table && python make_unicode_pinyin_map_table.py
+              ls -la /app/outputs/
+            "
+            
+      - name: Test dry-run font generation
+        run: |
+          cd docker
+          docker compose run --rm -v $(pwd)/../outputs:/app/outputs -v $(pwd)/../tmp:/app/tmp mengshen-font \
+            bash -c "
+              set -e
+              echo 'Testing dry-run font generation for ${{ matrix.font-style }}'
+              PYTHONPATH=src python -m refactored.cli.main -t ${{ matrix.font-style }} --dry-run --verbose
+            "
+
+  integration-test:
+    name: Integration Test
+    runs-on: ubuntu-latest
+    needs: [test, docker-build]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
+      - name: Run complete pipeline test
+        run: |
+          cd docker
+          # Test complete pipeline for han_serif (faster)
+          timeout 30m docker compose run --rm -v $(pwd)/../outputs:/app/outputs -v $(pwd)/../tmp:/app/tmp -v $(pwd)/../res:/app/res pipeline-han-serif
+          
+          # Verify output files
+          ls -la outputs/
+          test -f outputs/Mengshen-HanSerif.ttf || (echo "Font file not generated" && exit 1)
+          
+      - name: Upload font artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: generated-fonts
+          path: outputs/*.ttf
+          retention-days: 7
+
+  performance-test:
+    name: Performance Benchmark
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          
+      - name: Run performance benchmarks
+        run: |
+          PYTHONPATH=src pytest tests/performance/ --benchmark-only --benchmark-json=benchmark.json -v
+          
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v3
+        with:
+          name: benchmark-results
+          path: benchmark.json
