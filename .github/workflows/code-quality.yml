@@ -46,10 +46,9 @@ jobs:
           
       - name: Security analysis with bandit
         run: |
-          # Skip B404 (subprocess import), B603 (subprocess without shell), B607 (partial executable path)
-          # These are acceptable for font generation tools that need subprocess calls
-          bandit -r src/ -f json -o bandit-report.json --exclude src/legacy --skip B404,B603,B607
-          bandit -r src/ --severity-level medium --exclude src/legacy --skip B404,B603,B607
+          # Use bandit.yaml config file for exclusions and skips
+          bandit -r src/ -f json -o bandit-report.json -c bandit.yaml
+          bandit -r src/ --severity-level medium -c bandit.yaml
           
       - name: Dependency security check
         run: |
