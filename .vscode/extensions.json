@@ -2,7 +2,7 @@
   "recommendations": [
     "streetsidesoftware.code-spell-checker",
     "ms-python.python",
-    "ms-python.pylint", 
+    "ms-python.pylint",
     "ms-python.black-formatter",
     "ms-python.isort",
     "ms-python.flake8",

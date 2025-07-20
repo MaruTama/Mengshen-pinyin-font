@@ -54,33 +54,38 @@ cid10849.ss00
 
 ### 文脈置換に利用する feature の調査
 
-`salt`
-       -> Mac だと有効にならない
+#### salt
 
-`aalt`
-       -> ユーザーに代替文字を表示するので違う。
+- Mac だと有効にならない
 
-`calt`
-       -> Macで有効になる。文脈での代替なので近い感。目的は合字ではないことも近い感じ。
-       [GSUB LookupType 6] Chaining contextual substitution (文脈連鎖依存の置換、文脈依存の異体字)を使う（むしろこの記法じゃないと書けない）
+#### aalt
 
-       > Registered features - Tag: 'calt'
-       Script/language sensitivity: Not applicable to ideographic scripts.
+- ユーザーに代替文字を表示するので違う
 
-       って書いてあるけど、中国語はwikipadiaから
+#### calt
 
-       > Chinese is often erroneously said to be ideographic
+Macで有効になる。文脈での代替なので近い感。目的は合字ではないことも近い感じ。
+[GSUB LookupType 6] Chaining contextual substitution (文脈連鎖依存の置換、文脈依存の異体字)を使う（むしろこの記法じゃないと書けない）
 
-       って書いてあるから利用できるはず。
-       ideographic scripts は 表意文字 の意味
+> Registered features - Tag: 'calt'
+> Script/language sensitivity: Not applicable to ideographic scripts.
 
-`ccmp`
-       -> 有効になるけどタグの目的は合字と解字なので違う感じ.
-       グリフ構成/分解。多くの環境で対応している。
-       sub a-hira voicedcomb-kana by a_voicedcomb-kana-hira;
+って書いてあるけど、中国語はwikipadiaから
 
-`rclt`
-       -> calt に似ている。アラビア文字に使うことが本来の目的であるが、どの文字にも適用可能。この機能を切ることはできない。
+> Chinese is often erroneously said to be ideographic
+
+って書いてあるから利用できるはず。
+ideographic scripts は 表意文字 の意味
+
+#### ccmp
+
+有効になるけどタグの目的は合字と解字なので違う感じ.  
+グリフ構成/分解。多くの環境で対応している。  
+`sub a-hira voicedcomb-kana by a_voicedcomb-kana-hira;`
+
+#### rclt
+
+calt に似ている。アラビア文字に使うことが本来の目的であるが、どの文字にも適用可能。この機能を切ることはできない。
 
 ![can-apply-calt-for-hanzi](../../imgs/can_apply_calt_for_hanzi.png)
 
@@ -142,7 +147,7 @@ ignore のときは inputBegins,inputEnds を計算してから at を消す
 調査方法
 Glyphs で記述して、出力->otfcc で dump して取り出し
 
-```
+```bash
 otfccdump -o Sawarabi.json --pretty SawarabiMincho-Regular.otf
 cat Sawarabi.json | jq '.GSUB' > Sawarabi_GSUB.json
 ```

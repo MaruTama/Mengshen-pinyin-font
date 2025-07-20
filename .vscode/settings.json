@@ -187,7 +187,9 @@
   // Markdownlint specific settings
   "markdownlint.config": {
     "MD033": {
-      "allowed_elements": ["img"]
+      "allowed_elements": [
+        "img"
+      ]
     },
     "MD045": false,
     "MD025": false,

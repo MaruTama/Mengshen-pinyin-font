@@ -1,6 +1,6 @@
 exclude_dirs:
   - src/legacy
 skips:
-  - B404  # subprocess import
-  - B603  # subprocess without shell
-  - B607  # partial executable path
+  - B404 # subprocess import
+  - B603 # subprocess without shell
+  - B607 # partial executable path
