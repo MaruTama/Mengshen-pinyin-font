@@ -161,6 +161,32 @@ pip install -r requirements.txt
 $ pip install -r requirements-dev.txt
 ```
 
+### Development Support Tools Used
+
+#### Code Quality & Formatting
+
+- **black** (>=22.0.0) - Code formatter
+- **isort** (>=5.0.0) - Import statement organizer
+- **flake8** (>=5.0.0) - Python linter
+- **mypy** (>=1.0.0) - Type checker
+
+#### Security
+
+- **bandit** (>=1.7.0) - Security vulnerability detection
+
+#### Testing
+
+- **pytest** (>=7.0.0) - Testing framework
+- **pytest-cov** (>=4.0.0) - Coverage measurement
+- **pytest-mock** (>=3.0.0) - Mock functionality
+- **pytest-benchmark** (>=4.0.0) - Performance testing
+- **pytest-watch** (>=4.2.0) - File watching test execution
+- **hypothesis** (>=6.0.0) - Property-based testing
+
+#### Git Hook Management
+
+- **lefthook** - Git hook management (auto-execution on pre-commit/pre-push)
+
 ### VS Code Configuration
 
 When using VS Code, the following extensions are recommended:

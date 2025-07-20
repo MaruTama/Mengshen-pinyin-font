@@ -180,6 +180,32 @@ pip install -r requirements.txt
 $ pip install -r requirements-dev.txt
 ```
 
+### 使用している開発支援ツール
+
+#### コード品質・フォーマット
+
+- **black** (>=22.0.0) - コードフォーマッター
+- **isort** (>=5.0.0) - インポート文整理
+- **flake8** (>=5.0.0) - Pythonリンター
+- **mypy** (>=1.0.0) - 型チェッカー
+
+#### セキュリティ
+
+- **bandit** (>=1.7.0) - セキュリティ脆弱性検出
+
+#### テスト
+
+- **pytest** (>=7.0.0) - テストフレームワーク
+- **pytest-cov** (>=4.0.0) - カバレッジ測定
+- **pytest-mock** (>=3.0.0) - モック機能
+- **pytest-benchmark** (>=4.0.0) - パフォーマンステスト
+- **pytest-watch** (>=4.2.0) - ファイル監視テスト実行
+- **hypothesis** (>=6.0.0) - プロパティベーステスト
+
+#### Git フック管理
+
+- **lefthook** - Git フック管理（pre-commit/pre-pushで自動実行）
+
 ### VS Code設定
 
 VS Codeを使用する場合、以下の拡張機能が推奨されます：
