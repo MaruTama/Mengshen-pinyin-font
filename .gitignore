@@ -31,3 +31,9 @@ coverage.xml
 # VS Code user-specific settings (keep shared settings in repo)
 .vscode/launch.json
 .vscode/tasks.json
+
+# Generated font outputs (large binary files)
+outputs/*.ttf
+outputs/*.otf
+# Large temporary files
+tmp/
