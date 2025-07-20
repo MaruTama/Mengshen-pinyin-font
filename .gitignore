@@ -29,3 +29,5 @@ build/
 # Generated font outputs (large binary files)
 outputs/*.ttf
 outputs/*.otf
+# Large temporary files
+tmp/
