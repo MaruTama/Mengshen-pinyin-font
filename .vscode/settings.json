@@ -184,6 +184,17 @@
     "source.organizeImports": "explicit",
     "source.fixAll.markdownlint": "explicit"
   },
+  // Markdownlint specific settings
+  "markdownlint.config": {
+    "MD033": {
+      "allowed_elements": ["img"]
+    },
+    "MD045": false,
+    "MD025": false,
+    "MD029": {
+      "style": "ordered"
+    }
+  },
   // Python-specific settings
   "[python]": {
     "editor.formatOnSave": true,
@@ -222,5 +233,15 @@
   // File associations
   "files.associations": {
     "*.py": "python"
+  },
+  // Markdown specific settings
+  "[markdown]": {
+    "editor.formatOnSave": true,
+    "editor.wordWrap": "on",
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.markdownlint": "explicit"
+    }
   }
 }
