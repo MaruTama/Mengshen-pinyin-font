@@ -22,6 +22,12 @@ htmlcov/
 dist/
 build/
 
+# CI/CD generated reports
+bandit-report.json
+safety-report.json
+benchmark.json
+coverage.xml
+
 # VS Code user-specific settings (keep shared settings in repo)
 .vscode/launch.json
 .vscode/tasks.json
