@@ -31,6 +31,10 @@ coverage.xml
 # Python version management
 .python-version
 
+# Act (local GitHub Actions testing)
+.actrc
+act-commands.md
+
 # VS Code user-specific settings (keep shared settings in repo)
 .vscode/launch.json
 .vscode/tasks.json
