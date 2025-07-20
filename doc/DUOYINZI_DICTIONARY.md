@@ -1,5 +1,9 @@
+# DUOYINZI_DICTIONARY
+
 ## pattern 1
+
 There is one hanzi only that can be replaced by variational pronunciation in a phrase.
+
 | Number | hanzi | pinyin | phrase |
 | ---: | :--- | :--- | :--- |
 | 1|阿|ā|阿托品|
@@ -253,7 +257,9 @@ There is one hanzi only that can be replaced by variational pronunciation in a p
 |   |奇|jī|奇数|
 
 ## pattern 2
+
 There is more than one hanzi that can be replaced by variational pronunciation in a phrase.
+
 | Number | phrase | pinyin |
 | ---: | :--- | :--- |
 | 1|间作离间|jiàn/zuò/lí/jiàn|
@@ -292,15 +298,16 @@ There is more than one hanzi that can be replaced by variational pronunciation i
 |34|划子|huá/zǐ|
 |35|奔头儿|bèn/tou/r|
 
-
 ## Exceptional pattern
+
 There are duplicates that affect phrases of pattern 1 or 2.
+
 | Number | be affected phrase | affect phrase |
 | ---: | :--- | :--- |
 | 1| 着手: zhuó/shǒu | 背着手: bèi/zhe/shǒu|
 | 2| 轴子: zhóu/zǐ   | 大轴子: dà/zhòu/zi, 压轴子: yā/zhòu/zi|
 
-
 ## References
+
 - [中国語の多音字辞典（Chinese Duoyinzi Dictionary）](https://dokochina.com/duoyinzi.htm)
 - [ユーウェン中国語講座 - 多音字](https://yuwen.zaich.com/intermediate/duoyinzi)

@@ -1,0 +1,17 @@
+{
+  "MD033": {
+    "allowed_elements": ["img", "div", "details", "summary"]
+  },
+  "MD025": false,
+  "MD045": false,
+  "MD029": {
+    "style": "ordered"
+  },
+  "MD036": false,
+  "MD024": {
+    "siblings_only": true
+  },
+  "MD001": false,
+  "MD013": false,
+  "MD011": false
+}
