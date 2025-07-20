@@ -9,6 +9,7 @@
     "ms-python.mypy-type-checker",
     "eamodio.gitlens",
     "redhat.vscode-yaml",
-    "charliermarsh.ruff"
+    "charliermarsh.ruff",
+    "davidanson.vscode-markdownlint"
   ]
 }
