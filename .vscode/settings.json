@@ -193,7 +193,8 @@
     "MD025": false,
     "MD029": {
       "style": "ordered"
-    }
+    },
+    "MD059": false
   },
   // Python-specific settings
   "[python]": {

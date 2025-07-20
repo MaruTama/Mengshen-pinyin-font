@@ -10,23 +10,6 @@ skip_output:
 # Gitフック設定
 pre-commit:
   commands:
-    markdown-check:
-      glob: "*.md"
-      run: |
-        # VS Code markdownlint拡張機能に依存（CLI不要）
-        echo "📝 Markdownファイルは VS Code markdownlint拡張機能でチェックしてください"
-        echo "✅ 設定済み: 保存時に自動修正、エラーは VS Code で確認可能"
-        # ここでは基本的な修正のみ実行
-        for file in {staged_files}; do
-          if [ -f "$file" ]; then
-            # 行末スペース削除と基本整形のみ
-            sed -i '' 's/[[:space:]]*$//' "$file"
-            echo "🔧 基本整形完了: $file"
-          fi
-        done
-      stage_fixed: true
-      fail_text: "VS Code markdownlint拡張機能で詳細確認してください。"
-
     # Pythonコードフォーマット
     format-python:
       glob: "*.py"
@@ -57,15 +40,3 @@ pre-push:
     core-tests:
       run: python -m pytest tests/unit/ tests/security/ -x --tb=short
       fail_text: "コア機能テストが失敗しました。修正してからpushしてください。"
-
-commit-msg:
-  commands:
-    # コミットメッセージの品質チェック
-    message-check:
-      run: |
-        # WIPコミットの警告
-        if echo "$1" | grep -i "wip\|todo\|fixme" >/dev/null; then
-          echo "⚠️  WIP/TODO/FIXMEを含むコミットです。本当にコミットしますか？"
-          echo "継続するには Ctrl+C で中断するか、そのまま続行してください。"
-          read -t 5 -p "5秒で自動継続します..."
-        fi
