@@ -23,8 +23,8 @@ x-mengshen-font-base: &mengshen-font-base
   volumes:
     # Mount source code for development
     - ../src:/app/src:ro
-    # Mount resource files
-    - ../res:/app/res:ro
+    # Mount resource files (writable for pattern table generation)
+    - ../res:/app/res
     # Mount output directory for generated fonts
     - ../outputs:/app/outputs
     # Mount temp directory for intermediate files
@@ -167,6 +167,7 @@ services:
       # Development mode - mount source as read-write
       - ../src:/app/src
       - ../tests:/app/tests
+      # Keep res read-only for development safety
       - ../res:/app/res:ro
       - ../outputs:/app/outputs
       - ../tmp:/app/tmp
