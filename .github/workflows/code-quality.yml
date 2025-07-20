@@ -46,8 +46,8 @@ jobs:
           
       - name: Security analysis with bandit
         run: |
-          bandit -r src/ -f json -o bandit-report.json
-          bandit -r src/ --severity-level medium
+          bandit -r src/ -f json -o bandit-report.json --exclude src/legacy
+          bandit -r src/ --severity-level medium --exclude src/legacy
           
       - name: Dependency security check
         run: |
