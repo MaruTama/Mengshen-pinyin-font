@@ -36,7 +36,7 @@ jobs:
           # Security vulnerability scan using bandit.yaml config
           bandit -r src/ -f json -o bandit-report.json -c bandit.yaml || echo "Security issues found"
           # Dependency security check
-          safety check --json --output safety-report.json || echo "Dependency vulnerabilities found"
+          safety check --output json > safety-report.json || echo "Dependency vulnerabilities found"
           
       - name: Run unit tests with coverage
         run: |
