@@ -1,5 +1,3 @@
-version: '3.8'
-
 # Mengshen Pinyin Font Generator - Docker Compose Configuration
 #
 # Usage:
@@ -90,7 +88,7 @@ services:
         echo "All fonts generation completed successfully!"
     volumes:
       - ../src:/app/src:ro
-      - ../res:/app/res # Remove :ro to make it writable
+      - ../res:/app/res  # Writable for pattern table generation
       - ../outputs:/app/outputs
       - ../tmp:/app/tmp
 
@@ -122,7 +120,7 @@ services:
         echo "Han_serif font generation completed successfully!"
     volumes:
       - ../src:/app/src:ro
-      - ../res:/app/res # Remove :ro to make it writable
+      - ../res:/app/res  # Writable for pattern table generation
       - ../outputs:/app/outputs
       - ../tmp:/app/tmp
 
@@ -154,7 +152,7 @@ services:
         echo "Handwritten font generation completed successfully!"
     volumes:
       - ../src:/app/src:ro
-      - ../res:/app/res # Remove :ro to make it writable
+      - ../res:/app/res  # Writable for pattern table generation
       - ../outputs:/app/outputs
       - ../tmp:/app/tmp
 
