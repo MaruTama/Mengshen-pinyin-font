@@ -10,6 +10,13 @@ skip_output:
 # Gitフック設定
 pre-commit:
   commands:
+    # Markdownlint (自動修正)
+    markdown-lint:
+      glob: "*.md"
+      run: npx markdownlint --fix {staged_files}
+      stage_fixed: true
+      fail_text: "Markdownlintエラーが見つかりました。自動修正された変更を確認してコミットしてください。"
+
     # Pythonコードフォーマット
     format-python:
       glob: "*.py"

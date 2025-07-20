@@ -181,7 +181,8 @@
   // Auto-format on save
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
-    "source.organizeImports": "explicit"
+    "source.organizeImports": "explicit",
+    "source.fixAll.markdownlint": "explicit"
   },
   // Python-specific settings
   "[python]": {
