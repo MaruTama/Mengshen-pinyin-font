@@ -117,7 +117,7 @@ Following table is the collection of Chinese characters that are found in [Word 
 |U+2CB29|𬬩|釴|yì|[GlyphWiki](http://glyphwiki.org/wiki/u2cb29),[Wiktionary zh](https://zh.wiktionary.org/wiki/%E9%87%B4)|
 |U+2CB31|𬬱|釿|jīn, yǐn, yín|[GlyphWiki](http://glyphwiki.org/wiki/u2cb31),[Wiktionary zh](https://zh.wiktionary.org/wiki/%E9%87%BF)|
 |U+2CB39|𬬹|鉮|huán, shén, shēn|[GlyphWiki](http://glyphwiki.org/wiki/u2cb39),[Wiktionary zh](https://zh.wiktionary.org/wiki/%E9%89%AE)|
-|U+2CB6C|𬭬|鏏|wèi|[GlyphWiki](http://glyphwiki.org/wiki/u2cb6c),[Wiktionary zh](https://zh.wiktionary.org/wiki/%E9%8F%8F)
+|U+2CB6C|𬭬|鏏|wèi|[GlyphWiki](http://glyphwiki.org/wiki/u2cb6c),[Wiktionary zh](https://zh.wiktionary.org/wiki/%E9%8F%8F)|
 |U+2CB6F|𬭯|䥕|piě|[GlyphWiki](http://glyphwiki.org/wiki/u2cb6f),[Wiktionary](https://en.wiktionary.org/wiki/%E4%A5%95)|
 |U+2CBBF|𬮿|隑|gāi, ái, qí­|[GlyphWiki](http://glyphwiki.org/wiki/u2cbbf),[Wiktionary zh](https://zh.wiktionary.org/wiki/%E9%9A%91)|
 |U+2CCFF|𬳿|駼|tú|[GlyphWiki](http://glyphwiki.org/wiki/u2ccff),[Wiktionary zh](https://zh.wiktionary.org/wiki/%E9%A7%BC)|

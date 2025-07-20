@@ -3,6 +3,7 @@
 ## Prerequisites
 
 Install act if not already installed:
+
 ```bash
 brew install act
 ```
@@ -10,11 +11,13 @@ brew install act
 ## Available Commands
 
 ### 1. List all workflows
+
 ```bash
 act -l
 ```
 
 ### 2. Test Code Quality workflow
+
 ```bash
 # Run the entire code quality workflow
 act -W .github/workflows/code-quality.yml
@@ -26,6 +29,7 @@ act -W .github/workflows/code-quality.yml -j markdown-lint
 ```
 
 ### 3. Test Docker Build workflow (lightweight tests)
+
 ```bash
 # Run only the test job (fastest)
 act -W .github/workflows/docker-build-test.yml -j test
@@ -41,28 +45,33 @@ act -W .github/workflows/docker-build-test.yml -j performance-test
 ### 4. Simulate different events
 
 #### Pull Request event
+
 ```bash
 act pull_request -W .github/workflows/docker-build-test.yml -j test
 act pull_request -W .github/workflows/code-quality.yml
 ```
 
 #### Push to master (integration test)
+
 ```bash
 act push -W .github/workflows/docker-build-test.yml -j integration-test --eventpath .github/events/push-master.json
 ```
 
 ### 5. Dry run (show what would run)
+
 ```bash
 act -n -W .github/workflows/docker-build-test.yml
 act -n -W .github/workflows/code-quality.yml
 ```
 
 ### 6. Run with secrets (if needed)
+
 ```bash
 act -W .github/workflows/docker-build-test.yml --secret-file .secrets
 ```
 
 ### 7. Debug mode
+
 ```bash
 act -W .github/workflows/code-quality.yml -j lint --verbose
 ```
@@ -72,6 +81,7 @@ act -W .github/workflows/code-quality.yml -j lint --verbose
 Create event files to simulate specific GitHub events:
 
 ### Push to master event
+
 ```bash
 mkdir -p .github/events
 cat > .github/events/push-master.json << 'EOF'
@@ -86,6 +96,7 @@ EOF
 ```
 
 ### Pull request event
+
 ```bash
 cat > .github/events/pull-request.json << 'EOF'
 {
@@ -104,6 +115,7 @@ EOF
 ## Quick Test Commands
 
 ### Fast development workflow test
+
 ```bash
 # Quick code quality check (fastest)
 act -W .github/workflows/code-quality.yml -j lint
@@ -113,6 +125,7 @@ act -W .github/workflows/docker-build-test.yml -j test
 ```
 
 ### Full local CI simulation
+
 ```bash
 # Run both workflows in sequence
 act -W .github/workflows/code-quality.yml && \
@@ -132,6 +145,7 @@ act -W .github/workflows/docker-build-test.yml -j test
 If you encounter issues:
 
 1. **Docker space**: Clean up Docker images
+
    ```bash
    docker system prune -a
    ```
