@@ -143,7 +143,7 @@ def get_pinyin_with_baidu(hanzi: str) -> Optional[List[str]]:
         import requests
         from bs4 import BeautifulSoup
 
-        html = requests.get(BAIDU_URL.format(hanzi))
+        html = requests.get(BAIDU_URL.format(hanzi), timeout=10)
         soup = BeautifulSoup(html.content, "html.parser")
         elem = soup.find("div", id="pinyin")
         raw_text = elem.find("b")
@@ -166,7 +166,7 @@ def get_pinyin_with_zdic(hanzi: str) -> Optional[List[str]]:
         import requests
         from bs4 import BeautifulSoup
 
-        html = requests.get(ZDIC_URL.format(hanzi))
+        html = requests.get(ZDIC_URL.format(hanzi), timeout=10)
         soup = BeautifulSoup(html.content, "html.parser")
         elem = soup.find("span", class_="dicpy")
         raw_text = elem.get_text()

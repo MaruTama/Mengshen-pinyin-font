@@ -517,8 +517,8 @@ This feature is used for chaining contextual substitution
 | :--- | :--- |
 | hanzi_glyf | Chinese character glyf with the standard pronunciation |
 | hanzi_glyf.ss00 | Chinese character glyf without Pinyin. Pinyin can be changed by simply changing the IVS code. |
-| hanzi_glyf.ss01 | (When Chinese character has the variational pronunciation) <!-- markdownlint-disable-next-line MD033 --><br> Chinese character glyf with the standard pronunciation (duplicates with hanzi_glyf, but replaces it by overriding GSUB replacements) |
-| hanzi_glyf.ss02 | (When Chinese character has the variational pronunciation) <!-- markdownlint-disable-next-line MD033 --><br> After that, Chinese character glyf with the variational pronunciation |
+| hanzi_glyf.ss01 | (When Chinese character has the variational pronunciation) Chinese character glyf with the standard pronunciation (duplicates with hanzi_glyf, but replaces it by overriding GSUB replacements) |
+| hanzi_glyf.ss02 | (When Chinese character has the variational pronunciation) After that, Chinese character glyf with the variational pronunciation |
 
 - The name of the lookup table is free, but it obeys the following rules to reveal the reference source
 
