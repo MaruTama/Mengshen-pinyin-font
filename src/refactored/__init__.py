@@ -9,7 +9,9 @@ different pronunciations depending on context.
 
 from __future__ import annotations
 
-__version__ = "2.0.0"
+from .utils.version_utils import get_project_version
+
+__version__ = get_project_version()
 __author__ = "Mengshen Font Project"
 __description__ = "Chinese font generator with automatic pinyin annotations"
 

@@ -173,20 +173,18 @@ class FontConfig:
         """Get main font file path for specified font type."""
         if font_type == FontType.HAN_SERIF:
             return FontConstants.HAN_SERIF_FONT_PATH
-        elif font_type == FontType.HANDWRITTEN:
+        if font_type == FontType.HANDWRITTEN:
             return FontConstants.HANDWRITTEN_FONT_PATH
-        else:
-            raise ValueError(f"Unsupported font type: {font_type}")
+        raise ValueError(f"Unsupported font type: {font_type}")
 
     @classmethod
     def get_alphabet_font_path(cls, font_type: FontType) -> Path:
         """Get alphabet font file path for specified font type."""
         if font_type == FontType.HAN_SERIF:
             return FontConstants.HAN_SERIF_ALPHABET_FONT_PATH
-        elif font_type == FontType.HANDWRITTEN:
+        if font_type == FontType.HANDWRITTEN:
             return FontConstants.HANDWRITTEN_ALPHABET_FONT_PATH
-        else:
-            raise ValueError(f"Unsupported font type: {font_type}")
+        raise ValueError(f"Unsupported font type: {font_type}")
 
 
 # Backward compatibility constants

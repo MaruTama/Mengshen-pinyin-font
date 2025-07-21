@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mengshen-pinyin-font"
-version = "1.03"
+version = "2.0.0"
 description = "Chinese pinyin font generator with homograph support"
 authors = [
     {name = "MaruTama", email = "noreply@github.com"}

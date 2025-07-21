@@ -23,8 +23,6 @@ class SecurityError(Exception):
     Legacy shell.py used shell=True which was vulnerable to command injection.
     """
 
-    pass
-
 
 def safe_command_execution(cmd: Union[List[str], str]) -> subprocess.CompletedProcess:
     """

@@ -5,8 +5,7 @@ from __future__ import annotations
 
 from typing import List, TypedDict
 
-from .. import __version__
-from ..utils.version_utils import parse_version_to_float
+from ..utils.version_utils import get_project_version, parse_version_to_float
 
 
 class FontNameEntry(TypedDict):
@@ -19,7 +18,7 @@ class FontNameEntry(TypedDict):
     nameString: str
 
 
-VERSION = parse_version_to_float(__version__)
+VERSION = parse_version_to_float(get_project_version())
 
 
 # Font name table data for han_serif font

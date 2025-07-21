@@ -61,7 +61,7 @@ class FontNameEntry(TypedDict):
    12: デザイナーの URL
    13: ライセンス説明
    14: ライセンス情報の URL
-  """
+"""
 
 HAN_SERIF: List[FontNameEntry] = [
     # Macintosh

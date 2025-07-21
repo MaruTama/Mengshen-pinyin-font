@@ -70,7 +70,7 @@ class PinyinGlyphGenerator:
         with open(alphabet_path, "rb") as f:
             alphabet_data = orjson.loads(f.read())
 
-        # CRITICAL FIX: Convert alphabet glyphs to py_alphabet_ naming convention
+        # Convert alphabet glyphs to py_alphabet_ naming convention
         # Legacy code expects glyphs named like "py_alphabet_a", "py_alphabet_i1", etc.
         self._pinyin_alphabets = {}
 
@@ -744,9 +744,7 @@ class GlyphManager:
         self.logger.debug(f"Generated glyphs: {len(self._all_glyphs)}")
         self.logger.debug(f"Total glyphs: {total_glyphs}")
 
-        # TODO: Re-enable glyph count validation after investigation
-        # if total_glyphs > FontConstants.MAX_GLYPHS:
-        #     raise RuntimeError(f"Glyph count exceeds limit: {total_glyphs} > {FontConstants.MAX_GLYPHS}")
+        # Note: Glyph count validation is performed in FontBuilder._add_glyf() after final assembly
 
     def get_all_glyphs(self) -> FontGlyphDict:
         """Get all generated glyphs."""

@@ -145,7 +145,38 @@ class FontBuilder:
 
     def get_build_statistics(self) -> Dict[str, Union[str, int, float]]:
         """Get statistics about the built font."""
-        return {"status": "placeholder"}
+        if not self._font_data:
+            return {"status": "not_built"}
+
+        stats = {
+            "status": "built",
+            "font_type": int(self.font_type),
+        }
+
+        # Add glyph counts if available
+        if "glyf" in self._font_data:
+            stats["total_glyphs"] = len(self._font_data["glyf"])
+
+        # Add generated glyph counts if glyph_manager is available
+        if hasattr(self, "glyph_manager") and self.glyph_manager:
+            generated_glyphs = self.glyph_manager.get_all_glyphs()
+            pinyin_glyph_names = self.glyph_manager.get_pinyin_glyph_names()
+
+            stats["generated_glyphs"] = len(generated_glyphs)
+            stats["pinyin_glyphs"] = len(pinyin_glyph_names)
+
+        # Add font metrics if available
+        if "head" in self._font_data:
+            head_table = self._font_data["head"]
+            if "yMax" in head_table:
+                stats["ymax"] = head_table["yMax"]
+            if "fontRevision" in head_table:
+                stats["font_revision"] = head_table["fontRevision"]
+
+        if "hhea" in self._font_data and "ascender" in self._font_data["hhea"]:
+            stats["ascender"] = self._font_data["hhea"]["ascender"]
+
+        return stats
 
     def _load_templates(self) -> None:
         """Load font template files."""
@@ -258,7 +289,7 @@ class FontBuilder:
 
     def _add_glyf(self) -> None:
         """Add pinyin-annotated glyphs using exact legacy logic."""
-        # CRITICAL FIX: Use glyf template data (substance_glyf_table) instead of main template glyf
+        # Use glyf template data (substance_glyf_table) instead of main template glyf
         # This matches legacy font.py where substance_glyf_table contains actual glyph contour data
 
         # Get the base glyf table from MAIN template (for metadata structure)
@@ -271,7 +302,7 @@ class FontBuilder:
         # Get all generated glyphs from glyph_manager
         generated_glyphs = self.glyph_manager.get_all_glyphs()
 
-        # CRITICAL FIX: Start with template glyf data that contains actual contours
+        # Start with template glyf data that contains actual contours
         # base_glyf from main template has empty contours, _glyf_data has the actual contours
         new_glyf = dict(
             self._glyf_data
@@ -324,7 +355,7 @@ class FontBuilder:
             if base_glyph_name in self._glyf_data:
                 template_glyph = self._glyf_data[base_glyph_name]
 
-                # CRITICAL FIX: If generated glyph has no useful content (no references/contours), use template
+                # If generated glyph has no useful content (no references/contours), use template
                 has_references = (
                     "references" in glyph_data
                     and len(glyph_data.get("references", [])) > 0
@@ -368,7 +399,7 @@ class FontBuilder:
                     f" Used generated data for composite glyph: {glyph_name}"
                 )
 
-        # CRITICAL FIX: Ensure all template glyphs are included, especially basic characters
+        # Ensure all template glyphs are included, especially basic characters
         # This preserves hiragana, katakana, alphabet characters that are not processed by character manager
         template_glyphs_added = 0
         for glyph_name, glyph_data in self._glyf_data.items():
@@ -442,31 +473,43 @@ class FontBuilder:
             f"Font metadata set - Version: {VERSION}, Generated: {generation_time.strftime('%Y-%m-%d %H:%M:%S UTC')}"
         )
 
-        # Get pinyin glyph metrics from glyph_manager
-        # Assuming glyph_manager has a method to get pinyin glyph metrics
-        # For now, use a placeholder or retrieve from a known pinyin glyph
-        # This needs to be properly implemented in GlyphManager
-        # For now, let's assume a default value or retrieve from a specific glyph
-        # This is a critical part that needs to match legacy behavior
-
-        # Placeholder for advanceAddedPinyinHeight - this needs to come from actual pinyin glyphs
-        # For now, we'll use a value that is likely to be larger than default yMax/ascender
-        # In a real scenario, this would be calculated from the generated pinyin glyphs
-
-        # Retrieve pinyin glyph metrics from glyph_manager
-        # This assumes glyph_manager has a method to provide this
-        # If not, we need to add it to glyph_manager
+        # Set font metrics to accommodate pinyin height (legacy compatibility)
+        # This matches the legacy set_about_size() method behavior
         pinyin_metrics = self.glyph_manager.get_pinyin_metrics()
 
         if pinyin_metrics:
             advanceAddedPinyinHeight = pinyin_metrics.height
 
+            # Update yMax if pinyin height exceeds current yMax
+            # すべてのグリフの輪郭を含む範囲
             if (
                 "head" in self._font_data
                 and "yMax" in self._font_data["head"]
                 and advanceAddedPinyinHeight > self._font_data["head"]["yMax"]
             ):
                 self._font_data["head"]["yMax"] = advanceAddedPinyinHeight
+
+            # Update ascender and usWinAscent if pinyin height exceeds current ascender
+            # 原点からグリフの上端までの距離
+            if (
+                "hhea" in self._font_data
+                and "ascender" in self._font_data["hhea"]
+                and advanceAddedPinyinHeight > self._font_data["hhea"]["ascender"]
+            ):
+                self._font_data["hhea"]["ascender"] = advanceAddedPinyinHeight
+
+                # Also update OS/2 usWinAscent (Windows-specific ascent metric)
+                if (
+                    "OS_2" in self._font_data
+                    and "usWinAscent" in self._font_data["OS_2"]
+                ):
+                    self._font_data["OS_2"]["usWinAscent"] = advanceAddedPinyinHeight
+
+            self.logger.debug(
+                f"Font metrics updated - yMax: {self._font_data.get('head', {}).get('yMax')}, "
+                f"ascender: {self._font_data.get('hhea', {}).get('ascender')}, "
+                f"usWinAscent: {self._font_data.get('OS_2', {}).get('usWinAscent')}"
+            )
 
             if (
                 "hhea" in self._font_data
