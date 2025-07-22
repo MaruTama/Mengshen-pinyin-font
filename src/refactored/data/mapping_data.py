@@ -17,7 +17,7 @@ class CmapDataSource(Protocol):
 
     def get_cmap_table(self) -> Dict[str, str]:
         """Get character map table."""
-        ...
+        raise NotImplementedError
 
 
 class JsonCmapDataSource:
@@ -44,6 +44,8 @@ class JsonCmapDataSource:
     def get_cmap_table(self) -> Dict[str, str]:
         """Get character map table."""
         self._load_cmap_table()
+        if self._cmap_table is None:
+            return {}
         return self._cmap_table.copy()
 
 
@@ -133,12 +135,19 @@ class MappingDataManager:
 
 
 # Global instance for backward compatibility
-_default_mapping_manager: Optional[MappingDataManager] = None
+class _MappingManagerSingleton:
+    """Singleton wrapper for MappingDataManager."""
+
+    _instance: Optional[MappingDataManager] = None
+
+    @classmethod
+    def get_instance(cls) -> MappingDataManager:
+        """Get the singleton instance."""
+        if cls._instance is None:
+            cls._instance = MappingDataManager()
+        return cls._instance
 
 
 def get_default_mapping_manager() -> MappingDataManager:
     """Get the default mapping data manager."""
-    global _default_mapping_manager
-    if _default_mapping_manager is None:
-        _default_mapping_manager = MappingDataManager()
-    return _default_mapping_manager
+    return _MappingManagerSingleton.get_instance()

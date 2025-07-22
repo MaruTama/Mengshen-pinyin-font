@@ -40,10 +40,9 @@ class CharacterInfo:
         """Enable index access for backward compatibility."""
         if index == 0:
             return self.character
-        elif index == 1:
+        if index == 1:
             return self.pronunciations
-        else:
-            raise IndexError("CharacterInfo index out of range")
+        raise IndexError("CharacterInfo index out of range")
 
 
 class CharacterClassifier(Protocol):
@@ -142,12 +141,19 @@ class CharacterDataManager:
 
 
 # Global instance for backward compatibility
-_default_character_manager: Optional[CharacterDataManager] = None
+class _CharacterManagerSingleton:
+    """Singleton wrapper for CharacterDataManager."""
+
+    _instance: Optional[CharacterDataManager] = None
+
+    @classmethod
+    def get_instance(cls) -> CharacterDataManager:
+        """Get the singleton instance."""
+        if cls._instance is None:
+            cls._instance = CharacterDataManager()
+        return cls._instance
 
 
 def get_default_character_manager() -> CharacterDataManager:
     """Get the default character data manager."""
-    global _default_character_manager
-    if _default_character_manager is None:
-        _default_character_manager = CharacterDataManager()
-    return _default_character_manager
+    return _CharacterManagerSingleton.get_instance()

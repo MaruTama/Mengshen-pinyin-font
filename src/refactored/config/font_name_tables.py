@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # !/usr/bin/env python
+# pylint: disable=line-too-long
 
 """
 Font name table definitions migrated from legacy src/name_table.py
@@ -11,14 +12,11 @@ Migrated to work independently in the refactored architecture.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, TypedDict
+from typing import List, TypedDict
 
-if TYPE_CHECKING:
-    from . import FontType
-
-# Import version from package __init__.py for consistency
 from .. import __version__
 from ..utils.version_utils import parse_version_to_float
+from . import FontType
 
 VERSION = parse_version_to_float(__version__)
 
@@ -33,35 +31,35 @@ class FontNameEntry(TypedDict):
     nameString: str
 
 
-"""
-  platformID
-   0:	Unicode
-   1:	Macintosh
-   2:	ISO
-   3:	Microsoft
-   4:	カスタム
-
-  encodingID
-   0:	シンボル
-   1:	Unicode BMP面のみ
-
-  nameID
-   0:	 著作権注釈
-   1:	 フォントファミリ名
-   2:	 フォントサブファミリ名
-   3:	 フォント識別子
-   4:	 完全なフォント名
-   5:	 バージョン文字列
-   6:	 PostScript名
-   7:  商標
-   8:	 製造社名
-   9:  デザイナーの名前
-   10: 説明
-   11: ベンダーの URL
-   12: デザイナーの URL
-   13: ライセンス説明
-   14: ライセンス情報の URL
-"""
+# Font name table constants reference:
+#
+# platformID:
+#   0: Unicode
+#   1: Macintosh
+#   2: ISO
+#   3: Microsoft
+#   4: カスタム
+#
+# encodingID:
+#   0: シンボル
+#   1: Unicode BMP面のみ
+#
+# nameID:
+#   0:  著作権注釈
+#   1:  フォントファミリ名
+#   2:  フォントサブファミリ名
+#   3:  フォント識別子
+#   4:  完全なフォント名
+#   5:  バージョン文字列
+#   6:  PostScript名
+#   7:  商標
+#   8:  製造社名
+#   9:  デザイナーの名前
+#   10: 説明
+#   11: ベンダーの URL
+#   12: デザイナーの URL
+#   13: ライセンス説明
+#   14: ライセンス情報の URL
 
 HAN_SERIF: List[FontNameEntry] = [
     # Macintosh
@@ -95,7 +93,7 @@ HAN_SERIF: List[FontNameEntry] = [
         "languageID": 0,
         "nameID": 3,
         # フォント識別子
-        "nameString": "{};MENGSHEN;Mengshen-HanSerif".format(VERSION),
+        "nameString": f"{VERSION};MENGSHEN;Mengshen-HanSerif",
     },
     {
         "platformID": 1,
@@ -111,7 +109,7 @@ HAN_SERIF: List[FontNameEntry] = [
         "languageID": 0,
         "nameID": 5,
         # バージョン文字列
-        "nameString": "Version {}".format(VERSION),
+        "nameString": f"Version {VERSION}",
     },
     {
         "platformID": 1,
@@ -207,7 +205,7 @@ HAN_SERIF: List[FontNameEntry] = [
         "languageID": 1033,
         "nameID": 3,
         # フォント識別子
-        "nameString": "{};MENGSHEN;Mengshen-HanSerif".format(VERSION),
+        "nameString": f"{VERSION};MENGSHEN;Mengshen-HanSerif",
     },
     {
         "platformID": 3,
@@ -223,7 +221,7 @@ HAN_SERIF: List[FontNameEntry] = [
         "languageID": 1033,
         "nameID": 5,
         # バージョン文字列
-        "nameString": "Version {}".format(VERSION),
+        "nameString": f"Version {VERSION}",
     },
     {
         "platformID": 3,
@@ -329,7 +327,7 @@ HANDWRITTEN: List[FontNameEntry] = [
         "languageID": 0,
         "nameID": 3,
         # フォント識別子
-        "nameString": "{};MENGSHEN;Mengshen-Handwritten".format(VERSION),
+        "nameString": f"{VERSION};MENGSHEN;Mengshen-Handwritten",
     },
     {
         "platformID": 1,
@@ -345,7 +343,7 @@ HANDWRITTEN: List[FontNameEntry] = [
         "languageID": 0,
         "nameID": 5,
         # バージョン文字列
-        "nameString": "Version {}".format(VERSION),
+        "nameString": f"Version {VERSION}",
     },
     {
         "platformID": 1,
@@ -410,7 +408,7 @@ HANDWRITTEN: List[FontNameEntry] = [
         "languageID": 1033,
         "nameID": 3,
         # フォント識別子
-        "nameString": "{};MENGSHEN;Mengshen-Handwritten".format(VERSION),
+        "nameString": f"{VERSION};MENGSHEN;Mengshen-Handwritten",
     },
     {
         "platformID": 3,
@@ -426,7 +424,7 @@ HANDWRITTEN: List[FontNameEntry] = [
         "languageID": 1033,
         "nameID": 5,
         # バージョン文字列
-        "nameString": "Version {}".format(VERSION),
+        "nameString": f"Version {VERSION}",
     },
     {
         "platformID": 3,
@@ -495,14 +493,12 @@ class FontNameTableManager:
         font_type: FontType,
     ) -> List[FontNameEntry]:
         """Get name table entries by font type."""
-        from . import FontType
 
         if font_type == FontType.HAN_SERIF:
             return HAN_SERIF
-        elif font_type == FontType.HANDWRITTEN:
+        if font_type == FontType.HANDWRITTEN:
             return HANDWRITTEN
-        else:
-            raise ValueError(f"Unknown font type: {font_type}")
+        raise ValueError(f"Unknown font type: {font_type}")
 
 
 # Legacy exports for backward compatibility

@@ -136,8 +136,8 @@ Examples:
             output_path = self._get_output_path(font_type, parsed_args.output)
 
             if parsed_args.verbose:
-                self.logger.info(f"Font type: {font_type.name}")
-                self.logger.info(f"Output path: {output_path}")
+                self.logger.info("Font type: %s", font_type.name)
+                self.logger.info("Output path: %s", output_path)
 
             if parsed_args.dry_run:
                 # For dry run, we still need to validate prerequisites
@@ -146,13 +146,13 @@ Examples:
                 if missing_files:
                     self.logger.warning("Dry run - Missing required files:")
                     for missing_file in missing_files:
-                        self.logger.warning(f"  {missing_file}")
+                        self.logger.warning("  %s", missing_file)
                 else:
                     self.logger.info(
                         "Dry run mode - would generate font with these settings:"
                     )
-                    self.logger.info(f"  Type: {font_type.name}")
-                    self.logger.info(f"  Output: {output_path}")
+                    self.logger.info("  Type: %s", font_type.name)
+                    self.logger.info("  Output: %s", output_path)
                 return 0
 
             # Use the generate_font method for actual generation
@@ -164,15 +164,20 @@ Examples:
                 self.logger.info("Verbose mode: Build completed successfully")
 
             self.logger.info(
-                f"Font generation completed successfully: {final_output_path}"
+                "Font generation completed successfully: %s", final_output_path
             )
             return 0
 
         except KeyboardInterrupt:
             self.logger.warning("Operation cancelled by user")
             return 130
+        except (OSError, ValueError, RuntimeError, KeyError, TypeError) as e:
+            self.logger.error("Error: %s", e)
+            if parsed_args.verbose:
+                self.logger.debug("Full traceback:", exc_info=True)
+            return 1
         except Exception as e:
-            self.logger.error(f"Error: {e}")
+            self.logger.error("Unexpected error: %s", e)
             if parsed_args.verbose:
                 self.logger.debug("Full traceback:", exc_info=True)
             return 1

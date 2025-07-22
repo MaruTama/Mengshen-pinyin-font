@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import re
 import sys
+from importlib.metadata import version
 from pathlib import Path
 
 
@@ -22,10 +23,6 @@ def get_project_version() -> str:
         # Try using importlib.metadata first (preferred for installed packages)
         if sys.version_info >= (3, 8):
             try:
-                from importlib.metadata import (
-                    version,  # pylint: disable=import-outside-toplevel
-                )
-
                 return version("mengshen-pinyin-font")
             except (ImportError, ModuleNotFoundError, FileNotFoundError, OSError):
                 pass

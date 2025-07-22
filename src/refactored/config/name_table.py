@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=line-too-long
+
 """Font name table configuration for OpenType name table generation."""
 
 from __future__ import annotations

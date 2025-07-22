@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Optional
 
 # Project root directory
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
@@ -30,7 +31,7 @@ DUO_YIN_ZI_DIR = PHONICS_DIR / "duo_yin_zi"
 class ProjectPaths:
     """Simplified path management for backward compatibility."""
 
-    def __init__(self, project_root: Path = None):
+    def __init__(self, project_root: Optional[Path] = None):
         """Initialize project paths."""
         self.project_root = project_root or PROJECT_ROOT
 

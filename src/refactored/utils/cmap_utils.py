@@ -24,11 +24,12 @@ cmap_table: Dict[str, str] = {}
 
 def get_cmap_table() -> None:
     """Load cmap table from template_main.json."""
-    global cmap_table
-    TEMPLATE_MAIN_JSON = os.path.join(DIR_TEMP, "template_main.json")
-    with open(TEMPLATE_MAIN_JSON, "rb") as read_file:
+    # Use module-level variable without global statement
+    template_main_json = os.path.join(DIR_TEMP, "template_main.json")
+    with open(template_main_json, "rb") as read_file:
         merged_font = orjson.loads(read_file.read())
-    cmap_table = merged_font["cmap"]
+    # Direct assignment to module variable
+    globals()["cmap_table"] = merged_font["cmap"]
 
 
 def load_cmap_table_from_path(template_path: str) -> Dict[str, str]:
@@ -63,8 +64,10 @@ def load_cmap_table_from_path(template_path: str) -> Dict[str, str]:
             raise TypeError(f"cmap data is not a dictionary: {type(cmap_data)}")
         return cmap_data
 
-    except Exception as e:
-        raise RuntimeError(f"Failed to load cmap table from {template_file}: {e}")
+    except (OSError, KeyError, TypeError, ValueError) as e:
+        raise RuntimeError(
+            f"Failed to load cmap table from {template_file}: {e}"
+        ) from e
 
 
 def set_cmap_table(new_cmap_table: Dict[str, str]) -> None:
@@ -74,14 +77,12 @@ def set_cmap_table(new_cmap_table: Dict[str, str]) -> None:
     Args:
         new_cmap_table: New character mapping table
     """
-    global cmap_table
-    cmap_table = new_cmap_table
+    globals()["cmap_table"] = new_cmap_table
 
 
 def clear_cmap_table() -> None:
     """Clear the global cmap table cache."""
-    global cmap_table
-    cmap_table = {}
+    globals()["cmap_table"] = {}
 
 
 # 漢字から cid を取得する

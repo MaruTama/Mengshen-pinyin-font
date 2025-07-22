@@ -14,11 +14,11 @@ class PinyinDataSource(Protocol):
 
     def get_pinyin(self, hanzi: str) -> Optional[List[str]]:
         """Get pinyin pronunciations for a character."""
-        ...
+        raise NotImplementedError
 
     def get_all_mappings(self) -> Dict[str, List[str]]:
         """Get all character to pinyin mappings."""
-        ...
+        raise NotImplementedError
 
 
 class MergedMappingPinyinDataSource:
@@ -66,11 +66,15 @@ class MergedMappingPinyinDataSource:
     def get_pinyin(self, hanzi: str) -> Optional[List[str]]:
         """Get pinyin pronunciations for a character."""
         self._load_data()
+        if self._data is None:
+            return None
         return self._data.get(hanzi)
 
     def get_all_mappings(self) -> Dict[str, List[str]]:
         """Get all character to pinyin mappings."""
         self._load_data()
+        if self._data is None:
+            return {}
         return self._data.copy()
 
 
@@ -112,15 +116,22 @@ class PinyinDataManager:
 
 
 # Global instance for backward compatibility
-_default_manager: Optional[PinyinDataManager] = None
+class _PinyinManagerSingleton:
+    """Singleton wrapper for PinyinDataManager."""
+
+    _instance: Optional[PinyinDataManager] = None
+
+    @classmethod
+    def get_instance(cls) -> PinyinDataManager:
+        """Get the singleton instance."""
+        if cls._instance is None:
+            cls._instance = PinyinDataManager()
+        return cls._instance
 
 
 def get_default_pinyin_manager() -> PinyinDataManager:
     """Get the default pinyin data manager."""
-    global _default_manager
-    if _default_manager is None:
-        _default_manager = PinyinDataManager()
-    return _default_manager
+    return _PinyinManagerSingleton.get_instance()
 
 
 # Backward compatibility functions
@@ -146,14 +157,19 @@ def get_pinyin_with_baidu(hanzi: str) -> Optional[List[str]]:
         html = requests.get(BAIDU_URL.format(hanzi), timeout=10)
         soup = BeautifulSoup(html.content, "html.parser")
         elem = soup.find("div", id="pinyin")
+        if elem is None:
+            return None
         raw_text = elem.find("b")
+        if raw_text is None:
+            return None
         # [ chóng xiāo ] こんな感じの文字列
-        text = raw_text.get_text()
+        text = raw_text.get_text() if hasattr(raw_text, "get_text") else str(raw_text)
         text = text.replace("[ ", "")
         text = text.replace(" ]", "")
         pinyins = text.split(" ")
         return [p.strip() for p in pinyins if p.strip()]
-    except Exception:
+    except (AttributeError, ValueError, TypeError, KeyError):
+        # Web scraping can fail in various ways
         return None
 
 
@@ -169,11 +185,14 @@ def get_pinyin_with_zdic(hanzi: str) -> Optional[List[str]]:
         html = requests.get(ZDIC_URL.format(hanzi), timeout=10)
         soup = BeautifulSoup(html.content, "html.parser")
         elem = soup.find("span", class_="dicpy")
+        if elem is None:
+            return None
         raw_text = elem.get_text()
         # [ chóng xiāo ] こんな感じの文字列
         text = raw_text.replace("[ ", "")
         text = text.replace(" ]", "")
         pinyins = text.split(" ")
         return [p.strip() for p in pinyins if p.strip()]
-    except Exception:
+    except (requests.RequestException, AttributeError, ValueError, TypeError, KeyError):
+        # Network errors, parsing errors, or missing elements
         return None

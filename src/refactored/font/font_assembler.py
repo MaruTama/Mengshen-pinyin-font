@@ -5,26 +5,35 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Union
-
-# Font data structure types
-FontTableData = Dict[
-    str, Union[str, int, float, List[Dict[str, Union[str, int, float]]]]
-]
-FontData = Dict[str, Union[str, int, float, FontTableData]]
+from typing import Any, Dict, List, cast
 
 import orjson
 
-from ..config import FontConfig, FontConstants, FontType, ProjectPaths
+from ..config import (
+    FontConstants,
+    FontMetadata,
+    FontType,
+    ProjectPaths,
+    font_name_tables,
+)
+from ..config.font_name_tables import VERSION
+
+# Import comprehensive type definitions
+from ..types import FontData, HeadTable, StatsDict
 from ..utils.logging_config import get_builder_logger
 
 
 class FontAssembler:
     """Handles font assembly, metadata, and output generation."""
 
-    def __init__(self, font_config: FontConfig, paths: ProjectPaths):
-        """Initialize font assembler."""
-        self.font_config = font_config
+    def __init__(self, font_config: FontMetadata, paths: ProjectPaths):
+        """Initialize font assembler.
+
+        Args:
+            font_config: Font metadata configuration (FontMetadata type)
+            paths: Project paths configuration
+        """
+        self.font_config: FontMetadata = font_config
         self.paths = paths
         self.logger = get_builder_logger()
 
@@ -48,30 +57,31 @@ class FontAssembler:
 
     def set_font_metadata(self, font_data: FontData, font_type: FontType) -> None:
         """Set font metadata including version and creation date."""
-        # Import migrated name table module
-        from ..config.font_name_tables import VERSION
 
         # Set font revision
-        font_data[FontConstants.HEAD_TABLE]["fontRevision"] = VERSION
+        head_table = cast(HeadTable, font_data[FontConstants.HEAD_TABLE])
+        if isinstance(head_table, dict):
+            head_table["fontRevision"] = VERSION
 
         # Set creation and modification dates to current generation time
         font_timestamp = self._get_current_font_timestamp()
-        font_data[FontConstants.HEAD_TABLE]["created"] = font_timestamp
-        font_data[FontConstants.HEAD_TABLE]["modified"] = font_timestamp
+        head_table["created"] = font_timestamp
+        head_table["modified"] = font_timestamp
 
         # Optional: Add generation timestamp info for debugging
         generation_time = datetime.now()
         self.logger.info(
-            f"Font metadata set - Version: {VERSION}, Generated: {generation_time.strftime('%Y-%m-%d %H:%M:%S')}"
+            "Font metadata set - Version: %s, Generated: %s",
+            VERSION,
+            generation_time.strftime("%Y-%m-%d %H:%M:%S"),
         )
 
-        # Set font name table based on type
-        from ..config import font_name_tables
-
         if font_type == FontType.HAN_SERIF:
-            font_data[FontConstants.NAME_TABLE] = font_name_tables.HAN_SERIF
+            font_data[FontConstants.NAME_TABLE] = cast(Any, font_name_tables.HAN_SERIF)
         elif font_type == FontType.HANDWRITTEN:
-            font_data[FontConstants.NAME_TABLE] = font_name_tables.HANDWRITTEN
+            font_data[FontConstants.NAME_TABLE] = cast(
+                Any, font_name_tables.HANDWRITTEN
+            )
         else:
             raise ValueError(f"Unsupported font type: {font_type}")
 
@@ -103,7 +113,12 @@ class FontAssembler:
 
         # Check glyph count
         if FontConstants.GLYF_TABLE in font_data:
-            glyph_count = len(font_data[FontConstants.GLYF_TABLE])
+            glyf_table = font_data[FontConstants.GLYF_TABLE]
+            glyph_count = 0
+            if isinstance(glyf_table, dict):
+                glyph_count = len(glyf_table)
+            elif isinstance(glyf_table, list):
+                glyph_count = len(glyf_table)
             if glyph_count > FontConstants.MAX_GLYPHS:
                 issues.append(
                     f"Glyph count exceeds limit: {glyph_count} > {FontConstants.MAX_GLYPHS}"
@@ -111,28 +126,42 @@ class FontAssembler:
 
         return issues
 
-    def get_font_statistics(
-        self, font_data: FontData
-    ) -> Dict[str, Union[str, int, float, Dict[str, int]]]:
+    def get_font_statistics(self, font_data: FontData) -> StatsDict:
         """Get statistics about the assembled font."""
-        stats = {}
+        stats: StatsDict = {}
 
         if FontConstants.GLYF_TABLE in font_data:
-            stats["glyph_count"] = len(font_data[FontConstants.GLYF_TABLE])
+            glyf_table = font_data[FontConstants.GLYF_TABLE]
+            if isinstance(glyf_table, dict):
+                stats["glyph_count"] = len(glyf_table)
+            elif isinstance(glyf_table, list):
+                stats["glyph_count"] = len(glyf_table)
+            else:
+                stats["glyph_count"] = 0
 
         if FontConstants.CMAP_TABLE in font_data:
             cmap = font_data[FontConstants.CMAP_TABLE]
-            if cmap:
-                unicode_values = [int(k) for k in cmap.keys() if k.isdigit()]
-                if unicode_values:
-                    unicode_range_dict = {
-                        "start": min(unicode_values),
-                        "end": max(unicode_values),
-                        "count": len(unicode_values),
-                    }
-                    stats.update({"unicode_range": unicode_range_dict})
+            if cmap and hasattr(cmap, "keys"):
+                cmap_dict = cast(Dict[str, Any], cmap)
+                try:
+                    unicode_values = [int(k) for k in cmap_dict.keys() if k.isdigit()]
+                    if unicode_values:
+                        unicode_range_dict: Dict[str, int] = {
+                            "start": min(unicode_values),
+                            "end": max(unicode_values),
+                            "count": len(unicode_values),
+                        }
+                        stats["unicode_range"] = unicode_range_dict
+                except (ValueError, AttributeError):
+                    pass
 
         if FontConstants.CMAP_UVS_TABLE in font_data:
-            stats["uvs_mappings"] = len(font_data[FontConstants.CMAP_UVS_TABLE])
+            uvs_table = font_data[FontConstants.CMAP_UVS_TABLE]
+            if isinstance(uvs_table, dict):
+                stats["uvs_mappings"] = len(uvs_table)
+            elif isinstance(uvs_table, list):
+                stats["uvs_mappings"] = len(uvs_table)
+            else:
+                stats["uvs_mappings"] = 0
 
         return stats

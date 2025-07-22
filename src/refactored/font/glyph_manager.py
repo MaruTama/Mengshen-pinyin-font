@@ -6,18 +6,19 @@ from __future__ import annotations
 import copy
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Union
-
-# Font data types
-GlyphData = Dict[str, Union[str, int, float, List[Dict[str, Union[str, int, float]]]]]
-FontGlyphDict = Dict[str, GlyphData]
-PinyinGlyphDict = Dict[str, GlyphData]
+from typing import Dict, List, Optional, Set, Union, cast
 
 import orjson
 
 from ..config import FontConstants, FontMetadata, FontType
 from ..data import CharacterDataManager, MappingDataManager
 from ..utils.logging_config import get_debug_logger
+from ..utils.pinyin_utils import simplification_pronunciation
+
+# Font data types
+GlyphData = Dict[str, Union[str, int, float, List[Dict[str, Union[str, int, float]]]]]
+FontGlyphDict = Dict[str, GlyphData]
+PinyinGlyphDict = Dict[str, GlyphData]
 
 
 @dataclass(frozen=True)
@@ -56,6 +57,9 @@ class GlyphReference:
 
 class PinyinGlyphGenerator:
     """Generates pinyin-related glyphs."""
+
+    # Constants for glyph positioning
+    VERTICAL_ORIGIN_PER_HEIGHT = 0.88
 
     def __init__(self, font_type: FontType, font_config: FontMetadata):
         """Initialize with font configuration."""
@@ -150,11 +154,12 @@ class PinyinGlyphGenerator:
         )
 
         # Constants from legacy code
-        VERTICAL_ORIGIN_PER_HEIGHT = 0.88
         target_advance_height = hanzi_advance_height + target_pinyin_canvas_height
-        target_vertical_origin = target_advance_height * VERTICAL_ORIGIN_PER_HEIGHT
+        target_vertical_origin = target_advance_height * self.VERTICAL_ORIGIN_PER_HEIGHT
 
         # Get alphabet glyph height for scaling (legacy logic)
+        if self._pinyin_alphabets is None:
+            raise ValueError("Alphabet glyphs not loaded")
         py_alphabet_v3_glyf = self._pinyin_alphabets["py_alphabet_v3"]
         advance_width_raw = py_alphabet_v3_glyf.get("advanceWidth", 1000.0)
         advance_width = (
@@ -185,13 +190,14 @@ class PinyinGlyphGenerator:
             char_count = len(pronunciation)
             if char_count > 0:
                 # Get pinyin character width
+                if self._pinyin_alphabets is None:
+                    raise ValueError("Alphabet glyphs not loaded")
                 width_raw = self._pinyin_alphabets["py_alphabet_v3"]["advanceWidth"]
                 width_value = (
                     float(width_raw) if isinstance(width_raw, (int, float)) else 1000.0
                 )
                 pinyin_width = width_value * pinyin_scale
 
-                # Calculate positions using legacy logic (use original pronunciation for positioning)
                 width_positions = self._get_pinyin_position_on_canvas(
                     pronunciation,
                     pinyin_width,
@@ -241,14 +247,16 @@ class PinyinGlyphGenerator:
                 "advanceWidth": hanzi_advance_width,
                 "advanceHeight": target_advance_height,
                 "verticalOrigin": target_vertical_origin,
-                "references": references,
+                "references": cast(List[Dict[str, Union[str, int, float]]], references),
             }
 
-            self._pronunciation_glyphs[simplified_pronunciation] = pronunciation_glyph
+            if self._pronunciation_glyphs is not None:
+                self._pronunciation_glyphs[simplified_pronunciation] = (
+                    pronunciation_glyph
+                )
 
     def _simplify_pronunciation(self, pronunciation: str) -> str:
         """Simplify pinyin pronunciation for glyph lookup."""
-        from ..utils.pinyin_utils import simplification_pronunciation
 
         return simplification_pronunciation(pronunciation)
 
@@ -414,7 +422,6 @@ class HanziGlyphGenerator:
 
     def _simplify_pronunciation(self, pronunciation: str) -> str:
         """Simplify pinyin pronunciation for glyph lookup."""
-        from ..utils.pinyin_utils import simplification_pronunciation
 
         return simplification_pronunciation(pronunciation)
 
@@ -535,7 +542,7 @@ class HanziGlyphGenerator:
             self._mark_duplicate_definition_added(unicode_value)
             processed_count += 1
 
-        self.logger.debug(f"Single pronunciation - processed: {processed_count}")
+        self.logger.debug("Single pronunciation - processed: %d", processed_count)
         return generated_glyphs
 
     def generate_multiple_pronunciation_glyphs(
@@ -633,6 +640,11 @@ class GlyphManager:
         self.logger = get_debug_logger()
 
         self._all_glyphs: FontGlyphDict = {}
+        self._pronunciation_glyphs: PinyinGlyphDict = {}
+        self._alphabet_glyphs: FontGlyphDict = {}
+        self._legacy_mode = False
+        self._font_data: Optional[FontGlyphDict] = None
+        self._glyf_data: Optional[FontGlyphDict] = None
 
     def initialize(
         self,
@@ -644,8 +656,10 @@ class GlyphManager:
         """Initialize with font data and templates."""
         # Use refactored pinyin generator (no legacy mode for now)
         self.pinyin_generator.load_alphabet_glyphs(alphabet_pinyin_path)
-        self._pronunciation_glyphs: PinyinGlyphDict = {}
-        self._alphabet_glyphs: FontGlyphDict = {}
+
+        # Reset instance variables (already initialized in __init__)
+        self._pronunciation_glyphs = {}
+        self._alphabet_glyphs = {}
         self._legacy_mode = False
 
         self._font_data = font_data
@@ -669,12 +683,12 @@ class GlyphManager:
                 for pronunciation in char_info.pronunciations:
                     all_pronunciations.add(pronunciation)
 
-        self.logger.debug(f"Found {len(all_pronunciations)} unique pronunciations")
+        self.logger.debug("Found %d unique pronunciations", len(all_pronunciations))
 
         # Get hanzi metrics for pronunciation glyph generation
         sample_char = "一"  # Use "一" as reference
         sample_cid = self.mapping_manager.convert_hanzi_to_cid(sample_char)
-        if sample_cid and sample_cid in self._glyf_data:
+        if sample_cid and self._glyf_data and sample_cid in self._glyf_data:
             glyph = self._glyf_data[sample_cid]
             width_raw = glyph.get("advanceWidth", 1000.0)
             hanzi_advance_width = (
@@ -691,7 +705,9 @@ class GlyphManager:
             hanzi_advance_height = 1000.0
 
         self.logger.debug(
-            f"Hanzi metrics - width: {hanzi_advance_width}, height: {hanzi_advance_height}"
+            "Hanzi metrics - width: %f, height: %f",
+            hanzi_advance_width,
+            hanzi_advance_height,
         )
 
         # Generate pronunciation glyphs with proper parameters
@@ -709,7 +725,9 @@ class GlyphManager:
         pronunciation_glyphs = self.pinyin_generator.get_pronunciation_glyphs()
 
         self.logger.debug(
-            f"Generated {len(pinyin_alphabets)} alphabet glyphs and {len(pronunciation_glyphs)} pronunciation glyphs"
+            "Generated %d alphabet glyphs and %d pronunciation glyphs",
+            len(pinyin_alphabets),
+            len(pronunciation_glyphs),
         )
 
         self._all_glyphs.update(pinyin_alphabets)
@@ -718,6 +736,11 @@ class GlyphManager:
 
     def generate_hanzi_glyphs(self) -> None:
         """Generate all hanzi glyphs with pinyin."""
+        if self._glyf_data is None:
+            raise ValueError("Glyf data not loaded")
+        if self._font_data is None:
+            raise ValueError("Font data not loaded")
+
         # Set the pronunciation glyphs in the hanzi generator
         self.hanzi_generator.set_legacy_pronunciation_glyphs(self._pronunciation_glyphs)
 
@@ -739,10 +762,10 @@ class GlyphManager:
             self._all_glyphs
         )
         self.logger.debug(
-            f"Base glyphs: {len(self._font_data[FontConstants.GLYF_TABLE])}"
+            "Base glyphs: %d", len(self._font_data[FontConstants.GLYF_TABLE])
         )
-        self.logger.debug(f"Generated glyphs: {len(self._all_glyphs)}")
-        self.logger.debug(f"Total glyphs: {total_glyphs}")
+        self.logger.debug("Generated glyphs: %d", len(self._all_glyphs))
+        self.logger.debug("Total glyphs: %d", total_glyphs)
 
         # Note: Glyph count validation is performed in FontBuilder._add_glyf() after final assembly
 
@@ -779,7 +802,11 @@ class GlyphManager:
                 )
 
                 self.logger.debug(
-                    f"Pinyin metrics from {sample_pronunciation} - width: {advance_width}, height: {advance_height}, vertical_origin: {vertical_origin}"
+                    "Pinyin metrics from %s - width: %f, height: %f, vertical_origin: %f",
+                    sample_pronunciation,
+                    advance_width,
+                    advance_height,
+                    vertical_origin,
                 )
                 return PinyinMetrics(
                     width=advance_width,
@@ -787,14 +814,17 @@ class GlyphManager:
                     vertical_origin=vertical_origin,
                 )
 
-            except Exception as e:
+            except (OSError, ValueError, RuntimeError, KeyError, TypeError) as e:
                 self.logger.warning(
-                    f"Could not get pinyin metrics from pronunciation glyphs: {e}"
+                    "Could not get pinyin metrics from pronunciation glyphs: %s", e
                 )
 
         # Fallback to pinyin generator metrics
         fallback = self.pinyin_generator.get_metrics()
         self.logger.debug(
-            f"Fallback pinyin metrics - width: {fallback.width}, height: {fallback.height}, vertical_origin: {fallback.vertical_origin}"
+            "Fallback pinyin metrics - width: %f, height: %f, vertical_origin: %f",
+            fallback.width,
+            fallback.height,
+            fallback.vertical_origin,
         )
         return fallback

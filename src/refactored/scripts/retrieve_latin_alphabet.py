@@ -8,15 +8,16 @@ import json
 import os
 from typing import Dict, List, Optional, Union
 
-# Font glyph data types (Python 3.10+ syntax)
-GlyphData = Dict[str, Union[str, int, float, List[Dict[str, Union[str, int, float]]]]]
-FontTable = Dict[str, GlyphData]
-
 from refactored.config.font_config import FontConfig, FontType
 from refactored.config.paths import DIR_TEMP
 
 from ..utils.logging_config import get_scripts_logger, setup_logging
 from ..utils.shell_utils import ShellExecutor
+
+# Font glyph data types (Python 3.10+ syntax)
+GlyphData = Dict[str, Union[str, int, float, List[Dict[str, Union[str, int, float]]]]]
+FontTable = Dict[str, GlyphData]
+
 
 # 呣 m̀, 嘸 m̄ を使うが、これは unicode ではないので除外する。グリフが収録されていない事が多い。
 ALPHABET = [
@@ -86,7 +87,7 @@ OUTPUT_JSON = "output_for_pinyin.json"
 class LatinAlphabetRetriever:
     """Retrieves Latin alphabet glyphs for pinyin display from fonts."""
 
-    def __init__(self, shell_executor: ShellExecutor = None):
+    def __init__(self, shell_executor: Optional[ShellExecutor] = None):
         self.shell = shell_executor or ShellExecutor()
 
     def convert_otf2json(self, source_font_name: str, output_json: str) -> None:
@@ -94,9 +95,9 @@ class LatinAlphabetRetriever:
         cmd = f"otfccdump -o {output_json} --pretty {source_font_name}"
         try:
             self.shell.execute(cmd)
-        except Exception as e:
+        except (OSError, RuntimeError) as e:
             logger = get_scripts_logger()
-            logger.error(f"Error converting font to JSON: {e}")
+            logger.error("Error converting font to JSON: %s", e)
             raise
 
     def get_cmap_table(self, source_font_json: str) -> Dict[str, str]:
@@ -105,20 +106,28 @@ class LatinAlphabetRetriever:
         try:
             result = self.shell.execute(cmd, capture_output=True)
             # Handle both direct output and MockResult objects
+            output_str: str
             if hasattr(result, "stdout"):
-                output = result.stdout
-                if isinstance(output, bytes):
-                    output = output.decode("utf-8")
+                output_raw = result.stdout
+                if isinstance(output_raw, bytes):
+                    output_str = output_raw.decode("utf-8")
+                elif isinstance(output_raw, str):
+                    output_str = output_raw
+                else:
+                    raise ValueError(f"Unexpected output type: {type(output_raw)}")
             else:
-                output = result
-            result_dict = json.loads(output)
+                if isinstance(result, str):
+                    output_str = result
+                else:
+                    raise ValueError(f"Unexpected result type: {type(result)}")
+            result_dict = json.loads(output_str)
             if isinstance(result_dict, dict):
                 # Return the original dict since type conversion is handled elsewhere
                 return result_dict
             return {}
-        except Exception as e:
+        except (OSError, ValueError, RuntimeError, KeyError, TypeError) as e:
             logger = get_scripts_logger()
-            logger.error(f"Error extracting cmap table: {e}")
+            logger.error("Error extracting cmap table: %s", e)
             return {}
 
     def get_glyf_table(self, source_font_json: str) -> FontTable:
@@ -127,20 +136,28 @@ class LatinAlphabetRetriever:
         try:
             result = self.shell.execute(cmd, capture_output=True)
             # Handle both direct output and MockResult objects
+            output_str: str
             if hasattr(result, "stdout"):
-                output = result.stdout
-                if isinstance(output, bytes):
-                    output = output.decode("utf-8")
+                output_raw = result.stdout
+                if isinstance(output_raw, bytes):
+                    output_str = output_raw.decode("utf-8")
+                elif isinstance(output_raw, str):
+                    output_str = output_raw
+                else:
+                    raise ValueError(f"Unexpected output type: {type(output_raw)}")
             else:
-                output = result
-            result_dict = json.loads(output)
+                if isinstance(result, str):
+                    output_str = result
+                else:
+                    raise ValueError(f"Unexpected result type: {type(result)}")
+            result_dict = json.loads(output_str)
             if isinstance(result_dict, dict):
                 # Return the original dict since type conversion is handled elsewhere
                 return result_dict
             return {}
-        except Exception as e:
+        except (OSError, ValueError, RuntimeError, KeyError, TypeError) as e:
             logger = get_scripts_logger()
-            logger.error(f"Error extracting glyf table: {e}")
+            logger.error("Error extracting glyf table: %s", e)
             return {}
 
     def filter_alphabet_glyphs(
@@ -164,9 +181,9 @@ class LatinAlphabetRetriever:
         try:
             with open(output_path, "w", encoding="utf-8") as f:
                 json.dump(alphabet_glyphs, f, ensure_ascii=False, indent=2)
-        except Exception as e:
+        except (OSError, ValueError, RuntimeError, KeyError, TypeError) as e:
             logger = get_scripts_logger()
-            logger.error(f"Error saving alphabet JSON: {e}")
+            logger.error("Error saving alphabet JSON: %s", e)
             raise
 
     def retrieve_alphabet(self, source_font_name: str, style: str) -> None:
@@ -235,7 +252,7 @@ def retrieve_alphabet_main(args: Optional[List[str]] = None) -> None:
     retriever.retrieve_alphabet(source_font, options.style)
 
     logger = get_scripts_logger()
-    logger.info(f"Latin alphabet extraction completed for {options.style} style")
+    logger.info("Latin alphabet extraction completed for %s style", options.style)
 
 
 if __name__ == "__main__":

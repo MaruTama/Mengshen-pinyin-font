@@ -49,7 +49,7 @@ def save_json_compact(data: dict, file_path: str) -> None:
 class TemplateJsonMaker:
     """Converts OpenType fonts to JSON templates."""
 
-    def __init__(self, shell_executor: ShellExecutor = None):
+    def __init__(self, shell_executor: Optional[ShellExecutor] = None):
         self.shell = shell_executor or ShellExecutor()
 
     def convert_otf2json(self, source_font_name: str) -> None:
@@ -74,9 +74,9 @@ class TemplateJsonMaker:
                 font_data = load_font_json_with_encoding(template_temp_json_path)
                 glyf_data = font_data.get("glyf", {})
                 save_json_compact(glyf_data, template_glyf_json_path)
-            except Exception as e:
+            except (OSError, ValueError, RuntimeError, KeyError, TypeError) as e:
                 logger.warning(
-                    f"Python glyf processing failed, falling back to jq: {e}"
+                    "Python glyf processing failed, falling back to jq: %s", e
                 )
                 self._fallback_to_jq_glyf(
                     template_temp_json_path, template_glyf_json_path
@@ -98,15 +98,16 @@ class TemplateJsonMaker:
         if is_docker_environment():
             logger = get_scripts_logger()
             logger.info(
-                f"Docker environment detected, using Python JSON processing for {style}"
+                "Docker environment detected, using Python JSON processing for %s",
+                style,
             )
 
             try:
                 font_data = load_font_json_with_encoding(template_temp_json_path)
                 self._remove_contours_from_glyf(font_data)
                 save_json_compact(font_data, template_main_json_path)
-            except Exception as e:
-                logger.warning(f"Python processing failed, falling back to jq: {e}")
+            except (OSError, ValueError, RuntimeError, KeyError, TypeError) as e:
+                logger.warning("Python processing failed, falling back to jq: %s", e)
                 self._fallback_to_jq_main(
                     template_temp_json_path, template_main_json_path
                 )
@@ -193,7 +194,7 @@ def make_template_main(args: Optional[List[str]] = None) -> None:
     maker.make_template(source_font, options.style)
 
     logger = get_scripts_logger()
-    logger.info(f"Template JSON files created for {options.style} style")
+    logger.info("Template JSON files created for %s style", options.style)
 
 
 if __name__ == "__main__":

@@ -5,10 +5,6 @@ from __future__ import annotations
 
 from typing import Dict, List, Union
 
-# Pinyin glyph data types
-GlyphReference = Dict[str, Union[str, int, float]]
-PinyinGlyphData = Dict[str, Union[str, int, float, List[GlyphReference]]]
-
 import orjson
 
 from refactored.config.font_config import (
@@ -17,6 +13,11 @@ from refactored.config.font_config import (
     FontType,
 )
 from refactored.data.pinyin_data import get_pinyin_table_with_mapping_table
+
+# Pinyin glyph data types
+GlyphReference = Dict[str, Union[str, int, float]]
+PinyinGlyphData = Dict[str, Union[str, int, float, List[GlyphReference]]]
+
 
 # advanceHeight に対する advanceHeight の割合 (適当に決めてるから調整)
 VERTICAL_ORIGIN_PER_HEIGHT = 0.88
@@ -44,21 +45,21 @@ class PinyinGlyph:
             alphabet_for_pinyin_json: Path to alphabet JSON file for pinyin
             font_type: Font type (HAN_SERIF or HANDWRITTEN)
         """
-        self.PINYIN_MAPPING_TABLE = get_pinyin_table_with_mapping_table()
+        self.pinyin_mapping_table = get_pinyin_table_with_mapping_table()
 
         with open(template_main_json, "rb") as read_file:
             self.font_main = orjson.loads(read_file.read())
             self.cmap_table = self.font_main["cmap"]
 
         with open(alphabet_for_pinyin_json, "rb") as read_file:
-            self.PY_ALPHABET_GLYF = orjson.loads(read_file.read())
+            self.py_alphabet_glyf = orjson.loads(read_file.read())
 
         if font_type == FontType.HAN_SERIF:
             # 想定する漢字のサイズに対するピンイン表示部のサイズ
             # 前作より引用
-            self.METADATA_FOR_PINYIN = METADATA_FOR_HAN_SERIF
+            self.metadata_for_pinyin = METADATA_FOR_HAN_SERIF
         elif font_type == FontType.HANDWRITTEN:
-            self.METADATA_FOR_PINYIN = METADATA_FOR_HANDWRITTEN
+            self.metadata_for_pinyin = METADATA_FOR_HANDWRITTEN
         else:
             raise ValueError(f"Unsupported font type: {font_type}")
 
@@ -82,8 +83,8 @@ class PinyinGlyph:
         advance_height = 0
 
         for char in pronunciation:
-            if char in self.PY_ALPHABET_GLYF:
-                glyph_info = self.PY_ALPHABET_GLYF[char]
+            if char in self.py_alphabet_glyf:
+                glyph_info = self.py_alphabet_glyf[char]
                 advance_width += glyph_info.get("advanceWidth", 0)
                 char_height = glyph_info.get("advanceHeight", 0)
                 if char_height > advance_height:
@@ -93,7 +94,7 @@ class PinyinGlyph:
 
     def get_pinyin_glyph_for_hanzi(self, hanzi: str) -> PinyinGlyphData:
         """漢字に対応するピンイングリフを生成"""
-        pinyins = self.PINYIN_MAPPING_TABLE.get(hanzi, [])
+        pinyins = self.pinyin_mapping_table.get(hanzi, [])
         if not pinyins:
             return {}
 
@@ -118,8 +119,8 @@ class PinyinGlyph:
         pinyin_width, pinyin_height = self.__get_advance_size_of_pinyin(pronunciation)
 
         # キャンバスサイズの調整
-        canvas_width = self.METADATA_FOR_PINYIN.pinyin_canvas.width
-        canvas_height = self.METADATA_FOR_PINYIN.pinyin_canvas.height
+        canvas_width = self.metadata_for_pinyin.pinyin_canvas.width
+        canvas_height = self.metadata_for_pinyin.pinyin_canvas.height
 
         # スケールファクターの計算
         scale_x = canvas_width / pinyin_width if pinyin_width > 0 else 1.0
@@ -127,15 +128,15 @@ class PinyinGlyph:
 
         # 重なりを避けるモードの適用
         if (
-            self.METADATA_FOR_PINYIN.is_avoid_overlapping_mode
+            self.metadata_for_pinyin.is_avoid_overlapping_mode
             and len(pronunciation) >= 5
         ):
             scale_x *= (
-                1.0 - self.METADATA_FOR_PINYIN.x_scale_reduction_for_avoid_overlapping
+                1.0 - self.metadata_for_pinyin.x_scale_reduction_for_avoid_overlapping
             )
 
         # グリフデータの構築
-        glyph_data = {
+        glyph_data: PinyinGlyphData = {
             "advanceWidth": hanzi_width,
             "advanceHeight": hanzi_height,
             "contours": [],
@@ -146,8 +147,8 @@ class PinyinGlyph:
         # 各文字のグリフを配置
         x_offset = 0
         for char in pronunciation:
-            if char in self.PY_ALPHABET_GLYF:
-                char_glyph = self.PY_ALPHABET_GLYF[char]
+            if char in self.py_alphabet_glyf:
+                char_glyph = self.py_alphabet_glyf[char]
 
                 # 参照を追加
                 if "references" in glyph_data and isinstance(
@@ -156,10 +157,18 @@ class PinyinGlyph:
                     glyph_data["references"].append(
                         {
                             "glyph": char,
-                            "x": x_offset * scale_x,
-                            "y": self.METADATA_FOR_PINYIN.pinyin_canvas.base_line,
-                            "scaleX": scale_x,
-                            "scaleY": scale_y,
+                            "x": float(x_offset * scale_x),
+                            "y": float(
+                                self.metadata_for_pinyin.pinyin_canvas.base_line
+                            ),
+                            "a": float(
+                                scale_x
+                            ),  # scaleX -> transform matrix 'a' component
+                            "b": 0.0,
+                            "c": 0.0,
+                            "d": float(
+                                scale_y
+                            ),  # scaleY -> transform matrix 'd' component
                         }
                     )
 
@@ -171,7 +180,7 @@ class PinyinGlyph:
         """すべてのピンイングリフを取得"""
         all_glyphs = {}
 
-        for hanzi, pinyins in self.PINYIN_MAPPING_TABLE.items():
+        for hanzi, pinyins in self.pinyin_mapping_table.items():
             for pronunciation in pinyins:
                 if pronunciation not in all_glyphs:
                     all_glyphs[pronunciation] = self._create_pinyin_glyph(pronunciation)

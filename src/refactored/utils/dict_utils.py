@@ -9,7 +9,7 @@ Contains functions for working with nested dictionaries and data structures.
 
 from __future__ import annotations
 
-from typing import Dict, List, TypeVar, Union, cast
+from typing import Dict, List, Optional, TypeVar, Union, cast
 
 # Type variables for generic dictionary operations
 T = TypeVar("T")
@@ -37,8 +37,8 @@ def deep_update(dict_base: Dict[str, DictValue], other: Dict[str, DictValue]) ->
 
 
 def safe_get_nested(
-    data: Dict[str, DictValue], keys: List[str], default: T = None
-) -> Union[DictValue, T]:
+    data: Dict[str, DictValue], keys: List[str], default: Optional[T] = None
+) -> Union[DictValue, Optional[T]]:
     """
     Safely get value from nested dictionary using key path.
 

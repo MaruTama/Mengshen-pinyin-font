@@ -3,19 +3,29 @@
 
 from __future__ import annotations
 
+import subprocess
 from pathlib import Path
-from typing import Dict, List, Optional, Protocol, Union
-
-# Font data types
-FontTableData = Dict[
-    str, Union[str, int, float, List[Dict[str, Union[str, int, float]]]]
-]
-FontData = Dict[str, Union[str, int, float, FontTableData]]
+from typing import Any, Dict, Optional, Protocol, cast
 
 import orjson
 
-from ..config import FontConfig, FontConstants, FontType, ProjectPaths
+from ..config import (
+    HAN_SERIF,
+    HANDWRITTEN,
+    FontConstants,
+    FontMetadata,
+    FontType,
+    ProjectPaths,
+)
+from ..config.font_config import FontConfig
+from ..config.font_name_tables import VERSION
 from ..data import CharacterDataManager, MappingDataManager, PinyinDataManager
+from ..data.mapping_data import JsonCmapDataSource
+from ..processing.gsub_table_generator import GSUBTableGenerator
+from ..processing.optimized_utility import set_cmap_table
+
+# Import comprehensive type definitions
+from ..types import HeadTable, HheaTable, OS2Table, StatsDict
 from ..utils.cmap_utils import load_cmap_table_from_path
 from ..utils.logging_config import get_builder_logger
 from .font_assembler import FontAssembler
@@ -27,7 +37,6 @@ class ExternalToolInterface(Protocol):
 
     def convert_json_to_otf(self, json_path: Path, output_path: Path) -> None:
         """Convert JSON font description to OTF font."""
-        ...
 
 
 class FontBuilder:
@@ -71,7 +80,6 @@ class FontBuilder:
         )
         # Create mapping manager with correct template path
         if mapping_manager is None:
-            from ..data.mapping_data import JsonCmapDataSource
 
             cmap_source = JsonCmapDataSource(self.template_main_path)
             mapping_manager = MappingDataManager(
@@ -90,21 +98,22 @@ class FontBuilder:
             mapping_manager=self.mapping_manager,
         )
 
+        font_config_obj: FontMetadata = FontConfig.get_config(font_type)
         self.font_assembler = FontAssembler(
-            font_config=self.font_config, paths=self.paths
+            font_config=font_config_obj, paths=self.paths
         )
 
         # External tool interface
         self.external_tool = external_tool
 
-        # Font data
-        self._font_data: Optional[FontData] = None
-        self._glyf_data: Optional[FontTableData] = None
+        # Font data with proper typing
+        self._font_data: Optional[Dict[str, Any]] = None
+        self._glyf_data: Optional[Dict[str, Any]] = None
 
     def build(self, output_path: Path) -> None:
         """Build the complete font."""
         try:
-            self.logger.info(f"Starting font build for {self.font_type.name}...")
+            self.logger.info("Starting font build for %s...", self.font_type.name)
 
             # Load font templates
             self.logger.info("Loading font templates...")
@@ -137,25 +146,30 @@ class FontBuilder:
             self._save_as_json(temp_json_path)
             self._convert_json_to_otf(temp_json_path, output_path)
 
-            self.logger.info(f"Font build completed successfully: {output_path}")
+            self.logger.info("Font build completed successfully: %s", output_path)
 
+        except (OSError, ValueError, RuntimeError, KeyError, TypeError) as e:
+            self.logger.error("Font build failed: %s", e)
+            raise
         except Exception as e:
-            self.logger.error(f"Font build failed: {e}")
+            self.logger.error("Unexpected font build error: %s", e)
             raise
 
-    def get_build_statistics(self) -> Dict[str, Union[str, int, float]]:
+    def get_build_statistics(self) -> StatsDict:
         """Get statistics about the built font."""
         if not self._font_data:
             return {"status": "not_built"}
 
-        stats = {
+        stats: StatsDict = {
             "status": "built",
             "font_type": int(self.font_type),
         }
 
         # Add glyph counts if available
         if "glyf" in self._font_data:
-            stats["total_glyphs"] = len(self._font_data["glyf"])
+            glyf_table = self._font_data["glyf"]
+            if hasattr(glyf_table, "__len__"):
+                stats["total_glyphs"] = len(glyf_table)
 
         # Add generated glyph counts if glyph_manager is available
         if hasattr(self, "glyph_manager") and self.glyph_manager:
@@ -167,14 +181,23 @@ class FontBuilder:
 
         # Add font metrics if available
         if "head" in self._font_data:
-            head_table = self._font_data["head"]
-            if "yMax" in head_table:
-                stats["ymax"] = head_table["yMax"]
-            if "fontRevision" in head_table:
-                stats["font_revision"] = head_table["fontRevision"]
+            head_table = cast(HeadTable, self._font_data["head"])
+            if isinstance(head_table, dict):
+                if "yMax" in head_table:
+                    ymax_val = head_table["yMax"]
+                    if isinstance(ymax_val, (int, float)):
+                        stats["ymax"] = ymax_val
+                if "fontRevision" in head_table:
+                    revision_val = head_table["fontRevision"]
+                    if isinstance(revision_val, (int, float)):
+                        stats["font_revision"] = revision_val
 
-        if "hhea" in self._font_data and "ascender" in self._font_data["hhea"]:
-            stats["ascender"] = self._font_data["hhea"]["ascender"]
+        if "hhea" in self._font_data:
+            hhea_table = cast(HheaTable, self._font_data["hhea"])
+            if isinstance(hhea_table, dict) and "ascender" in hhea_table:
+                ascender_val = hhea_table["ascender"]
+                if isinstance(ascender_val, (int, float)):
+                    stats["ascender"] = ascender_val
 
         return stats
 
@@ -188,16 +211,24 @@ class FontBuilder:
 
     def _initialize_managers(self) -> None:
         """Initialize component managers."""
+        if self._font_data is None or self._glyf_data is None:
+            raise ValueError("Font data not loaded")
+
+        # Cast to proper types for the glyph manager
+        font_data_dict = cast(Dict[str, Dict[str, Any]], self._font_data)
+        glyf_data_dict = cast(Dict[str, Dict[str, Any]], self._glyf_data)
+
         self.glyph_manager.initialize(
-            self._font_data,
-            self._glyf_data,
+            font_data_dict,
+            glyf_data_dict,
             self.alphabet_pinyin_path,
             self.template_main_path,
         )
-        # Set up utility cmap table for compatibility
-        from ..processing.optimized_utility import set_cmap_table
 
-        set_cmap_table(self._font_data["cmap"])
+        cmap_data = self._font_data.get("cmap")
+        if isinstance(cmap_data, dict):
+            cmap_table = cast(Dict[str, str], cmap_data)
+            set_cmap_table(cmap_table)
 
     def _add_cmap_uvs(self) -> None:
         """Add Unicode IVS (Ideographic Variant Selector) support.
@@ -209,12 +240,15 @@ class FontBuilder:
         hanzi_glyf.ss02　（異読のピンインがあるとき）以降、異読
         ...
         """
+        if self._font_data is None:
+            raise ValueError("Font data not loaded")
+
         # Initialize cmap_uvs table if not exists
         if "cmap_uvs" not in self._font_data:
             self._font_data["cmap_uvs"] = {}
 
-        cmap_uvs = self._font_data["cmap_uvs"]
-        IVS_BASE = FontConstants.IVS_BASE  # 0xE01E0 (917984)
+        cmap_uvs = cast(Dict[str, str], self._font_data["cmap_uvs"])
+        ivs_base = FontConstants.IVS_BASE  # 0xE01E0 (917984)
 
         # Add IVS entries for single-pronunciation characters
         for char_info in self.character_manager.iter_single_pronunciation_characters():
@@ -226,7 +260,7 @@ class FontBuilder:
 
             if cid:
                 # IVS selector for ss00 (no pinyin variant)
-                ivs_key = f"{unicode_value} {IVS_BASE}"
+                ivs_key = f"{unicode_value} {ivs_base}"
                 cmap_uvs[ivs_key] = f"{cid}.ss00"
 
         # Add IVS entries for multiple-pronunciation characters
@@ -243,15 +277,22 @@ class FontBuilder:
                 # IVS selectors for all variants (ss00 through ssNN)
                 num_variants = len(char_info.pronunciations) + 1  # +1 for ss00
                 for i in range(num_variants):
-                    ivs_key = f"{unicode_value} {IVS_BASE + i}"
+                    ivs_key = f"{unicode_value} {ivs_base + i}"
                     cmap_uvs[ivs_key] = f"{cid}.ss{i:02d}"
 
-        self.logger.debug(f"cmap_uvs entries: {len(cmap_uvs)}")
+        self.logger.debug("cmap_uvs entries: %d", len(cmap_uvs))
 
     def _add_glyph_order(self) -> None:
         """Add glyph order definition."""
+        if self._font_data is None:
+            raise ValueError("Font data not loaded")
+
         # Start with existing glyph order
-        existing_order = set(self._font_data.get("glyph_order", []))
+        glyph_order_raw = self._font_data.get("glyph_order", [])
+        if isinstance(glyph_order_raw, list):
+            existing_order = set(glyph_order_raw)
+        else:
+            existing_order = set()
 
         # Add hanzi glyphs for single-pronunciation characters
         for char_info in self.character_manager.iter_single_pronunciation_characters():
@@ -283,17 +324,26 @@ class FontBuilder:
         # Sort and set new glyph order
         new_glyph_order = list(existing_order)
         new_glyph_order.sort()
-        self._font_data["glyph_order"] = new_glyph_order
+        if self._font_data is not None:
+            self._font_data["glyph_order"] = new_glyph_order
 
-        self.logger.debug(f"glyph order entries: {len(new_glyph_order)}")
+        self.logger.debug("glyph order entries: %d", len(new_glyph_order))
 
     def _add_glyf(self) -> None:
         """Add pinyin-annotated glyphs using exact legacy logic."""
         # Use glyf template data (substance_glyf_table) instead of main template glyf
         # This matches legacy font.py where substance_glyf_table contains actual glyph contour data
 
+        if self._font_data is None or self._glyf_data is None:
+            raise ValueError("Font data not loaded")
+
         # Get the base glyf table from MAIN template (for metadata structure)
-        base_glyf = self._font_data.get("glyf", {})
+        base_glyf_raw = self._font_data.get("glyf", {})
+        base_glyf = (
+            cast(Dict[str, Any], base_glyf_raw)
+            if isinstance(base_glyf_raw, dict)
+            else {}
+        )
 
         # Use glyph_manager to generate all pinyin-annotated glyphs
         self.glyph_manager.generate_pinyin_glyphs()  # Generate pinyin alphabet glyphs
@@ -310,10 +360,13 @@ class FontBuilder:
 
         # DEBUG: Verify hiragana contours are preserved
         if "cid01460" in new_glyf:
-            contour_count = len(new_glyf["cid01460"].get("contours", []))
-            self.logger.debug(
-                f"new_glyf starts with cid01460 having {contour_count} contours"
-            )
+            glyph_data = new_glyf["cid01460"]
+            if isinstance(glyph_data, dict):
+                contours = glyph_data.get("contours", [])
+                contour_count = len(contours) if isinstance(contours, list) else 0
+                self.logger.debug(
+                    "new_glyf starts with cid01460 having %d contours", contour_count
+                )
 
         # Merge any metadata from base_glyf that might be needed
         for glyph_name, glyph_data in base_glyf.items():
@@ -325,18 +378,23 @@ class FontBuilder:
             k: v for k, v in generated_glyphs.items() if k.startswith("py_alphabet")
         }
         self.logger.debug(
-            f" Found {len(pinyin_alphabet_glyphs)} pinyin alphabet glyphs in generated_glyphs"
+            " Found %d pinyin alphabet glyphs in generated_glyphs",
+            len(pinyin_alphabet_glyphs),
         )
         self.logger.debug(
-            f" First few pinyin alphabet glyph names: {list(pinyin_alphabet_glyphs.keys())[:5]}"
+            " First few pinyin alphabet glyph names: %s",
+            list(pinyin_alphabet_glyphs.keys())[:5],
         )
-        self.logger.debug(f" Total generated_glyphs keys: {len(generated_glyphs)}")
+        self.logger.debug(" Total generated_glyphs keys: %d", len(generated_glyphs))
+        pinyin_alphabet_count = len(
+            [k for k in generated_glyphs if k.startswith("py_alphabet")]
+        )
         self.logger.debug(
-            f" All generated_glyphs keys starting with 'py': {[k for k in generated_glyphs.keys() if k.startswith('py')][:10]}"
+            " Generated pinyin alphabet glyphs: %d", pinyin_alphabet_count
         )
         new_glyf.update(pinyin_alphabet_glyphs)
         self.logger.debug(
-            f" new_glyf now has {len(new_glyf)} glyphs after adding pinyin alphabets"
+            " new_glyf now has %d glyphs after adding pinyin alphabets", len(new_glyf)
         )
 
         # 3. Add substance glyphs (CRITICAL: use glyf template for contour data)
@@ -345,7 +403,7 @@ class FontBuilder:
             k: v for k, v in generated_glyphs.items() if not k.startswith("py_alphabet")
         }
 
-        self.logger.debug(f" Processing {len(substance_glyphs)} substance glyphs")
+        self.logger.debug(" Processing %d substance glyphs", len(substance_glyphs))
 
         # For substance glyphs, merge with template glyf data to preserve contours
         for glyph_name, glyph_data in substance_glyphs.items():
@@ -353,26 +411,34 @@ class FontBuilder:
             base_glyph_name = glyph_name.split(".")[0]  # Remove .ss## suffix
 
             if base_glyph_name in self._glyf_data:
-                template_glyph = self._glyf_data[base_glyph_name]
+                template_glyph = cast(Dict[str, Any], self._glyf_data[base_glyph_name])
 
                 # If generated glyph has no useful content (no references/contours), use template
+                references_raw = glyph_data.get("references", [])
                 has_references = (
                     "references" in glyph_data
-                    and len(glyph_data.get("references", [])) > 0
+                    and isinstance(references_raw, list)
+                    and len(references_raw) > 0
                 )
+                contours_raw = glyph_data.get("contours", [])
                 has_contours = (
-                    "contours" in glyph_data and len(glyph_data.get("contours", [])) > 0
+                    "contours" in glyph_data
+                    and isinstance(contours_raw, list)
+                    and len(contours_raw) > 0
                 )
+                template_contours_raw = template_glyph.get("contours", [])
                 template_has_contours = (
                     "contours" in template_glyph
-                    and len(template_glyph.get("contours", [])) > 0
+                    and isinstance(template_contours_raw, list)
+                    and len(template_contours_raw) > 0
                 )
 
                 if not has_references and not has_contours and template_has_contours:
                     # Generated glyph is empty but template has contours - use template completely
                     new_glyf[glyph_name] = template_glyph.copy()
                     self.logger.debug(
-                        f"Used template completely for empty generated glyph: {glyph_name}"
+                        "Used template completely for empty generated glyph: %s",
+                        glyph_name,
                     )
                 elif glyph_name.endswith(".ss00"):
                     # For .ss00 glyphs (hanzi without pinyin), use template contour data
@@ -383,20 +449,20 @@ class FontBuilder:
                             merged_glyph[key] = value
                     new_glyf[glyph_name] = merged_glyph
                     self.logger.debug(
-                        f" Preserved contours for .ss00 glyph: {glyph_name}"
+                        " Preserved contours for .ss00 glyph: %s", glyph_name
                     )
                 else:
                     # For all other glyphs (with pinyin), use generated references completely
                     # This preserves the pinyin positioning and display
                     new_glyf[glyph_name] = glyph_data
                     self.logger.debug(
-                        f" Used generated data for pinyin glyph: {glyph_name}"
+                        " Used generated data for pinyin glyph: %s", glyph_name
                     )
             else:
                 # Use generated glyph as-is (likely a composite glyph)
                 new_glyf[glyph_name] = glyph_data
                 self.logger.debug(
-                    f" Used generated data for composite glyph: {glyph_name}"
+                    " Used generated data for composite glyph: %s", glyph_name
                 )
 
         # Ensure all template glyphs are included, especially basic characters
@@ -405,33 +471,45 @@ class FontBuilder:
         for glyph_name, glyph_data in self._glyf_data.items():
             if glyph_name not in new_glyf:
                 # Use template data completely - this preserves contours for basic characters
-                new_glyf[glyph_name] = glyph_data.copy()
+                if isinstance(glyph_data, dict) and hasattr(glyph_data, "copy"):
+                    new_glyf[glyph_name] = glyph_data.copy()
+                else:
+                    new_glyf[glyph_name] = glyph_data
                 template_glyphs_added += 1
 
                 # Debug specific basic characters
-                if glyph_name in ["cid01460", "cid00034", "cid01461", "cid01462"]:
-                    contour_count = len(glyph_data.get("contours", []))
+                if glyph_name in [
+                    "cid01460",
+                    "cid00034",
+                    "cid01461",
+                    "cid01462",
+                ] and isinstance(glyph_data, dict):
+                    contours = glyph_data.get("contours", [])
+                    contour_count = len(contours) if isinstance(contours, list) else 0
                     self.logger.debug(
-                        f"Added template glyph {glyph_name} with {contour_count} contours"
+                        "Added template glyph %s with %d contours",
+                        glyph_name,
+                        contour_count,
                     )
 
         self.logger.debug(
-            f" Added {template_glyphs_added} template glyphs to preserve basic characters"
+            " Added %d template glyphs to preserve basic characters",
+            template_glyphs_added,
         )
 
         # Update the font data
-        self._font_data["glyf"] = new_glyf
+        if self._font_data is not None:
+            self._font_data["glyf"] = new_glyf
 
         # Validate glyph count limits (legacy compatibility)
         # OpenType fonts have a hard limit of 65536 glyphs due to 16-bit indexing
         if len(new_glyf) > 65536:
             raise Exception("glyf table cannot contain more than 65536 glyphs.")
 
-        self.logger.debug(f"glyf num : {len(new_glyf)}")
+        self.logger.debug("glyf num : %d", len(new_glyf))
 
     def _add_gsub(self) -> None:
         """Add GSUB table for contextual substitution."""
-        from ..processing.gsub_table_generator import GSUBTableGenerator
 
         # Create GSUB table generator with pattern files
         gsub_generator = GSUBTableGenerator(
@@ -445,33 +523,18 @@ class FontBuilder:
 
         # Generate and add GSUB table
         gsub_table = gsub_generator.generate_gsub_table()
-        self._font_data["GSUB"] = gsub_table
+        if self._font_data is not None:
+            self._font_data["GSUB"] = gsub_table
 
         self.logger.info("GSUB table generation completed")
 
     def _set_about_size(self) -> None:
         """Set font size metadata."""
-        from ..config.font_name_tables import VERSION
 
-        # Set font revision in head table (legacy: head.fontRevision = name_table.VERSION)
-        if "head" not in self._font_data:
-            self._font_data["head"] = {}
+        if self._font_data is None:
+            raise ValueError("Font data not loaded")
 
-        self._font_data["head"]["fontRevision"] = VERSION
-
-        # Set creation and modification dates to current generation time
-        # Use the font assembler's timestamp method for consistency
-        font_timestamp = self.font_assembler._get_current_font_timestamp()
-        self._font_data["head"]["created"] = font_timestamp
-        self._font_data["head"]["modified"] = font_timestamp
-
-        # Optional: Add generation timestamp info for debugging
-        from datetime import datetime, timezone
-
-        generation_time = datetime.now(timezone.utc)
-        self.logger.info(
-            f"Font metadata set - Version: {VERSION}, Generated: {generation_time.strftime('%Y-%m-%d %H:%M:%S UTC')}"
-        )
+        self.font_assembler.set_font_metadata(self._font_data, self.font_type)
 
         # Set font metrics to accommodate pinyin height (legacy compatibility)
         # This matches the legacy set_about_size() method behavior
@@ -482,65 +545,91 @@ class FontBuilder:
 
             # Update yMax if pinyin height exceeds current yMax
             # すべてのグリフの輪郭を含む範囲
-            if (
-                "head" in self._font_data
-                and "yMax" in self._font_data["head"]
-                and advanceAddedPinyinHeight > self._font_data["head"]["yMax"]
-            ):
-                self._font_data["head"]["yMax"] = advanceAddedPinyinHeight
+            if "head" in self._font_data:
+                head_table = cast(HeadTable, self._font_data["head"])
+                if isinstance(head_table, dict) and "yMax" in head_table:
+                    ymax_val = head_table["yMax"]
+                    if isinstance(
+                        ymax_val, (int, float)
+                    ) and advanceAddedPinyinHeight > float(ymax_val):
+                        head_table["yMax"] = advanceAddedPinyinHeight
 
             # Update ascender and usWinAscent if pinyin height exceeds current ascender
             # 原点からグリフの上端までの距離
-            if (
-                "hhea" in self._font_data
-                and "ascender" in self._font_data["hhea"]
-                and advanceAddedPinyinHeight > self._font_data["hhea"]["ascender"]
-            ):
-                self._font_data["hhea"]["ascender"] = advanceAddedPinyinHeight
+            if "hhea" in self._font_data:
+                hhea_table = cast(HheaTable, self._font_data["hhea"])
+                if isinstance(hhea_table, dict) and "ascender" in hhea_table:
+                    ascender_val = hhea_table["ascender"]
+                    if (
+                        isinstance(ascender_val, (int, float))
+                        and advanceAddedPinyinHeight > ascender_val
+                    ):
+                        # Update ascender first
+                        hhea_table["ascender"] = advanceAddedPinyinHeight
 
-                # Also update OS/2 usWinAscent (Windows-specific ascent metric)
-                if (
-                    "OS_2" in self._font_data
-                    and "usWinAscent" in self._font_data["OS_2"]
-                ):
-                    self._font_data["OS_2"]["usWinAscent"] = advanceAddedPinyinHeight
+                        # Then update OS/2 usWinAscent (Windows-specific ascent metric)
+                        if "OS_2" in self._font_data:
+                            os2_table = cast(OS2Table, self._font_data["OS_2"])
+                            if (
+                                isinstance(os2_table, dict)
+                                and "usWinAscent" in os2_table
+                            ):
+                                os2_table["usWinAscent"] = advanceAddedPinyinHeight
 
-            self.logger.debug(
-                f"Font metrics updated - yMax: {self._font_data.get('head', {}).get('yMax')}, "
-                f"ascender: {self._font_data.get('hhea', {}).get('ascender')}, "
-                f"usWinAscent: {self._font_data.get('OS_2', {}).get('usWinAscent')}"
+            # Debug logging with safe access
+            head_table = cast(HeadTable, self._font_data.get("head", {}))
+            hhea_table = cast(HheaTable, self._font_data.get("hhea", {}))
+            os2_table = cast(OS2Table, self._font_data.get("OS_2", {}))
+
+            ymax_val = (
+                head_table.get("yMax", "unknown")
+                if isinstance(head_table, dict)
+                else "unknown"
+            )
+            hhea_ascent_debug = (
+                hhea_table.get("ascender", "unknown")
+                if isinstance(hhea_table, dict)
+                else "unknown"
+            )
+            us_win_ascent_val = (
+                os2_table.get("usWinAscent", "unknown")
+                if isinstance(os2_table, dict)
+                else "unknown"
             )
 
-            if (
-                "hhea" in self._font_data
-                and "ascender" in self._font_data["hhea"]
-                and advanceAddedPinyinHeight > self._font_data["hhea"]["ascender"]
-            ):
-                self._font_data["hhea"]["ascender"] = advanceAddedPinyinHeight
-                # Also update OS/2 usWinAscent if hhea.ascender is updated
-                if (
-                    "OS_2" in self._font_data
-                    and "usWinAscent" in self._font_data["OS_2"]
-                ):
-                    self._font_data["OS_2"]["usWinAscent"] = advanceAddedPinyinHeight
+            self.logger.debug(
+                "Font metrics updated - yMax: %s, ascender: %s, usWinAscent: %s",
+                ymax_val,
+                hhea_ascent_debug,
+                us_win_ascent_val,
+            )
 
-        self.logger.debug(f"font revision set to: {VERSION}")
+        self.logger.debug("font revision set to: %s", VERSION)
 
     def _set_copyright(self) -> None:
         """Set font copyright and naming information."""
-        from ..config import HAN_SERIF, HANDWRITTEN
+
+        if self._font_data is None:
+            raise ValueError("Font data not loaded")
 
         # Set name table based on font type
         if self.font_type == FontType.HAN_SERIF:
-            self._font_data["name"] = HAN_SERIF
+            self._font_data["name"] = cast(Any, HAN_SERIF)
             self.logger.debug("name table set: HAN_SERIF")
         elif self.font_type == FontType.HANDWRITTEN:
-            self._font_data["name"] = HANDWRITTEN
+            self._font_data["name"] = cast(Any, HANDWRITTEN)
             self.logger.debug("name table set: HANDWRITTEN")
         else:
             raise ValueError(f"Unsupported font type: {self.font_type}")
 
-        self.logger.debug(f"name table entries: {len(self._font_data['name'])}")
+        name_table = self._font_data.get("name")
+        if name_table and hasattr(name_table, "__len__"):
+            try:
+                self.logger.debug("name table entries: %d", len(name_table))
+            except TypeError:
+                self.logger.debug("name table entries: unknown (not sized)")
+        else:
+            self.logger.debug("name table entries: unknown")
 
     def _save_as_json(self, output_path: Path) -> None:
         """Save font data as JSON."""
@@ -552,9 +641,6 @@ class FontBuilder:
         if self.external_tool:
             self.external_tool.convert_json_to_otf(json_path, output_path)
         else:
-            # Fallback to shell command (legacy compatibility)
-            import subprocess
-
             try:
                 subprocess.run(
                     ["otfccbuild", str(json_path), "-o", str(output_path)],
@@ -564,10 +650,10 @@ class FontBuilder:
                     timeout=60,
                 )
             except subprocess.CalledProcessError as e:
-                self.logger.error(f"Error during otfccbuild: {e.stderr}")
+                self.logger.error("Error during otfccbuild: %s", e.stderr)
                 raise
             except subprocess.TimeoutExpired as e:
-                self.logger.error(f"otfccbuild timed out: {e}")
+                self.logger.error("otfccbuild timed out: %s", e)
                 raise
             except FileNotFoundError:
                 self.logger.error(

@@ -3,18 +3,8 @@
 
 from __future__ import annotations
 
-import re
 from pathlib import Path
-from typing import Dict, List, Union
-
-# GSUB table structure types
-GSUBLookup = Dict[
-    str, Union[str, Dict[str, Union[str, List[Dict[str, str]]]], List[Dict[str, str]]]
-]
-GSUBTable = Dict[
-    str,
-    Union[str, int, Dict[str, Union[str, List[str]]], Dict[str, GSUBLookup], List[str]],
-]
+from typing import Any, Dict, List, cast
 
 import orjson
 
@@ -50,13 +40,15 @@ class GSUBTableGenerator:
         # Track dynamically created lookups
         self.lookup_order: set[str] = set()
 
-        # Pattern data
-        self.pattern_one: list[dict[str, str]] = [{}]
-        self.pattern_two: dict[str, dict[str, str]] = {}
-        self.exception_pattern: dict[str, dict[str, str]] = {}
+        # Pattern data with proper structure
+        self.pattern_one: List[Dict[str, Dict[str, str]]] = [
+            {}
+        ]  # [index][hanzi] = {"variational_pronunciation": str, "patterns": str}
+        self.pattern_two: Dict[str, Any] = {}
+        self.exception_pattern: Dict[str, Any] = {}
 
         # Initialize base GSUB structure (matches legacy exactly)
-        self.gsub_data = {
+        self.gsub_data: Dict[str, Any] = {
             "languages": {
                 "DFLT_DFLT": {"features": ["aalt_00000", "rclt_00002"]},
                 "hani_DFLT": {"features": ["aalt_00001", "rclt_00003"]},
@@ -97,7 +89,7 @@ class GSUBTableGenerator:
             "lookupOrder": ["lookup_aalt_0"],
         }
 
-    def generate_gsub_table(self) -> GSUBTable:
+    def generate_gsub_table(self) -> Dict[str, Any]:
         """Generate complete GSUB table with legacy structure."""
         # Load pattern files
         self._load_pattern_data()
@@ -151,8 +143,12 @@ class GSUBTableGenerator:
 
     def _make_aalt_feature(self) -> None:
         """Generate aalt feature (exact legacy compatibility)."""
-        aalt_0_subtables = self.gsub_data["lookups"]["lookup_aalt_0"]["subtables"][0]  # type: ignore
-        aalt_1_subtables = self.gsub_data["lookups"]["lookup_aalt_1"]["subtables"][0]  # type: ignore
+        aalt_0_subtables = cast(
+            Dict[str, str], self.gsub_data["lookups"]["lookup_aalt_0"]["subtables"][0]
+        )
+        aalt_1_subtables = cast(
+            Dict[str, Any], self.gsub_data["lookups"]["lookup_aalt_1"]["subtables"][0]
+        )
 
         # Single pronunciation characters -> lookup_aalt_0 (legacy method)
         single_pinyin_characters = (
@@ -184,7 +180,7 @@ class GSUBTableGenerator:
             aalt_1_subtables[cid] = alternate_list
 
         self.logger.debug(
-            f"aalt_1 subtables populated with {len(aalt_1_subtables)} entries"
+            "aalt_1 subtables populated with %d entries", len(aalt_1_subtables)
         )
 
         self.lookup_order.add("lookup_aalt_1")
@@ -201,7 +197,7 @@ class GSUBTableGenerator:
         # pattern_one[0] -> lookup_11_2, pattern_one[1] -> lookup_11_3, etc.
         for idx in range(max_num_patterns):
             lookup_name = f"lookup_11_{idx + 2}"  # Start from lookup_11_2
-            lookups[lookup_name] = {  # type: ignore
+            lookups[lookup_name] = {
                 "type": "gsub_single",
                 "flags": {},
                 "subtables": [{}],
@@ -209,97 +205,98 @@ class GSUBTableGenerator:
             self.lookup_order.add(lookup_name)
 
         # Generate substitution rules for lookup_rclt_2
-        rclt_2_subtables = lookups["lookup_rclt_2"]["subtables"]
+        rclt_2_subtables = cast(
+            List[Dict[str, Any]], lookups["lookup_rclt_2"]["subtables"]
+        )
 
         for idx in range(max_num_patterns):
             lookup_name = f"lookup_11_{idx + 2}"
-            lookup_subtables = lookups[lookup_name]["subtables"][0]  # type: ignore
+            lookup_subtables = cast(
+                Dict[str, str], lookups[lookup_name]["subtables"][0]
+            )
 
             for hanzi, pattern_info in self.pattern_one[idx].items():
                 if not self.mapping_manager.has_glyph_for_character(hanzi):
                     continue
 
                 cid = convert_hanzi_to_cid_safe(hanzi, self.cmap_table)
+                if not cid:
+                    continue
 
                 # Add to pattern lookup: cid -> cid.ss{XX} (legacy method)
                 ss_index = FontConstants.SS_VARIATIONAL_PRONUNCIATION + idx
                 lookup_subtables[cid] = f"{cid}.ss{ss_index:02d}"
 
                 # Process context patterns for rclt_2
-                patterns_str = pattern_info["patterns"]
-                patterns = patterns_str.strip("[]").split("|")
+                if isinstance(pattern_info, dict) and "patterns" in pattern_info:
+                    patterns_str = pattern_info["patterns"]
+                    patterns = patterns_str.strip("[]").split("|")
 
-                # Split patterns by type (same logic as legacy)
-                # まとめて記述できるもの
-                # e.g.:
-                # sub [uni4E0D uni9280] uni884C' lookup lookup_0 ;
-                # sub uni884C' lookup lookup_0　[uni4E0D uni9280] ;
-                left_match = [p for p in patterns if re.match("^~.$", p)]
-                right_match = [p for p in patterns if re.match("^.~$", p)]
-                # 一つ一つ記述するもの
-                # e.g.:
-                # sub uni85CF' lookup lookup_0 uni7D05 uni82B1 ;
-                other_match = [
-                    p for p in patterns if p not in (left_match + right_match)
-                ]
-
-                # Left context patterns: [context] target'
-                if left_match:
-                    context_chars = [p.replace("~", "") for p in left_match]
-                    context_cids = [
-                        convert_hanzi_to_cid_safe(char, self.cmap_table)
-                        for char in context_chars
-                        if convert_hanzi_to_cid_safe(char, self.cmap_table)
+                    # Split patterns by type (same logic as legacy)
+                    left_match = [p for p in patterns if p.endswith("~")]
+                    right_match = [p for p in patterns if p.startswith("~")]
+                    other_match = [
+                        p
+                        for p in patterns
+                        if "~" in p and p not in (left_match + right_match)
                     ]
 
-                    if context_cids:
-                        rclt_2_subtables.append(
-                            {
-                                "match": [[cid], context_cids],
-                                "apply": [{"at": 0, "lookup": lookup_name}],
-                                "inputBegins": 0,
-                                "inputEnds": 1,
-                            }
+                    # Left context patterns: [context] target'
+                    for pattern in left_match:
+                        context_char = pattern.replace("~", "")
+                        context_cid = convert_hanzi_to_cid_safe(
+                            context_char, self.cmap_table
                         )
+                        if context_cid:
+                            rclt_2_subtables.append(
+                                {
+                                    "match": [[context_cid], [cid]],
+                                    "apply": [{"at": 1, "lookup": lookup_name}],
+                                    "inputBegins": 1,
+                                    "inputEnds": 2,
+                                }
+                            )
 
-                # Right context patterns: target' [context]
-                if right_match:
-                    context_chars = [p.replace("~", "") for p in right_match]
-                    context_cids = [
-                        convert_hanzi_to_cid_safe(char, self.cmap_table)
-                        for char in context_chars
-                        if convert_hanzi_to_cid_safe(char, self.cmap_table)
-                    ]
-
-                    if context_cids:
-                        rclt_2_subtables.append(
-                            {
-                                "match": [context_cids, [cid]],
-                                "apply": [{"at": 1, "lookup": lookup_name}],
-                                "inputBegins": 1,
-                                "inputEnds": 2,
-                            }
+                    # Right context patterns: target' [context]
+                    for pattern in right_match:
+                        context_char = pattern.replace("~", "")
+                        context_cid = convert_hanzi_to_cid_safe(
+                            context_char, self.cmap_table
                         )
+                        if context_cid:
+                            rclt_2_subtables.append(
+                                {
+                                    "match": [[cid], [context_cid]],
+                                    "apply": [{"at": 0, "lookup": lookup_name}],
+                                    "inputBegins": 0,
+                                    "inputEnds": 1,
+                                }
+                            )
 
-                # Multi-character context patterns
-                for pattern in other_match:
-                    at_pos = pattern.index("~")
-                    chars = list(pattern.replace("~", hanzi))
-                    match_cids = [
-                        [convert_hanzi_to_cid_safe(char, self.cmap_table)]
-                        for char in chars
-                        if convert_hanzi_to_cid_safe(char, self.cmap_table)
-                    ]
+                    # Multi-character context patterns
+                    for pattern in other_match:
+                        if "~" in pattern:
+                            at_pos = pattern.index("~")
+                            chars = list(pattern.replace("~", hanzi))
+                            match_cids = []
+                            for char in chars:
+                                char_cid = convert_hanzi_to_cid_safe(
+                                    char, self.cmap_table
+                                )
+                                if char_cid:
+                                    match_cids.append([char_cid])
 
-                    if match_cids:
-                        rclt_2_subtables.append(
-                            {
-                                "match": match_cids,
-                                "apply": [{"at": at_pos, "lookup": lookup_name}],
-                                "inputBegins": at_pos,
-                                "inputEnds": at_pos + 1,
-                            }
-                        )
+                            if match_cids:
+                                rclt_2_subtables.append(
+                                    {
+                                        "match": match_cids,
+                                        "apply": [
+                                            {"at": at_pos, "lookup": lookup_name}
+                                        ],
+                                        "inputBegins": at_pos,
+                                        "inputEnds": at_pos + 1,
+                                    }
+                                )
 
     def _make_rclt1_feature(self) -> None:
         """Generate pattern two -> updates lookup_rclt_3 (legacy compatibility)."""
@@ -310,37 +307,49 @@ class GSUBTableGenerator:
 
         # Create additional lookup tables from pattern_two (legacy method)
         if "lookup_table" in self.pattern_two:
-            for lookup_name, table in self.pattern_two["lookup_table"].items():
-                lookups[lookup_name] = {  # type: ignore
+            lookup_table = cast(
+                Dict[str, Dict[str, str]], self.pattern_two["lookup_table"]
+            )
+            for lookup_name, table in lookup_table.items():
+                lookups[lookup_name] = {
                     "type": "gsub_single",
                     "flags": {},
                     "subtables": [{}],
                 }
 
                 # Add substitutions using legacy logic
-                lookup_subtables = lookups[lookup_name]["subtables"][0]  # type: ignore
+                lookup_subtables = cast(
+                    Dict[str, str], lookups[lookup_name]["subtables"][0]
+                )
                 for hanzi, target in table.items():
                     cid = convert_hanzi_to_cid_safe(hanzi, self.cmap_table)
-                    # Replace hanzi with cid in target (exact legacy method)
-                    target_cid = target.replace(hanzi, cid)
-                    lookup_subtables[cid] = target_cid  # type: ignore
+                    if cid and isinstance(target, str):
+                        # Replace hanzi with cid in target (exact legacy method)
+                        target_cid = target.replace(hanzi, cid)
+                        lookup_subtables[cid] = target_cid
 
                 self.lookup_order.add(lookup_name)
 
         # Generate contextual rules for lookup_rclt_3 (legacy: lookup_rclt_1)
         if "patterns" in self.pattern_two:
-            rclt_3_subtables = lookups["lookup_rclt_3"]["subtables"]
+            rclt_3_subtables = cast(
+                List[Dict[str, Any]], lookups["lookup_rclt_3"]["subtables"]
+            )
+            patterns_dict = cast(
+                Dict[str, List[Dict[str, str]]], self.pattern_two["patterns"]
+            )
 
-            for phrase, pattern_list in self.pattern_two["patterns"].items():
+            for phrase, pattern_list in patterns_dict.items():
                 applies = []
                 ats = []
 
                 for i, table in enumerate(pattern_list):
-                    # Legacy: lookup_name = list(table.values())[0]
-                    lookup_name = list(table.values())[0]
-                    if lookup_name:
-                        ats.append(i)
-                        applies.append({"at": i, "lookup": lookup_name})
+                    if isinstance(table, dict) and table:
+                        # Legacy: lookup_name = list(table.values())[0]
+                        lookup_name = list(table.values())[0]
+                        if lookup_name:
+                            ats.append(i)
+                            applies.append({"at": i, "lookup": lookup_name})
 
                 if applies:
                     match_cids = [
@@ -368,28 +377,41 @@ class GSUBTableGenerator:
 
         # Create additional lookup tables from exception_pattern
         if "lookup_table" in self.exception_pattern:
-            for lookup_name, table in self.exception_pattern["lookup_table"].items():
-                lookups[lookup_name] = {  # type: ignore
+            lookup_table = cast(
+                Dict[str, Dict[str, str]], self.exception_pattern["lookup_table"]
+            )
+            for lookup_name, table in lookup_table.items():
+                lookups[lookup_name] = {
                     "type": "gsub_single",
                     "flags": {},
                     "subtables": [{}],
                 }
 
                 # Add substitutions
-                lookup_subtables = lookups[lookup_name]["subtables"][0]  # type: ignore
+                lookup_subtables = cast(
+                    Dict[str, str], lookups[lookup_name]["subtables"][0]
+                )
                 for hanzi, target in table.items():
                     cid = convert_hanzi_to_cid_safe(hanzi, self.cmap_table)
-                    # Replace hanzi with cid in target (exact legacy method)
-                    target_cid = target.replace(hanzi, cid)
-                    lookup_subtables[cid] = target_cid  # type: ignore
+                    if cid and isinstance(target, str):
+                        # Replace hanzi with cid in target (exact legacy method)
+                        target_cid = target.replace(hanzi, cid)
+                        lookup_subtables[cid] = target_cid
 
                 self.lookup_order.add(lookup_name)
 
         # Generate contextual rules for lookup_rclt_4
         if "patterns" in self.exception_pattern:
-            rclt_4_subtables = lookups["lookup_rclt_4"]["subtables"]
+            rclt_4_subtables = cast(
+                List[Dict[str, Any]], lookups["lookup_rclt_4"]["subtables"]
+            )
+            patterns_dict = cast(
+                Dict[str, Dict[str, Any]], self.exception_pattern["patterns"]
+            )
 
-            for phrase, setting in self.exception_pattern["patterns"].items():
+            for phrase, setting in patterns_dict.items():
+                if not isinstance(setting, dict):
+                    continue
                 ignore_pattern = setting.get("ignore")
                 pattern_list = setting.get("pattern", [])
 
@@ -428,10 +450,11 @@ class GSUBTableGenerator:
                 ats = []
 
                 for i, table in enumerate(pattern_list):
-                    lookup_name = list(table.values())[0]
-                    if lookup_name:
-                        ats.append(i)
-                        applies.append({"at": i, "lookup": lookup_name})
+                    if isinstance(table, dict) and table:
+                        lookup_name = list(table.values())[0]
+                        if lookup_name:
+                            ats.append(i)
+                            applies.append({"at": i, "lookup": lookup_name})
 
                 if applies:
                     match_cids = [
@@ -453,17 +476,19 @@ class GSUBTableGenerator:
     def _make_lookup_order(self) -> None:
         """Set final lookup order matching legacy structure."""
         # Convert set to sorted list (matches legacy order)
-        self.logger.debug(f"lookup_order contents: {self.lookup_order}")
-        self.logger.debug(f"lookup_order types: {[type(x) for x in self.lookup_order]}")
+        self.logger.debug("lookup_order contents: %s", self.lookup_order)
+        self.logger.debug(
+            "lookup_order types: %s", [type(x) for x in self.lookup_order]
+        )
 
         # Filter to ensure only strings are included
         string_lookups = [x for x in self.lookup_order if isinstance(x, str)]
-        self.logger.debug(f"string_lookups: {string_lookups}")
+        self.logger.debug("string_lookups: %s", string_lookups)
 
         order_list = list(string_lookups)
         order_list.sort()
 
-        self.logger.debug(f"All lookups in order: {order_list}")
+        self.logger.debug("All lookups in order: %s", order_list)
 
         # Always include base lookups
         final_order = ["lookup_aalt_0"]
@@ -479,5 +504,5 @@ class GSUBTableGenerator:
         # Add rclt lookups
         final_order.extend(["lookup_rclt_2", "lookup_rclt_3", "lookup_rclt_4"])
 
-        self.logger.debug(f"Final lookup order: {final_order}")
+        self.logger.debug("Final lookup order: %s", final_order)
         self.gsub_data["lookupOrder"] = final_order

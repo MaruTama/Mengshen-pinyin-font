@@ -10,11 +10,13 @@ from __future__ import annotations
 
 from typing import Any, Callable, Union
 
-# Dynamic import return type
-ModuleAttribute = Union[type, object, Callable]
-
 from .cmap_utils import convert_str_hanzi_2_cid, get_cmap_table
 from .dict_utils import deep_update
+from .pinyin_utils import PINYIN_TONE_TO_NUMERIC, simplification_pronunciation
+from .shell_utils import SecurityError, ShellExecutor, safe_command_execution
+
+# Dynamic import return type
+ModuleAttribute = Union[type, object, Callable]
 
 
 # Use lazy imports to avoid circular dependencies
@@ -33,27 +35,13 @@ def __getattr__(name: str) -> Any:
         "iter_single_pinyin_hanzi",
         "iter_single_pronunciation_characters",
     ]:
-        return locals()[name]  # type: ignore[no-any-return]
+        return locals()[name]
     raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 
-from .pinyin_utils import PINYIN_TONE_TO_NUMERIC, simplification_pronunciation
-from .shell_utils import SecurityError, ShellExecutor, safe_command_execution
-
 __all__ = [
-    "HanziPinyin",
     "PINYIN_TONE_TO_NUMERIC",
     "simplification_pronunciation",
-    "get_has_single_pinyin_hanzi",
-    "get_has_multiple_pinyin_hanzi",
-    "get_single_pronunciation_characters",
-    "get_multiple_pronunciation_characters",
-    "iter_single_pinyin_hanzi",
-    "iter_multiple_pinyin_hanzi",
-    "iter_all_hanzi_with_filter",
-    "iter_single_pronunciation_characters",
-    "iter_multiple_pronunciation_characters",
-    "iter_characters_by_pronunciation_count",
     "convert_str_hanzi_2_cid",
     "deep_update",
     "get_cmap_table",
