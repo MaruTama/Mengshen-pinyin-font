@@ -1,0 +1,9 @@
+[MASTER]
+extension-pkg-allow-list=orjson
+
+[MESSAGES CONTROL]
+disable=
+    # orjson C extension modules
+    no-member,
+    # Import errors for external libraries
+    import-error

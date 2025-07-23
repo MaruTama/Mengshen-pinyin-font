@@ -178,6 +178,10 @@
   ],
   // Python formatting and linting
   "python.defaultInterpreterPath": "python",
+  "python.analysis.extraPaths": [
+    "./src"
+  ],
+  "python.analysis.autoImportCompletions": true,
   // Auto-format on save
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
