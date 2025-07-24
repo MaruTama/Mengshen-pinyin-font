@@ -58,9 +58,9 @@ class TestPinyinGlyphInitialization:
                     # Verify initialization
                     assert pinyin_glyph.font_main == mock_template_main
                     assert pinyin_glyph.cmap_table == mock_template_main["cmap"]
-                    assert pinyin_glyph.PY_ALPHABET_GLYF == mock_alphabet
-                    assert pinyin_glyph.METADATA_FOR_PINYIN == METADATA_FOR_HAN_SERIF
-                    assert pinyin_glyph.PINYIN_MAPPING_TABLE == mock_pinyin_table
+                    assert pinyin_glyph.py_alphabet_glyf == mock_alphabet
+                    assert pinyin_glyph.metadata_for_pinyin == METADATA_FOR_HAN_SERIF
+                    assert pinyin_glyph.pinyin_mapping_table == mock_pinyin_table
                     assert pinyin_glyph.pronunciations == {}
 
     @pytest.mark.unit
@@ -87,7 +87,7 @@ class TestPinyinGlyphInitialization:
                         font_type=FontType.HANDWRITTEN,
                     )
 
-                    assert pinyin_glyph.METADATA_FOR_PINYIN == METADATA_FOR_HANDWRITTEN
+                    assert pinyin_glyph.metadata_for_pinyin == METADATA_FOR_HANDWRITTEN
 
     @pytest.mark.unit
     def test_initialization_unsupported_font_type(self):
@@ -340,8 +340,8 @@ class TestPinyinGlyphGeneration:
         assert first_ref["glyph"] == "z"
         assert "x" in first_ref
         assert "y" in first_ref
-        assert "scaleX" in first_ref
-        assert "scaleY" in first_ref
+        assert "a" in first_ref  # scaleX -> 'a' component
+        assert "d" in first_ref  # scaleY -> 'd' component
 
     @pytest.mark.unit
     def test_get_pinyin_glyph_for_hanzi_unknown_character(self):
@@ -412,7 +412,7 @@ class TestPinyinGlyphGeneration:
         mock_metadata.pinyin_canvas.height = 600
         mock_metadata.pinyin_canvas.base_line = 100
         mock_metadata.is_avoid_overlapping_mode = False
-        pinyin_glyph.METADATA_FOR_PINYIN = mock_metadata
+        pinyin_glyph.metadata_for_pinyin = mock_metadata
 
         glyph_data = pinyin_glyph._create_pinyin_glyph("zhōng")
 
@@ -427,8 +427,8 @@ class TestPinyinGlyphGeneration:
 
         # Check first reference scaling
         first_ref = glyph_data["references"][0]
-        assert abs(first_ref["scaleX"] - expected_scale_x) < 0.01
-        assert abs(first_ref["scaleY"] - expected_scale_y) < 0.01
+        assert abs(first_ref["a"] - expected_scale_x) < 0.01  # 'a' is scaleX
+        assert abs(first_ref["d"] - expected_scale_y) < 0.01  # 'd' is scaleY
 
     @pytest.mark.unit
     def test_create_pinyin_glyph_overlapping_mode(self):
@@ -442,7 +442,7 @@ class TestPinyinGlyphGeneration:
         mock_metadata.pinyin_canvas.base_line = 100
         mock_metadata.is_avoid_overlapping_mode = True
         mock_metadata.x_scale_reduction_for_avoid_overlapping = 0.1
-        pinyin_glyph.METADATA_FOR_PINYIN = mock_metadata
+        pinyin_glyph.metadata_for_pinyin = mock_metadata
 
         # Test with long pronunciation (5+ characters)
         glyph_data = pinyin_glyph._create_pinyin_glyph("zhōng")  # 5 characters
@@ -452,7 +452,7 @@ class TestPinyinGlyphGeneration:
         expected_scale_x = base_scale_x * (1.0 - 0.1)  # Reduced by 10%
 
         first_ref = glyph_data["references"][0]
-        assert abs(first_ref["scaleX"] - expected_scale_x) < 0.01
+        assert abs(first_ref["a"] - expected_scale_x) < 0.01  # 'a' is scaleX
 
     @pytest.mark.unit
     def test_create_pinyin_glyph_positioning(self):
@@ -465,7 +465,7 @@ class TestPinyinGlyphGeneration:
         mock_metadata.pinyin_canvas.height = 800
         mock_metadata.pinyin_canvas.base_line = 150
         mock_metadata.is_avoid_overlapping_mode = False
-        pinyin_glyph.METADATA_FOR_PINYIN = mock_metadata
+        pinyin_glyph.metadata_for_pinyin = mock_metadata
 
         glyph_data = pinyin_glyph._create_pinyin_glyph("zhōng")
 
@@ -474,7 +474,7 @@ class TestPinyinGlyphGeneration:
 
         # All characters should have same y position (baseline)
         for ref in references:
-            assert ref["y"] == 150
+            assert ref["y"] == 150.0
 
         # X positions should increase sequentially
         expected_x_positions = [
@@ -729,8 +729,8 @@ class TestPinyinGlyphErrorHandling:
 
         # Scale factors should default to 1.0 for zero dimensions
         ref = glyph_data["references"][0]
-        assert ref["scaleX"] == 1.0  # canvas_width / 0 -> defaults to 1.0
-        assert ref["scaleY"] == 1.0  # canvas_height / 0 -> defaults to 1.0
+        assert ref["a"] == 1.0  # canvas_width / 0 -> defaults to 1.0 (scaleX)
+        assert ref["d"] == 1.0  # canvas_height / 0 -> defaults to 1.0 (scaleY)
 
     @pytest.mark.unit
     def test_empty_pronunciation_handling(self):

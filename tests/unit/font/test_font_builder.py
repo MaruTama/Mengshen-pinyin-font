@@ -244,9 +244,7 @@ class TestFontBuilder:
                 "refactored.font.font_builder.GlyphManager",
                 return_value=mock_glyph_manager,
             ),
-            patch(
-                "refactored.processing.optimized_utility.set_cmap_table"
-            ) as mock_set_cmap,
+            patch("refactored.font.font_builder.set_cmap_table") as mock_set_cmap,
         ):
 
             builder = FontBuilder(
