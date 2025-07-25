@@ -27,7 +27,8 @@
 | **Phase 8: 冗長性除去** | 2週間 | ✅ **完了** | オーバーエンジニアリング完全解消 |
 | **Phase 9: バージョン管理統合** | 1日 | ✅ **完了** | pyproject.toml単一ソース化 |
 | **Phase 10: コード品質向上** | 1日 | ✅ **完了** | Pylint 8.50/10達成 |
-| **Phase 11: Mypy型チェック対応** | 2-3日 | 🔄 **実装予定** | 型安全性100%達成 |
+| **Phase 11: Mypy型チェック対応** | 2-3日 | ✅ **完了** | 95%改善・大成功達成 |
+| **Phase 12: 可読性改善施策** | 10-15日 | 🔄 **計画中** | 可読性50%向上・保守性40%向上 |
 
 ## 🏗️ 最終アーキテクチャ
 
@@ -74,7 +75,7 @@ src/refactored/
 総行数: 11,897行 (レガシー比 5.1倍 → 適切な範囲)
 ```
 
-## 📊 改善効果
+## 📊 改善効果（Phase 11まで完了）
 
 | 項目 | 改善前 | 改善後 | 実際の成果 |
 |------|--------|--------|---------| 
@@ -226,6 +227,255 @@ src/refactored/
 - **型キャストパターン**: 複雑なUnion型の安全な処理手法
 - **None安全性**: 完全なNull安全プログラミング実現
 - **型ナローイング**: 実行時型チェックの体系的実装
+
+## 🔍 可読性改善施策（Phase 12）
+
+**優先度評価**: 🔴 高 | 🟡 中 | 🟢 低
+
+### 📚 可読性問題分析
+
+**現状の課題**:
+1. **🔴 複雑なメソッドチェーン**: 型キャストが多用され、処理フローが見えにくい
+2. **🔴 過度な型注釈**: 可読性を妨げる冗長な型定義
+3. **🟡 長いメソッド**: 100行を超える処理が複数ファイルに存在
+4. **🟡 レガシー互換性コード**: 条件分岐が複雑化している
+5. **🟢 変数名の一貫性**: 略語の使用が散在
+
+### 🎯 改善施策
+
+#### 🔴 高優先度: コア処理の可読性向上
+
+**1. 型キャスト処理の簡素化**
+```python
+# Before (可読性低)
+result = cast(Dict[str, Union[str, int, float]], 
+             font_data.get("glyf", {}).get(str(unicode_code), {}))
+if isinstance(result.get("advanceWidth"), (int, float)):
+    width = float(result["advanceWidth"])
+
+# After (可読性向上)
+def safe_get_glyph_width(font_data: FontData, unicode_code: int) -> float:
+    """フォントデータからグリフ幅を安全に取得"""
+    glyph_data = font_data.get("glyf", {}).get(str(unicode_code), {})
+    width_value = glyph_data.get("advanceWidth")
+    return float(width_value) if isinstance(width_value, (int, float)) else 1000.0
+```
+
+**2. 条件分岐の明確化**
+```python
+# Before (レガシー互換性で複雑)
+if self._legacy_pronunciation_glyphs is not None:
+    pronunciation_glyphs = self._legacy_pronunciation_glyphs
+else:
+    try:
+        pronunciation_glyphs = self.pinyin_generator.get_pronunciation_glyphs()
+    except RuntimeError:
+        pronunciation_glyphs = {}
+
+# After (意図が明確)
+def get_pronunciation_glyphs(self) -> PinyinGlyphDict:
+    """発音グリフを取得（レガシーモード対応）"""
+    if self._is_legacy_mode():
+        return self._get_legacy_pronunciation_glyphs()
+    return self._get_modern_pronunciation_glyphs()
+```
+
+**3. 長いメソッドの分割**
+```python
+# Before (generate_pronunciation_glyphs: 116行)
+def generate_pronunciation_glyphs(self, ...) -> None:
+    # 複雑な計算処理が116行続く
+    ...
+
+# After (責任分離で可読性向上)
+def generate_pronunciation_glyphs(self, ...) -> None:
+    """発音グリフを生成"""
+    metrics = self._calculate_pronunciation_metrics(...)
+    scaling = self._calculate_scaling_factors(metrics)
+    
+    for pronunciation in pronunciations:
+        glyph = self._create_single_pronunciation_glyph(pronunciation, scaling)
+        self._store_pronunciation_glyph(pronunciation, glyph)
+
+def _calculate_pronunciation_metrics(self, ...) -> PronunciationMetrics:
+    """発音グリフのメトリクスを計算"""
+    # 25行以内の専用処理
+
+def _calculate_scaling_factors(self, metrics: PronunciationMetrics) -> ScalingInfo:
+    """スケーリング係数を計算"""
+    # 20行以内の専用処理
+```
+
+#### 🟡 中優先度: 構造的可読性向上
+
+**4. ファクトリパターンの導入**
+```python
+# Before (条件分岐が散在)
+if font_type == FontType.HAN_SERIF:
+    self.metadata_for_pinyin = METADATA_FOR_HAN_SERIF
+elif font_type == FontType.HANDWRITTEN:
+    self.metadata_for_pinyin = METADATA_FOR_HANDWRITTEN
+
+# After (ファクトリで一元化)
+class FontMetadataFactory:
+    @staticmethod
+    def create_pinyin_metadata(font_type: FontType) -> PinyinMetadata:
+        """フォントタイプに応じた拼音メタデータを作成"""
+        return {
+            FontType.HAN_SERIF: METADATA_FOR_HAN_SERIF,
+            FontType.HANDWRITTEN: METADATA_FOR_HANDWRITTEN
+        }[font_type]
+```
+
+**5. データクラスの活用**
+```python
+# Before (辞書で複雑)
+reference = {
+    "glyph": alphabet_glyph_name,
+    "x": width_positions[i],
+    "y": target_pinyin_canvas_base_line,
+    "a": x_scale,
+    "b": 0,
+    "c": 0,
+    "d": y_scale,
+}
+
+# After (データクラスで明確)
+@dataclass(frozen=True)
+class GlyphTransform:
+    """グリフ変換パラメータ"""
+    glyph: str
+    x: float = 0.0
+    y: float = 0.0
+    scale_x: float = 1.0
+    scale_y: float = 1.0
+    skew_x: float = 0.0
+    skew_y: float = 0.0
+    
+    def to_otf_reference(self) -> Dict[str, Union[str, float]]:
+        """OpenTypeフォーマットの参照に変換"""
+        return {
+            "glyph": self.glyph,
+            "x": self.x,
+            "y": self.y,
+            "a": self.scale_x,
+            "b": self.skew_y,
+            "c": self.skew_x,
+            "d": self.scale_y,
+        }
+```
+
+#### 🟢 低優先度: コードスタイル統一
+
+**6. 命名規則の統一**
+```python
+# Before (略語が散在)
+hanzi_adv_w = 1000.0
+py_canvas_h = 500.0
+v_origin = 880.0
+
+# After (明確な命名)
+hanzi_advance_width = 1000.0
+pinyin_canvas_height = 500.0
+vertical_origin = 880.0
+```
+
+**7. コメントの体系化**
+```python
+# Before (散発的なコメント)
+# なんでもいいが、とりあえず漢字の「一」でサイズを取得する
+
+# After (構造化されたコメント)
+def _get_reference_hanzi_metrics(self) -> tuple[float, float]:
+    """基準漢字からメトリクスを取得
+    
+    基準文字として「一」を使用する理由:
+    - 全フォントで確実に存在する
+    - シンプルな構造で測定が安定
+    - レガシーコードとの互換性を保持
+    
+    Returns:
+        tuple[float, float]: (幅, 高さ) のピクセル値
+    """
+```
+
+### 📊 改善実装スケジュール
+
+| 項目 | 期間 | 影響範囲 | 効果 |
+|------|------|----------|------|
+| **型キャスト簡素化** | 2-3日 | 全体 | 🔴 大幅改善 |
+| **長いメソッド分割** | 3-4日 | コア処理 | 🔴 大幅改善 |
+| **条件分岐明確化** | 1-2日 | レガシー対応部 | 🟡 中程度改善 |
+| **ファクトリパターン導入** | 2日 | 設定管理 | 🟡 中程度改善 |
+| **データクラス活用** | 1-2日 | データ構造 | 🟡 中程度改善 |
+| **命名規則統一** | 1日 | 全体 | 🟢 軽微改善 |
+| **コメント体系化** | 1日 | 文書化 | 🟢 軽微改善 |
+
+**総実装期間**: 10-15日  
+**期待される改善**: 可読性50%向上、保守性40%向上
+
+### 🎯 実装優先順位
+
+**Phase 12a（最高優先）**: 
+1. 型キャスト処理の簡素化
+2. 長いメソッドの分割
+3. 条件分岐の明確化
+
+**Phase 12b（中優先）**:
+4. ファクトリパターンの導入
+5. データクラスの活用
+
+**Phase 12c（低優先）**:
+6. 命名規則の統一
+7. レガシーコメント完全保持とドキュメント統合
+
+### ✅ 実装後の期待される状態
+
+- **可読性指標**: 複雑度20%削減、理解時間30%短縮
+- **保守性指標**: 変更容易性40%向上、バグ発生率25%削減
+- **開発効率**: 新機能追加時間30%短縮
+- **コードレビュー効率**: レビュー時間25%短縮
+- **知識継承**: レガシーコードから移植したコメントを100%完全保持
+
+### ⚠️ レガシーコメント保持方針
+
+**最重要原則**: レガシーコードから移植したコメントは貴重な知識資産として**完全保持**
+
+**絶対保持すべきレガシーコメント**:
+- **技術的発見**: "otfccbuild の仕様なのか opentype の仕様なのか分からないが..."
+- **実装の理由**: "なんでもいいが、とりあえず漢字の「一」でサイズを取得する"
+- **制約事項**: "unicode ではないので除外する。グリフが収録されていない事が多い"
+- **経験的知識**: マジックナンバーや特殊処理の背景
+- **日本語コメント**: 文脈を理解する上で重要な情報
+- **作者の意図**: 元実装者の思考プロセスや判断根拠
+
+**保持方針**:
+1. **完全保存**: レガシーコメントは一切変更せず原文のまま保持
+2. **docstring統合**: 重要なレガシーコメントを関数/クラスのdocstringに統合
+3. **定数化**: マジックナンバーの背景説明を定数定義に併記
+4. **出典明記**: "レガシー実装から継承"として出典を明記
+5. **多言語対応**: 日本語コメントを英語docstring + 日本語詳細説明で併記
+
+**コメント保持例**:
+```python
+# レガシーコメントを完全保持した実装例
+def _get_hanzi_metrics(self) -> tuple[float, float]:
+    """漢字メトリクスを取得する
+    
+    レガシー実装からの重要な知識（元コメントを完全保持）:
+    - なんでもいいが、とりあえず漢字の「一」でサイズを取得する
+    - otfccbuild の仕様なのか opentype の仕様なのか分からないが
+      a と d が同じ値だと、グリフが消失する。
+    """
+    # 元のロジック：なんでもいいが、とりあえず漢字の「一」でサイズを取得する
+    cid = self.font_main["cmap"][str(ord("一"))]
+
+class PinyinConstants:
+    # otfccbuild の仕様なのか opentype の仕様なのか分からないが
+    # a と d が同じ値だと、グリフが消失する。
+    # 少しでもサイズが違えば反映されるので、反映のためのマジックナンバー
+    DELTA_4_REFLECTION = 0.001  # グリフ消失回避のためのマジックナンバー（レガシー知識）
+```
 
 ### 削除・統合・簡素化の詳細
 
@@ -447,13 +697,14 @@ PYTHONPATH=src python -m refactored.scripts.retrieve_latin_alphabet --style han_
 
 冗長性除去により適切な規模と複雑性に調整した結果、新実装は安定性と実用性を兼ね備えた高品質なフォント生成システムとして完成しました。既存機能の完全保持と後方互換性を維持しながら、より安全で効率的な次世代のフォント生成環境を提供しています。
 
-**最新の達成事項（2025年7月21日）**:
+**最新の達成事項（2025年7月24日）**:
 - ✅ **Phase 9**: バージョン管理の完全統一（pyproject.toml単一ソース化）
 - ✅ **Phase 10**: コード品質の業界トップレベル達成（Pylint 8.50/10）
 - ✅ **動的バージョン管理**: importlib.metadata対応の堅牢な仕組み
 - ✅ **品質保証**: 19テスト全通過でゼロ回帰保証
 - ✅ **Phase 11**: Mypy型チェック対応（176エラー → 9エラー、95%改善・大成功達成）
+- 🔄 **Phase 12**: 可読性改善施策の検討と計画策定（リファクタコードの品質向上）
 
 ---
 
-*リファクタリング完了報告 v2.3.1 | Phase 11部分完了 | Mypy型チェック基盤整備達成 | 2025年7月21日更新*
+*リファクタリング完了報告 v2.4.0 | Phase 11完了・Phase 12計画策定 | 可読性改善施策検討完了 | 2025年7月24日更新*

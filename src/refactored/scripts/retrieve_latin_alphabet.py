@@ -208,7 +208,9 @@ class LatinAlphabetRetriever:
 
             logger = get_scripts_logger()
             logger.info(
-                f"Successfully extracted {len(alphabet_glyphs)} alphabet glyphs for {style} style"
+                "Successfully extracted %d alphabet glyphs for %s style",
+                len(alphabet_glyphs),
+                style,
             )
 
         finally:

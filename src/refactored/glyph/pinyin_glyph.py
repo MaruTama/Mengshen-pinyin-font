@@ -67,30 +67,40 @@ class PinyinGlyph:
         self.pronunciations: Dict[str, PinyinGlyphData] = {}
 
     def __get_advance_size_of_hanzi(self) -> tuple[int, int]:
-        """マージ先のフォントの漢字サイズを返す"""
+        """マージ先のフォントの漢字サイズを返す
+
+        レガシー実装からの重要な知識（元コメントを完全保持）:
+        - なんでもいいが、とりあえず漢字の「一」でサイズを取得する
+        """
         # なんでもいいが、とりあえず漢字の「一」でサイズを取得する
-        cid = self.font_main["cmap"][str(ord("一"))]
-        advance_width = self.font_main["glyf"][cid]["advanceWidth"]
-        if "advanceHeight" in self.font_main["glyf"][cid]:
-            advance_height = self.font_main["glyf"][cid]["advanceHeight"]
+        reference_hanzi_unicode = str(ord("一"))
+        reference_cid = self.font_main["cmap"][reference_hanzi_unicode]
+
+        hanzi_advance_width = self.font_main["glyf"][reference_cid]["advanceWidth"]
+        if "advanceHeight" in self.font_main["glyf"][reference_cid]:
+            hanzi_advance_height = self.font_main["glyf"][reference_cid][
+                "advanceHeight"
+            ]
         else:
-            advance_height = advance_width * HEIGHT_RATE_OF_MONOSPACE
-        return advance_width, advance_height
+            hanzi_advance_height = hanzi_advance_width * HEIGHT_RATE_OF_MONOSPACE
+        return hanzi_advance_width, hanzi_advance_height
 
     def __get_advance_size_of_pinyin(self, pronunciation: str) -> tuple[int, int]:
         """ピンインの文字列のサイズを返す"""
-        advance_width = 0
-        advance_height = 0
+        total_pinyin_width = 0
+        max_pinyin_height = 0
 
-        for char in pronunciation:
-            if char in self.py_alphabet_glyf:
-                glyph_info = self.py_alphabet_glyf[char]
-                advance_width += glyph_info.get("advanceWidth", 0)
-                char_height = glyph_info.get("advanceHeight", 0)
-                if char_height > advance_height:
-                    advance_height = char_height
+        for pinyin_char in pronunciation:
+            if pinyin_char in self.py_alphabet_glyf:
+                char_glyph_info = self.py_alphabet_glyf[pinyin_char]
+                char_width = char_glyph_info.get("advanceWidth", 0)
+                char_height = char_glyph_info.get("advanceHeight", 0)
 
-        return advance_width, advance_height
+                total_pinyin_width += char_width
+                if char_height > max_pinyin_height:
+                    max_pinyin_height = char_height
+
+        return total_pinyin_width, max_pinyin_height
 
     def get_pinyin_glyph_for_hanzi(self, hanzi: str) -> PinyinGlyphData:
         """漢字に対応するピンイングリフを生成"""
@@ -136,7 +146,7 @@ class PinyinGlyph:
             )
 
         # グリフデータの構築
-        glyph_data: PinyinGlyphData = {
+        composite_glyph_data: PinyinGlyphData = {
             "advanceWidth": hanzi_width,
             "advanceHeight": hanzi_height,
             "contours": [],
@@ -145,19 +155,19 @@ class PinyinGlyph:
         }
 
         # 各文字のグリフを配置
-        x_offset = 0
+        current_x_position = 0
         for char in pronunciation:
             if char in self.py_alphabet_glyf:
-                char_glyph = self.py_alphabet_glyf[char]
+                char_glyph_data = self.py_alphabet_glyf[char]
 
                 # 参照を追加
-                if "references" in glyph_data and isinstance(
-                    glyph_data["references"], list
+                if "references" in composite_glyph_data and isinstance(
+                    composite_glyph_data["references"], list
                 ):
-                    glyph_data["references"].append(
+                    composite_glyph_data["references"].append(
                         {
                             "glyph": char,
-                            "x": float(x_offset * scale_x),
+                            "x": float(current_x_position * scale_x),
                             "y": float(
                                 self.metadata_for_pinyin.pinyin_canvas.base_line
                             ),
@@ -172,9 +182,9 @@ class PinyinGlyph:
                         }
                     )
 
-                x_offset += char_glyph.get("advanceWidth", 0)
+                current_x_position += char_glyph_data.get("advanceWidth", 0)
 
-        return glyph_data
+        return composite_glyph_data
 
     def get_all_pinyin_glyphs(self) -> Dict[str, PinyinGlyphData]:
         """すべてのピンイングリフを取得"""

@@ -651,7 +651,6 @@ class GlyphManager:
         font_data: FontGlyphDict,
         glyf_data: FontGlyphDict,
         alphabet_pinyin_path: Path,
-        template_main_json_path: Path,
     ) -> None:
         """Initialize with font data and templates."""
         # Use refactored pinyin generator (no legacy mode for now)

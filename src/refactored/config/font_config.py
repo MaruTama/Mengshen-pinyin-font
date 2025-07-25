@@ -75,6 +75,9 @@ class FontConstants:
     # Font limits
     MAX_GLYPHS = 65536
 
+    # External tool timeout for font conversion (in seconds)
+    CONVERSION_TIMEOUT_SECONDS = 60
+
     # File extensions
     TTF_EXTENSION = ".ttf"
     JSON_EXTENSION = ".json"
