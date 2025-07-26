@@ -125,7 +125,13 @@ class TestGSUBTableGeneratorInitialization:
         assert lookups["lookup_rclt_0"]["subtables"] == []
 
         # Verify initial lookup order
-        assert gsub_data["lookupOrder"] == ["lookup_aalt_0"]
+        assert gsub_data["lookupOrder"] == [
+            "lookup_aalt_0",
+            "lookup_aalt_1",
+            "lookup_rclt_0",
+            "lookup_rclt_1",
+            "lookup_rclt_2",
+        ]
 
 
 class TestGSUBTableGeneratorPatternLoading:
