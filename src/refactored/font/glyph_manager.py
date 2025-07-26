@@ -366,10 +366,10 @@ class HanziGlyphGenerator:
         self.logger = get_debug_logger()
 
         # Duplicate definition tracking
-        self._duplicate_unicode_groups = {
-            tuple(FontConstants.DUPLICATE_WU4_UNICODES): 0,
-            tuple(FontConstants.DUPLICATE_HU4_UNICODES): 1,
-        }
+        self._duplicate_unicode_groups = [
+            tuple(FontConstants.DUPLICATE_WU4_UNICODES),  # Index 0
+            tuple(FontConstants.DUPLICATE_HU4_UNICODES),  # Index 1
+        ]
         self._added_duplicate_flags = [False, False]
 
         # Legacy pronunciation glyphs (set externally)
@@ -383,14 +383,14 @@ class HanziGlyphGenerator:
 
     def _is_duplicate_definition_added(self, unicode_value: int) -> bool:
         """Check if duplicate definition glyph was already added."""
-        for group, index in self._duplicate_unicode_groups.items():
+        for index, group in enumerate(self._duplicate_unicode_groups):
             if unicode_value in group:
                 return self._added_duplicate_flags[index]
         return False
 
     def _mark_duplicate_definition_added(self, unicode_value: int) -> None:
         """Mark duplicate definition glyph as added."""
-        for group, index in self._duplicate_unicode_groups.items():
+        for index, group in enumerate(self._duplicate_unicode_groups):
             if unicode_value in group:
                 self._added_duplicate_flags[index] = True
 
