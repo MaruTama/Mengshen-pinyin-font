@@ -24,6 +24,17 @@ The font used here is based on [小赖字体/Xiaolai Font](https://github.com/lx
 And remove Hangul characters(a960 #ꥠ ~ d7fb #ퟻ) from this font to reduce glyphs.
 [SetoFontSP](https://ja.osdn.net/projects/setofont/releases/p14368) is used for the pinyin part of this font.
 
+## Setup
+
+### Git Submodule Initialization
+
+This project uses external Git submodules for pinyin data. You need to initialize submodules first:
+
+```bash
+# After cloning the project, initialize submodules
+git submodule update --init --recursive
+```
+
 ## Dependencies
 
 ### Test Commands

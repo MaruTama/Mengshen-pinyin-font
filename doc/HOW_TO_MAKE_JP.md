@@ -22,6 +22,17 @@
 [シャオライ/Xiaolai Font](https://github.com/lxgw/kose-font) をベースにしている。これはグリフ数削減のためにハングル文字(a960 #ꥠ ~ d7fb #ퟻ) を除去して使っている。
 拼音部分には [瀬戸フォント](https://ja.osdn.net/projects/setofont/releases/p14368) を利用している。
 
+## セットアップ
+
+### Gitサブモジュールの初期化
+
+このプロジェクトは拼音データとして外部のGitサブモジュールを使用しています。最初にサブモジュールを初期化する必要があります：
+
+```bash
+# プロジェクトのクローン後、サブモジュールを初期化
+git submodule update --init --recursive
+```
+
 ## 依存関係の解消
 
 ### テストコマンド
