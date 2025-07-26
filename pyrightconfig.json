@@ -1,0 +1,16 @@
+{
+  "include": ["src"],
+  "exclude": ["**/__pycache__", "**/node_modules"],
+  "pythonVersion": "3.12",
+  "executionEnvironments": [
+    {
+      "root": "src"
+    }
+  ],
+  "reportMissingImports": "none",
+  "reportMissingTypeStubs": "none",
+  "reportReturnType": "warning",
+  "reportUnusedImport": "warning",
+  "reportUnusedVariable": "warning",
+  "typeCheckingMode": "basic"
+}

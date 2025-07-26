@@ -1,0 +1,15 @@
+{
+  "recommendations": [
+    "streetsidesoftware.code-spell-checker",
+    "ms-python.python",
+    "ms-python.pylint",
+    "ms-python.black-formatter",
+    "ms-python.isort",
+    "ms-python.flake8",
+    "ms-python.mypy-type-checker",
+    "eamodio.gitlens",
+    "redhat.vscode-yaml",
+    "charliermarsh.ruff",
+    "davidanson.vscode-markdownlint"
+  ]
+}
