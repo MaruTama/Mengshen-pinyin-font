@@ -4,18 +4,18 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import IntEnum
+from enum import Enum
 from pathlib import Path
 from typing import Dict
 
 from .paths import HAN_SERIF_FONT_DIR, HANDWRITTEN_FONT_DIR
 
 
-class FontType(IntEnum):
+class FontType(Enum):
     """Font type enumeration for type safety."""
 
-    HAN_SERIF = 1
-    HANDWRITTEN = 2
+    HAN_SERIF = "han_serif"
+    HANDWRITTEN = "handwritten"
 
 
 @dataclass(frozen=True)

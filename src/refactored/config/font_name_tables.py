@@ -15,7 +15,7 @@ from __future__ import annotations
 from typing import List, TypedDict
 
 from ..utils.version_utils import get_project_version, parse_version_to_float
-from . import FontType
+from .font_config import FontType
 
 VERSION = parse_version_to_float(get_project_version())
 
