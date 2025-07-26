@@ -19,13 +19,13 @@ GlyphReference = Dict[str, Union[str, int, float]]
 PinyinGlyphData = Dict[str, Union[str, int, float, List[GlyphReference]]]
 
 
-# レガシー実装からの重要な知識（元コメントを完全保持）:
-# > advanceHeight に対する verticalOrigin の割合 (適当に決めてるから調整)
+# レガシーコードコメント:
+# > advanceHeight に対する advanceHeight の割合 (適当に決めてるから調整)
 VERTICAL_ORIGIN_PER_HEIGHT = 0.88
-# レガシー実装からの重要な知識（元コメントを完全保持）:
+# レガシーコードコメント:
 # > ピンインの advanceHeight が無いときは決め打ちで advanceWidth の 1.4 倍にする
 HEIGHT_RATE_OF_MONOSPACE = 1.4
-# レガシー実装からの重要な知識（元コメントを完全保持）:
+# レガシーコードコメント:
 # > otfccbuild の仕様なのか opentype の仕様なのか分からないが a と d が同じ値だと、グリフが消失する。
 # > 少しでもサイズが違えば反映されるので、反映のためのマジックナンバー
 DELTA_4_REFLECTION = 0.001
@@ -70,19 +70,18 @@ class PinyinGlyph:
         self.pronunciations: Dict[str, PinyinGlyphData] = {}
 
     def __get_advance_size_of_hanzi(self) -> tuple[int, int]:
-        """マージ先のフォントの漢字サイズを返す
+        """マージ先のフォントの漢字サイズを返す"""
 
-        レガシー実装からの重要な知識（元コメントを完全保持）:
-        - なんでもいいが、とりあえず漢字の「一」でサイズを取得する
-        """
-        # なんでもいいが、とりあえず漢字の「一」でサイズを取得する
+        # レガシーコードコメント:
+        # > マージ先のフォントの漢字サイズを返す
+        # > なんでもいいが、とりあえず漢字の「一」でサイズを取得する
         reference_hanzi_unicode = str(ord("一"))
         reference_cid = self.font_main["cmap"][reference_hanzi_unicode]
 
         hanzi_advance_width = self.font_main["glyf"][reference_cid]["advanceWidth"]
-        # レガシー実装からの重要な知識（元コメントを完全保持）:
-        # > advanceWidth は確実にあるはずなので、有無の検証はしない
-        # > しかし advanceHeight が存在しない場合は advanceWidth を代用する
+        # レガシーコードコメント:
+        # > ピンインがキャンバスに収まる scale を求める.
+        # > 等幅フォントであれば大きさは同じなのでどんな文字でも同じだと思うが、一応最も背の高い文字を指定する (多分 ǘ ǚ ǜ)
         if "advanceHeight" in self.font_main["glyf"][reference_cid]:
             hanzi_advance_height = self.font_main["glyf"][reference_cid][
                 "advanceHeight"
@@ -131,6 +130,8 @@ class PinyinGlyph:
 
     def _create_pinyin_glyph(self, pronunciation: str) -> PinyinGlyphData:
         """発音文字列からピンイングリフを作成"""
+        # レガシーコードコメント:
+        # pinyin_width は拼音に使用する一文字の幅（等幅なので全て同じはず）
         hanzi_width, hanzi_height = self.__get_advance_size_of_hanzi()
         pinyin_width, pinyin_height = self.__get_advance_size_of_pinyin(pronunciation)
 
@@ -141,6 +142,11 @@ class PinyinGlyph:
         # スケールファクターの計算
         scale_x = canvas_width / pinyin_width if pinyin_width > 0 else 1.0
         scale_y = canvas_height / pinyin_height if pinyin_height > 0 else 1.0
+
+        # TODO: レガシーコードと処理が違うので確認する
+        # 　　pinyin_glyph.py の __get_pinyin_position_on_canvas()
+        # レガシーコードコメント:
+        # > 文字数が 6 なら横幅最大にする
 
         # 重なりを避けるモードの適用
         if (
@@ -159,6 +165,18 @@ class PinyinGlyph:
             "references": [],
             "instructions": [],
         }
+        # レガシーコードコメント:
+        # > a-d ってなんだ？
+        # > > The transformation entries determine the values of an affine transformation applied to
+        # > the component prior to its being incorporated into the parent glyph.
+        # >
+        # > Given the component matrix [a b c d e f], the transformation applied to the component is:
+        # > [The 'glyf' table](https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6glyf.html)
+        # > [FontConfigの​matrix​フォント​プロパティを​利用して​字体を​変化させる​方法](http://ie.pcgw.pgw.jp/2015/10/17/fontconfig-matrix.html)
+        # >
+        # > otfccbuild の仕様なのか opentype の仕様なのか分からないが
+        # > a と d が同じ値だと、グリフが消失する。 少しでもサイズが違えば反映される。
+        # なので、90% にするなら、a=0.9, d=0.91 とかにする。
 
         # 各文字のグリフを配置
         current_x_position = 0
@@ -177,14 +195,10 @@ class PinyinGlyph:
                             "y": float(
                                 self.metadata_for_pinyin.pinyin_canvas.base_line
                             ),
-                            "a": float(
-                                scale_x
-                            ),  # scaleX -> transform matrix 'a' component
+                            "a": float(scale_x),
                             "b": 0.0,
                             "c": 0.0,
-                            "d": float(
-                                scale_y
-                            ),  # scaleY -> transform matrix 'd' component
+                            "d": float(scale_y),
                         }
                     )
 

@@ -47,11 +47,13 @@ class GSUBTableGenerator:
         self.pattern_two: Dict[str, Any] = {}
         self.exception_pattern: Dict[str, Any] = {}
 
-        # レガシー実装からの重要な知識（元コメントを完全保持）:
+        # レガシーコードコメント:
         # > calt も rclt も featute の数が多いと有効にならない。 feature には上限がある？ので、今は初期化して使う
         # > rclt は calt と似ていて、かつ無効にできないタグ
 
         # Initialize base GSUB structure
+        # TODO: レガシーコードとfeature ごとに使用する lookup table が違う気がするので確認する
+        # 問題ないか確認する. GSUB_table.py p102-114
         self.gsub_data: Dict[str, Any] = {
             "languages": {
                 "DFLT_DFLT": {"features": ["aalt_00000", "rclt_00002"]},
@@ -147,6 +149,43 @@ class GSUBTableGenerator:
 
     def _make_aalt_feature(self) -> None:
         """Generate aalt feature."""
+
+        # レガシーコードコメント:
+        # > e.g.:
+        # > "lookups": {
+        # >     "lookup_aalt_0": {
+        # >         "type": "gsub_single",
+        # >         "flags": {},
+        # >         "subtables": [
+        # >             {
+        # >                 ...
+        # >                 "uni4E01": "uni4E01.ss00",
+        # >                 "uni4E03": "uni4E03.ss00",
+        # >                 "uni4E08": "uni4E08.ss00",
+        # >                 ...
+        # >             }
+        # >         ]
+        # >     },
+        # >     "lookup_aalt_1": {
+        # >         "type": "gsub_alternate",
+        # >         "flags": {},
+        # >         "subtables": [
+        # >             {
+        # >                 "uni4E00": [
+        # >                     "uni4E00.ss00",
+        # >                     "uni4E00.ss01",
+        # >                     "uni4E00.ss02"
+        # >                 ],
+        # >                 "uni4E07": [
+        # >                     "uni4E07.ss00",
+        # >                     "uni4E07.ss01"
+        # >                 ],
+        # >                 ...
+        # >             }
+        # >         ]
+        # >     }
+        # > }
+
         aalt_0_subtables = cast(
             Dict[str, str], self.gsub_data["lookups"]["lookup_aalt_0"]["subtables"][0]
         )
@@ -191,8 +230,44 @@ class GSUBTableGenerator:
 
     def _make_rclt0_feature(self) -> None:
         """Generate pattern one -> creates lookup_11_* tables."""
+
+        # レガシーコードコメント:
+        # > self.pattern_one の中身
+        # > e.g.:
+        # > [
+        # >     {
+        # >         "行":{
+        # >             "variational_pronunciation":"háng",
+        # >             "patterns":"[~当|~家|~间|~列|~情|~业|发~|同~|外~|银~|~话|~会|~距]"
+        # >         },
+        # >         "作":{
+        # >             "variational_pronunciation":"zuō",
+        # >             "patterns":"[~坊|~弄|~揖]"
+        # >         }
+        # >     },
+        # >     {
+        # >         "行":{
+        # >             "variational_pronunciation":"hàng",
+        # >             "patterns":"[树~子]"
+        # >         },
+        # >         "作":{
+        # >             "variational_pronunciation":"zuó",
+        # >             "patterns":"[~料]"
+        # >         }
+        # >     },
+        # >     {
+        # >         "行":{
+        # >             "variational_pronunciation":"héng",
+        # >             "patterns":"[道~]"
+        # >         },
+        # >         "作":{
+        # >             "variational_pronunciation":"zuo",
+        # >             "patterns":"[做~]"
+        # >         }
+        # >     }
+        # > ]
         max_num_patterns = len(self.pattern_one)
-        # レガシー実装からの重要な知識（元コメントを完全保持）:
+        # レガシーコードコメント:
         # > ピンインは10通りまでしか対応していません
         if max_num_patterns > 10:
             raise ValueError("Maximum 10 pronunciation patterns supported")
@@ -237,10 +312,17 @@ class GSUBTableGenerator:
                 if isinstance(pattern_info, dict) and "patterns" in pattern_info:
                     patterns_str = pattern_info["patterns"]
                     patterns = patterns_str.strip("[]").split("|")
-
-                    # Split patterns by type (same logic as legacy)
+                    # レガシーコードコメント:
+                    # > まとめて記述できるもの
+                    # > e.g.:
+                    # > sub [uni4E0D uni9280] uni884C' lookup lookup_0 ;
+                    # > sub uni884C' lookup lookup_0　[uni4E0D uni9280] ;
                     left_match = [p for p in patterns if p.endswith("~")]
                     right_match = [p for p in patterns if p.startswith("~")]
+                    # レガシーコードコメント:
+                    # > 一つ一つ記述するもの
+                    # > e.g.:
+                    # > sub uni85CF' lookup lookup_0 uni7D05 uni82B1 ;
                     other_match = [
                         p
                         for p in patterns
@@ -481,6 +563,14 @@ class GSUBTableGenerator:
 
     def _make_lookup_order(self) -> None:
         """Set final lookup order."""
+        # レガシーコードコメント:
+        # > e.g.:
+        # > "lookupOrder": [
+        # >     "lookup_rclt_0",
+        # >     "lookup_rclt_1",
+        # >     "lookup_ccmp_2",
+        # >     "lookup_11_3"
+        # > ]
         # Convert set to sorted list (matches legacy order)
         self.logger.debug("lookup_order contents: %s", self.lookup_order)
         self.logger.debug(

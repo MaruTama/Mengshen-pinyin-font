@@ -42,9 +42,6 @@ class ExternalToolInterface(Protocol):
 class FontBuilder:
     """Main font builder for pinyin-annotated Chinese fonts.
 
-    レガシー実装からの重要な知識（元コメントを完全保持）:
-    このクラスはフォント生成の全体プロセスを統制し、正確な順序で実行します。
-
     FontBuilder coordinates the complete font generation process:
     - Font template processing (main + glyf)
     - Pinyin integration with hanzi characters
@@ -133,21 +130,15 @@ class FontBuilder:
     def build(self, output_path: Path) -> None:
         """Build the complete font following exact legacy processing order.
 
-        レガシー実装からの重要な知識（元コメントを完全保持）:
-        フォント作成の正確な順序が重要です。以下の順序で実行されます:
-
-        構築順序の技術的根拠:
-        > utility を使うために設定する (cmap table設定が他のユーティリティの前提条件)
-        > 発音のグリフ作成完了 (拼音グリフがあってから漢字グリフを合成)
-        > cmap_uvs table を追加完了 (IVS定義がGSUB処理の前提)
-        > glyph_order table を追加完了 (グリフ順序がフォント構造の基礎)
-        > glyf table を追加完了 (実際のグリフデータ)
-        > GSUB table を追加完了 (文脈的置換ルール)
-
         Processing steps:
-        1. Load font templates → 2. Initialize managers → 3. Add cmap_uvs table
-        4. Add glyph_order table → 5. Add glyf table → 6. Add GSUB table
-        7. Set font metadata → 8. Save and convert
+        1. Load font templates
+        2. Initialize managers
+        3. Add cmap_uvs table
+        4. Add glyph_order table
+        5. Add glyf table
+        6. Add GSUB table
+        7. Set font metadata
+        8. Save and convert
 
         Args:
             output_path: Path where the final font file will be saved
@@ -249,11 +240,6 @@ class FontBuilder:
     def _load_templates(self) -> None:
         """Load font template files (main + glyf data).
 
-        レガシー実装からの重要な知識（元コメントを完全保持）:
-        テンプレートファイルは以下のように分離されています:
-        > main template は cmap, head, hhea などのメタデータを含む
-        > glyf template は実際のグリフ輪郭データを含む (サイズが大きいため分離)
-
         Template structure:
         - Main template: Font metadata, metrics, cmap table, and basic structure
         - Glyf template: Actual glyph contour data (separated due to large size)
@@ -266,11 +252,6 @@ class FontBuilder:
 
     def _initialize_managers(self) -> None:
         """Initialize managers with loaded font data.
-
-        レガシー実装からの重要な知識（元コメントを完全保持）:
-        マネージャーの初期化が正しい順序で実行されることが重要です。
-        > glyph_manager の初期化が先 (文字・拼音グリフ生成のため)
-        > cmap_table の設定が後 (ユーティリティ関数で使用されるため)
 
         Initialization order:
         1. GlyphManager with font data and alphabet glyphs
@@ -297,20 +278,12 @@ class FontBuilder:
     def _add_cmap_uvs(self) -> None:
         """Add Unicode IVS (Ideographic Variant Selector) support.
 
-        レガシー実装からの重要な知識（元コメントを完全保持）:
-
-        Unicode重複文字処理の重要な知識:
-        > 定義が重複している文字に関しては、基本的に同一のグリフが使われているはず
-        > どれかがグリフに発音を追加したら無視する。
-        > ⺎(U+2E8E) 兀(U+5140) 兀(U+FA0C)
-        > 嗀(U+55C0) 嗀(U+FA0D)
-
         IVS (Ideographic Variant Selector) の使用例:
-        - hanzi_glyf　　　　標準の読みの拼音
-        - hanzi_glyf.ss00　ピンインの無い漢字グリフ。設定を変更するだけで拼音を変更できる
-        - hanzi_glyf.ss01　（異読のピンインがあるとき）標準の読みの拼音
-          （uni4E0D と重複しているが GSUB の置換（多音字のパターン）を無効にして強制的に置き換えるため）
-        - hanzi_glyf.ss02　（異読のピンインがあるとき）以降、異読
+        - hanzi_glyf       標準の読みの拼音
+        - hanzi_glyf.ss00  ピンインの無い漢字グリフ。設定を変更するだけで拼音を変更できる
+        - hanzi_glyf.ss01. （異読のピンインがあるとき）標準の読みの拼音
+          - uni4E0D と重複しているが GSUB の置換（多音字のパターン）を無効にして強制的に置き換えるため
+        - hanzi_glyf.ss02  （異読のピンインがあるとき）以降、異読
         - ...
 
         Creates IVS entries for single and multiple pronunciation characters.
@@ -349,7 +322,7 @@ class FontBuilder:
             cid = self.mapping_manager.convert_hanzi_to_cid(char_info.character)
 
             if cid:
-                # レガシー実装からの重要な知識（元コメントを完全保持）:
+                # レガシーコードコメント:
                 # > ss00 は ピンインのないグリフ なので、ピンインのグリフは "ss{:02}".format(len) まで
                 # IVS selectors for all variants (ss00 through ssNN)
                 num_variants = len(char_info.pronunciations) + 1  # +1 for ss00
@@ -362,16 +335,19 @@ class FontBuilder:
     def _add_glyph_order(self) -> None:
         """Add glyph order definition for proper font rendering.
 
-        レガシー実装からの重要な知識（元コメントを完全保持）:
-        グリフ順序の正確な定義がフォントの正常なレンダリングに必要です。
-        > glyph_order は既存のベースグリフと新規生成グリフの順序を定義
-        > 拼音グリフと漢字バリアントの全てを含める必要がある
-
         Glyph order includes:
         - Base hanzi glyphs from template
         - Stylistic set variants (ss00-ssNN) for all characters
         - Pinyin alphabet glyphs (py_alphabet_*)
         """
+
+        # レガシーコードコメント:
+        # > e.g.:
+        # > "glyph_order": [
+        # >     ...
+        # >     "uni4E0D","uni4E0D.ss00","uni4E0D.ss01","uni4E0D.ss02","uni4E0D.ss03",
+        # >     ...
+        # > ]
         if self._font_data is None:
             raise ValueError("Font data not loaded")
 
@@ -400,7 +376,7 @@ class FontBuilder:
 
             cid = self.mapping_manager.convert_hanzi_to_cid(char_info.character)
             if cid:
-                # レガシー実装からの重要な知識（元コメントを完全保持）:
+                # レガシーコードコメント:
                 # > ss00 は ピンインのないグリフ なので、ピンインのグリフは "ss{:02}".format(len) まで
                 # Add all stylistic set variants (ss00 through ssNN)
                 num_variants = len(char_info.pronunciations) + 1  # +1 for ss00
@@ -422,14 +398,13 @@ class FontBuilder:
     def _add_glyf(self) -> None:
         """Add pinyin-annotated glyphs.
 
-        レガシー実装からの重要な知識（元コメントを完全保持）:
-        グリフテーブルの構築は複数段階で行われ、正確な順序が重要です:
-        > 1. ベースglyf構造準備 (メインテンプレートから)
-        > 2. 拼音グリフ生成 (文字+発音データから)
-        > 3. 拼音アルファベットグリフ追加 (py_alphabet_*)
-        > 4. 実体グリフ追加 (輪郭データ保持)
-        > 5. テンプレート基本文字保持
-        > 6. 最終検証 (65536グリフ制限チェック)
+        グリフテーブルの構築は複数段階で行われます:
+        1. ベースglyf構造準備 (メインテンプレートから)
+        2. 拼音グリフ生成 (文字+発音データから)
+        3. 拼音アルファベットグリフ追加 (py_alphabet_*)
+        4. 実体グリフ追加 (輪郭データ保持)
+        5. テンプレート基本文字保持
+        6. 最終検証 (65536グリフ制限チェック)
 
         glyf table construction process with legacy order preservation.
         """
@@ -466,7 +441,6 @@ class FontBuilder:
     def _prepare_base_glyf_structure(self) -> Dict[str, Any]:
         """Prepare base glyf structure with template data.
 
-        レガシー実装からの重要な知識（元コメントを完全保持）:
         > マージ先のフォントのメインjson（フォントサイズを取得するため）, ピンイン表示に使うためのglyfのjson
         > 管理しやすくするために、glyf table は別オブジェクトになっている
         """
@@ -485,16 +459,6 @@ class FontBuilder:
         if self._glyf_data is None:
             raise ValueError("Glyf data not loaded")
         new_glyf = dict(self._glyf_data)
-
-        # デバッグ: ひらがな輪郭が保持されていることを確認
-        if "cid01460" in new_glyf:
-            glyph_data = new_glyf["cid01460"]
-            if isinstance(glyph_data, dict):
-                contours = glyph_data.get("contours", [])
-                contour_count = len(contours) if isinstance(contours, list) else 0
-                self.logger.debug(
-                    "new_glyf starts with cid01460 having %d contours", contour_count
-                )
 
         # 必要に応じてbase_glyfからメタデータをマージ
         for glyph_name, glyph_data in base_glyf.items():
@@ -515,11 +479,7 @@ class FontBuilder:
     def _add_pinyin_alphabet_glyphs(
         self, new_glyf: Dict[str, Any], generated_glyphs: Dict[str, Any]
     ) -> None:
-        """Add pinyin alphabet glyphs to the glyf table.
-
-        レガシー実装からの重要な知識（元コメントを完全保持）:
-        - Add pinyin alphabet glyphs (from legacy py_alphabet)
-        """
+        """Add pinyin alphabet glyphs to the glyf table."""
         # 2. 拼音アルファベットグリフを追加（レガシーpy_alphabetから）
         pinyin_alphabet_glyphs = {
             k: v for k, v in generated_glyphs.items() if k.startswith("py_alphabet")
@@ -547,15 +507,14 @@ class FontBuilder:
     def _add_substance_glyphs_with_contour_preservation(
         self, new_glyf: Dict[str, Any], generated_glyphs: Dict[str, Any]
     ) -> None:
-        """Add substance glyphs with template contour preservation.
+        """
+        Add substance glyphs with template contour preservation.
 
-        レガシー実装からの重要な知識（元コメントを完全保持）:
         - Add substance glyphs (CRITICAL: use glyf template for contour data)
         - This is the missing piece - we need to use _glyf_data for actual glyph contours
         - For substance glyphs, merge with template glyf data to preserve contours
         """
         # 3. 実体グリフを追加（重要：輪郭データには glyf テンプレートを使用）
-        # これが欠けていたピース - 実際のグリフ輪郭には _glyf_data を使用する必要がある
         substance_glyphs = {
             k: v for k, v in generated_glyphs.items() if not k.startswith("py_alphabet")
         }
@@ -569,11 +528,8 @@ class FontBuilder:
     def _process_single_substance_glyph(
         self, new_glyf: Dict[str, Any], glyph_name: str, glyph_data: Dict[str, Any]
     ) -> None:
-        """Process a single substance glyph with contour preservation logic.
-
-        レガシー実装からの重要な知識（元コメントを完全保持）:
-        - Check if this is a base glyph that should have contour data from template
-        - If generated glyph has no useful content (no references/contours), use template
+        """
+        Process a single substance glyph with contour preservation logic.
         """
         # Check if this is a base glyph that should have contour data from template
         base_glyph_name = glyph_name.split(".")[0]  # Remove .ss## suffix
@@ -617,12 +573,11 @@ class FontBuilder:
     def _analyze_glyph_content(
         self, glyph_data: Dict[str, Any], template_glyph: Dict[str, Any]
     ) -> Dict[str, bool]:
-        """Analyze glyph content to determine merge strategy.
+        """
+        Analyze glyph content to determine merge strategy.
 
-        レガシー実装からの重要な知識（元コメントを完全保持）:
         - If generated glyph has no useful content (no references/contours), use template
         """
-        # If generated glyph has no useful content (no references/contours), use template
         references_raw = glyph_data.get("references", [])
         has_references = (
             "references" in glyph_data
@@ -652,15 +607,13 @@ class FontBuilder:
         }
 
     def _preserve_template_basic_characters(self, new_glyf: Dict[str, Any]) -> None:
-        """Preserve basic character glyphs from template.
+        """
+        Preserve basic character glyphs from template.
 
-        レガシー実装からの重要な知識（元コメントを完全保持）:
         - Ensure all template glyphs are included, especially basic characters
         - This preserves hiragana, katakana, alphabet characters that are not processed by character manager
         - Use template data completely - this preserves contours for basic characters
         """
-        # Ensure all template glyphs are included, especially basic characters
-        # This preserves hiragana, katakana, alphabet characters that are not processed by character manager
         template_glyphs_added = 0
         if self._glyf_data is not None:
             for glyph_name, glyph_data in self._glyf_data.items():
@@ -683,11 +636,7 @@ class FontBuilder:
     def _debug_basic_character_preservation(
         self, glyph_name: str, glyph_data: Any
     ) -> None:
-        """Debug specific basic character preservation.
-
-        レガシー実装からの重要な知識（元コメントを完全保持）:
-        - Debug specific basic characters
-        """
+        """Debug specific basic character preservation."""
         # Debug specific basic characters
         if glyph_name in [
             "cid01460",
@@ -704,9 +653,9 @@ class FontBuilder:
             )
 
     def _finalize_glyf_table(self, new_glyf: Dict[str, Any]) -> None:
-        """Finalize the glyf table.
+        """
+        Finalize the glyf table.
 
-        レガシー実装からの重要な知識（元コメントを完全保持）:
         - Log the final glyph count for debugging
 
         Args:
@@ -718,11 +667,7 @@ class FontBuilder:
         self.logger.debug("glyf num : %d", len(new_glyf))
 
     def _add_gsub(self) -> None:
-        """Add GSUB table for contextual substitution.
-
-        レガシー実装からの重要な知識（元コメントを完全保持）:
-        GSUBテーブルは多音字対応の核心機能です。
-        """
+        """Add GSUB table for calt(contextual substitution) to support duoyinzi."""
 
         # Create GSUB table generator with pattern files
         gsub_generator = GSUBTableGenerator(
@@ -742,9 +687,9 @@ class FontBuilder:
         self.logger.info("GSUB table generation completed")
 
     def _set_about_size(self) -> None:
-        """Set font size metadata.
+        """
+        Set font size metadata.
 
-        レガシー実装からの重要な知識（元コメントを完全保持）:
         フォントメトリック設定の重要な知識:
         > すべてのグリフの輪郭を含む範囲 (yMax)
         > 原点からグリフの上端までの距離 (ascender)
@@ -764,7 +709,7 @@ class FontBuilder:
 
         if pinyin_metrics:
             # レガシー互換性のための変数名保持
-            advanceAddedPinyinHeight = pinyin_metrics.height
+            advance_added_pinyin_height = pinyin_metrics.height
 
             # Update font metrics to accommodate pinyin height (explicit for tests)
             if self._font_data:
@@ -774,8 +719,8 @@ class FontBuilder:
                     current_ymax = head_table["yMax"]
                     if isinstance(
                         current_ymax, (int, float)
-                    ) and advanceAddedPinyinHeight > float(current_ymax):
-                        head_table["yMax"] = advanceAddedPinyinHeight
+                    ) and advance_added_pinyin_height > float(current_ymax):
+                        head_table["yMax"] = advance_added_pinyin_height
 
                 # Update hhea.ascender
                 hhea_table = cast(HheaTable, self._font_data.get("hhea", {}))
@@ -783,14 +728,14 @@ class FontBuilder:
                     current_ascender = hhea_table["ascender"]
                     if (
                         isinstance(current_ascender, (int, float))
-                        and advanceAddedPinyinHeight > current_ascender
+                        and advance_added_pinyin_height > current_ascender
                     ):
-                        hhea_table["ascender"] = advanceAddedPinyinHeight
+                        hhea_table["ascender"] = advance_added_pinyin_height
 
                 # Update OS_2.usWinAscent
                 os2_table = cast(OS2Table, self._font_data.get("OS_2", {}))
                 if isinstance(os2_table, dict) and "usWinAscent" in os2_table:
-                    os2_table["usWinAscent"] = advanceAddedPinyinHeight
+                    os2_table["usWinAscent"] = advance_added_pinyin_height
 
         self.logger.debug("font revision set to: %s", VERSION)
 
@@ -830,11 +775,7 @@ class FontBuilder:
         )
 
     def _set_copyright(self) -> None:
-        """Set font copyright and naming information.
-
-        レガシー実装からの重要な知識（元コメントを完全保持）:
-        フォントタイプに応じて適切な名称テーブルを設定します。
-        """
+        """Set font copyright and naming information."""
 
         if self._font_data is None:
             raise ValueError("Font data not loaded")

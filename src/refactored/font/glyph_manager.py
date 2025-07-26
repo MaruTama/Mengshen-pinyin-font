@@ -10,6 +10,12 @@ from typing import Dict, List, Optional, Set, Union, cast
 
 import orjson
 
+from refactored.glyph.pinyin_glyph import (
+    DELTA_4_REFLECTION,
+    HEIGHT_RATE_OF_MONOSPACE,
+    VERTICAL_ORIGIN_PER_HEIGHT,
+)
+
 from ..config import FontConstants, FontMetadata, FontType
 from ..data import CharacterDataManager, MappingDataManager
 from ..utils.logging_config import get_debug_logger
@@ -57,9 +63,6 @@ class GlyphReference:
 
 class PinyinGlyphGenerator:
     """Generates pinyin-related glyphs."""
-
-    # Constants for glyph positioning
-    VERTICAL_ORIGIN_PER_HEIGHT = 0.88
 
     def __init__(self, font_type: FontType, font_config: FontMetadata):
         """Initialize with font configuration."""
@@ -155,7 +158,7 @@ class PinyinGlyphGenerator:
 
         # Constants from legacy code
         target_advance_height = hanzi_advance_height + target_pinyin_canvas_height
-        target_vertical_origin = target_advance_height * self.VERTICAL_ORIGIN_PER_HEIGHT
+        target_vertical_origin = target_advance_height * VERTICAL_ORIGIN_PER_HEIGHT
 
         # Get alphabet glyph height for scaling (legacy logic)
         if self._pinyin_alphabets is None:
@@ -168,7 +171,7 @@ class PinyinGlyphGenerator:
             else 1000.0
         )
         advance_height_raw = py_alphabet_v3_glyf.get(
-            "advanceHeight", advance_width * 1.4
+            "advanceHeight", advance_width * HEIGHT_RATE_OF_MONOSPACE
         )
         advance_height = (
             float(advance_height_raw)
@@ -227,8 +230,7 @@ class PinyinGlyphGenerator:
                                 0.1,
                             )
 
-                        # Legacy y_scale calculation (DELTA_4_REFLECTION)
-                        y_scale = round(pinyin_scale + 0.001, 3)
+                        y_scale = round(pinyin_scale + DELTA_4_REFLECTION, 3)
 
                         # Create reference
                         reference = {
