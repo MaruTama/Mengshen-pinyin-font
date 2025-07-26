@@ -85,26 +85,26 @@ class TestGSUBTableGeneratorInitialization:
         assert "hani_DFLT" in gsub_data["languages"]
         assert gsub_data["languages"]["DFLT_DFLT"]["features"] == [
             "aalt_00000",
-            "rclt_00002",
+            "rclt_00000",
         ]
         assert gsub_data["languages"]["hani_DFLT"]["features"] == [
             "aalt_00001",
-            "rclt_00003",
+            "rclt_00001",
         ]
 
         # Verify feature tables
         assert "features" in gsub_data
         assert gsub_data["features"]["aalt_00000"] == ["lookup_aalt_0", "lookup_aalt_1"]
         assert gsub_data["features"]["aalt_00001"] == ["lookup_aalt_0", "lookup_aalt_1"]
-        assert gsub_data["features"]["rclt_00002"] == [
+        assert gsub_data["features"]["rclt_00000"] == [
+            "lookup_rclt_0",
+            "lookup_rclt_1",
             "lookup_rclt_2",
-            "lookup_rclt_3",
-            "lookup_rclt_4",
         ]
-        assert gsub_data["features"]["rclt_00003"] == [
+        assert gsub_data["features"]["rclt_00001"] == [
+            "lookup_rclt_0",
+            "lookup_rclt_1",
             "lookup_rclt_2",
-            "lookup_rclt_3",
-            "lookup_rclt_4",
         ]
 
         # Verify initial lookup structure
@@ -120,9 +120,9 @@ class TestGSUBTableGeneratorInitialization:
         assert lookups["lookup_aalt_1"]["type"] == "gsub_alternate"
 
         # Check rclt lookups
-        assert "lookup_rclt_2" in lookups
-        assert lookups["lookup_rclt_2"]["type"] == "gsub_chaining"
-        assert lookups["lookup_rclt_2"]["subtables"] == []
+        assert "lookup_rclt_0" in lookups
+        assert lookups["lookup_rclt_0"]["type"] == "gsub_chaining"
+        assert lookups["lookup_rclt_0"]["subtables"] == []
 
         # Verify initial lookup order
         assert gsub_data["lookupOrder"] == ["lookup_aalt_0"]
@@ -496,14 +496,14 @@ class TestGSUBTableGeneratorRCLT0Feature:
 
         generator._make_rclt0_feature()
 
-        # Check rclt_2 subtables for contextual rules
-        rclt_2_subtables = generator.gsub_data["lookups"]["lookup_rclt_2"]["subtables"]
+        # Check rclt_0 subtables for contextual rules
+        rclt_0_subtables = generator.gsub_data["lookups"]["lookup_rclt_0"]["subtables"]
 
         # Should have contextual rules for pattern "[~心|~央]" and "[银~]"
-        assert len(rclt_2_subtables) > 0
+        assert len(rclt_0_subtables) > 0
 
         # Verify structure of contextual rules
-        for subtable in rclt_2_subtables:
+        for subtable in rclt_0_subtables:
             assert "match" in subtable
             assert "apply" in subtable
             assert "inputBegins" in subtable
@@ -626,17 +626,17 @@ class TestGSUBTableGeneratorRCLT1Feature:
 
     @pytest.mark.unit
     def test_make_rclt1_feature_contextual_patterns(self):
-        """Test RCLT1 contextual patterns for lookup_rclt_3."""
+        """Test RCLT1 contextual patterns for lookup_rclt_1."""
         generator = self._create_test_generator_with_pattern_two()
 
         generator._make_rclt1_feature()
 
-        # Check rclt_3 subtables
-        rclt_3_subtables = generator.gsub_data["lookups"]["lookup_rclt_3"]["subtables"]
+        # Check rclt_1 subtables
+        rclt_1_subtables = generator.gsub_data["lookups"]["lookup_rclt_1"]["subtables"]
 
-        assert len(rclt_3_subtables) == 1
+        assert len(rclt_1_subtables) == 1
 
-        subtable = rclt_3_subtables[0]
+        subtable = rclt_1_subtables[0]
         assert "match" in subtable
         assert "apply" in subtable
 
@@ -675,9 +675,9 @@ class TestGSUBTableGeneratorRCLT1Feature:
         expected_base_lookups = {
             "lookup_aalt_0",
             "lookup_aalt_1",
+            "lookup_rclt_0",
+            "lookup_rclt_1",
             "lookup_rclt_2",
-            "lookup_rclt_3",
-            "lookup_rclt_4",
         }
         actual_lookups = set(lookups.keys())
         assert actual_lookups == expected_base_lookups
@@ -748,11 +748,11 @@ class TestGSUBTableGeneratorRCLT2Feature:
 
         generator._make_rclt2_feature()
 
-        # Check rclt_4 subtables for ignore patterns
-        rclt_4_subtables = generator.gsub_data["lookups"]["lookup_rclt_4"]["subtables"]
+        # Check rclt_2 subtables for ignore patterns
+        rclt_2_subtables = generator.gsub_data["lookups"]["lookup_rclt_2"]["subtables"]
 
         # Should have at least one rule for ignore pattern
-        ignore_rules = [rule for rule in rclt_4_subtables if not rule.get("apply")]
+        ignore_rules = [rule for rule in rclt_2_subtables if not rule.get("apply")]
         assert len(ignore_rules) > 0
 
         # Verify ignore rule structure
@@ -767,11 +767,11 @@ class TestGSUBTableGeneratorRCLT2Feature:
 
         generator._make_rclt2_feature()
 
-        # Check rclt_4 subtables for normal patterns
-        rclt_4_subtables = generator.gsub_data["lookups"]["lookup_rclt_4"]["subtables"]
+        # Check rclt_2 subtables for normal patterns
+        rclt_2_subtables = generator.gsub_data["lookups"]["lookup_rclt_2"]["subtables"]
 
         # Should have rules with apply
-        normal_rules = [rule for rule in rclt_4_subtables if rule.get("apply")]
+        normal_rules = [rule for rule in rclt_2_subtables if rule.get("apply")]
         assert len(normal_rules) > 0
 
         # Verify normal rule structure
@@ -806,9 +806,9 @@ class TestGSUBTableGeneratorRCLT2Feature:
         expected_base_lookups = {
             "lookup_aalt_0",
             "lookup_aalt_1",
+            "lookup_rclt_0",
+            "lookup_rclt_1",
             "lookup_rclt_2",
-            "lookup_rclt_3",
-            "lookup_rclt_4",
         }
         actual_lookups = set(lookups.keys())
         assert actual_lookups == expected_base_lookups
@@ -846,9 +846,9 @@ class TestGSUBTableGeneratorLookupOrder:
             "lookup_aalt_1",
             "lookup_11_2",
             "lookup_11_3",
+            "lookup_rclt_0",
+            "lookup_rclt_1",
             "lookup_rclt_2",
-            "lookup_rclt_3",
-            "lookup_rclt_4",
         ]
 
         assert generator.gsub_data["lookupOrder"] == expected_order
@@ -878,9 +878,9 @@ class TestGSUBTableGeneratorLookupOrder:
         expected_order = [
             "lookup_aalt_0",
             "lookup_11_2",
+            "lookup_rclt_0",
+            "lookup_rclt_1",
             "lookup_rclt_2",
-            "lookup_rclt_3",
-            "lookup_rclt_4",
         ]
 
         assert generator.gsub_data["lookupOrder"] == expected_order
@@ -914,9 +914,9 @@ class TestGSUBTableGeneratorLookupOrder:
             "lookup_aalt_0",
             "lookup_aalt_1",
             "lookup_11_2",
+            "lookup_rclt_0",
+            "lookup_rclt_1",
             "lookup_rclt_2",
-            "lookup_rclt_3",
-            "lookup_rclt_4",
         ]
 
         assert generator.gsub_data["lookupOrder"] == expected_order
@@ -1042,12 +1042,12 @@ class TestGSUBTableGeneratorIntegration:
         assert "lookup_pt2_0" in lookups  # Pattern two
         assert "lookup_exc_0" in lookups  # Exception pattern
 
-        # Contextual rules - rclt_2 initialized as empty, populated based on pattern complexity
+        # Contextual rules - rclt_0 initialized as empty, populated based on pattern complexity
         assert isinstance(
-            lookups["lookup_rclt_2"]["subtables"], list
+            lookups["lookup_rclt_0"]["subtables"], list
         )  # Pattern one context
-        assert len(lookups["lookup_rclt_3"]["subtables"]) > 0  # Pattern two context
-        assert len(lookups["lookup_rclt_4"]["subtables"]) > 0  # Exception context
+        assert len(lookups["lookup_rclt_1"]["subtables"]) > 0  # Pattern two context
+        assert len(lookups["lookup_rclt_2"]["subtables"]) > 0  # Exception context
 
 
 class TestGSUBTableGeneratorErrorHandling:

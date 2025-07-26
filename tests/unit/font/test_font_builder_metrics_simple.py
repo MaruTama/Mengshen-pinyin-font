@@ -18,7 +18,7 @@ def test_font_metrics_update_implementation_exists():
     assert "OS_2" in source and "usWinAscent" in source
 
     # Verify the conditional logic matches legacy
-    assert "advanceAddedPinyinHeight" in source
+    assert "advance_added_pinyin_height" in source
     assert "get_pinyin_metrics()" in source
 
     # Verify comments indicate legacy compatibility
