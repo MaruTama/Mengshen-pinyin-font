@@ -10,12 +10,6 @@ from typing import Dict, List, Optional, Set, Union, cast
 
 import orjson
 
-from refactored.glyph.pinyin_glyph import (
-    DELTA_4_REFLECTION,
-    HEIGHT_RATE_OF_MONOSPACE,
-    VERTICAL_ORIGIN_PER_HEIGHT,
-)
-
 from ..config import FontConstants, FontMetadata, FontType
 from ..data import CharacterDataManager, MappingDataManager
 from ..utils.logging_config import get_debug_logger
@@ -25,6 +19,18 @@ from ..utils.pinyin_utils import simplification_pronunciation
 GlyphData = Dict[str, Union[str, int, float, List[Dict[str, Union[str, int, float]]]]]
 FontGlyphDict = Dict[str, GlyphData]
 PinyinGlyphDict = Dict[str, GlyphData]
+
+
+# レガシーコードコメント:
+# > advanceHeight に対する advanceHeight の割合 (適当に決めてるから調整)
+VERTICAL_ORIGIN_PER_HEIGHT = 0.88
+# レガシーコードコメント:
+# > ピンインの advanceHeight が無いときは決め打ちで advanceWidth の 1.4 倍にする
+HEIGHT_RATE_OF_MONOSPACE = 1.4
+# レガシーコードコメント:
+# > otfccbuild の仕様なのか opentype の仕様なのか分からないが a と d が同じ値だと、グリフが消失する。
+# > 少しでもサイズが違えば反映されるので、反映のためのマジックナンバー
+DELTA_4_REFLECTION = 0.001
 
 
 @dataclass(frozen=True)
@@ -81,7 +87,6 @@ class PinyinGlyphGenerator:
         # Legacy code expects glyphs named like "py_alphabet_a", "py_alphabet_i1", etc.
         self._pinyin_alphabets = {}
 
-        # Add the special v3 glyph used for height calculations (using highest character)
         if "ǘ" in alphabet_data:
             self._pinyin_alphabets["py_alphabet_v3"] = alphabet_data["ǘ"]
         elif "ǚ" in alphabet_data:
@@ -160,9 +165,14 @@ class PinyinGlyphGenerator:
         target_advance_height = hanzi_advance_height + target_pinyin_canvas_height
         target_vertical_origin = target_advance_height * VERTICAL_ORIGIN_PER_HEIGHT
 
-        # Get alphabet glyph height for scaling (legacy logic)
+        # Get alphabet glyph height for scaling
         if self._pinyin_alphabets is None:
             raise ValueError("Alphabet glyphs not loaded")
+
+        # レガシーコードコメント:
+        # > ピンインがキャンバスに収まる scale を求める.
+        # > 等幅フォントであれば大きさは同じなのでどんな文字でも同じだと思うが、一応最も背の高い文字を指定する (多分 ǘ ǚ ǜ)
+        # Add the special v3 glyph used for height calculations (using highest character)
         py_alphabet_v3_glyf = self._pinyin_alphabets["py_alphabet_v3"]
         advance_width_raw = py_alphabet_v3_glyf.get("advanceWidth", 1000.0)
         advance_width = (
@@ -179,7 +189,7 @@ class PinyinGlyphGenerator:
             else 1000.0
         )
 
-        # Legacy pinyin scale calculation (exact legacy logic)
+        # Legacy pinyin scale calculation
         pinyin_scale = target_pinyin_canvas_height / advance_height
 
         # Generate pronunciation glyphs
@@ -189,7 +199,7 @@ class PinyinGlyphGenerator:
             # Calculate character positions and references
             references = []
 
-            # Character spacing calculation from legacy code
+            # Character spacing calculation
             char_count = len(pronunciation)
             if char_count > 0:
                 # Get pinyin character width
@@ -201,6 +211,8 @@ class PinyinGlyphGenerator:
                 )
                 pinyin_width = width_value * pinyin_scale
 
+                # レガシーコードコメント:
+                # > ピンイン表示部(target_pinyin_canvas_width)に収まるように等間隔に配置する
                 width_positions = self._get_pinyin_position_on_canvas(
                     pronunciation,
                     pinyin_width,
@@ -231,6 +243,15 @@ class PinyinGlyphGenerator:
                             )
 
                         y_scale = round(pinyin_scale + DELTA_4_REFLECTION, 3)
+
+                        # レガシーコードコメント:
+                        # > a-d ってなんだ？
+                        # > > The transformation entries determine the values of an affine transformation applied to
+                        # > the component prior to its being incorporated into the parent glyph.
+                        # >
+                        # > Given the component matrix [a b c d e f], the transformation applied to the component is:
+                        # > [The 'glyf' table](https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6glyf.html)
+                        # > [FontConfigの​matrix​フォント​プロパティを​利用して​字体を​変化させる​方法](http://ie.pcgw.pgw.jp/2015/10/17/fontconfig-matrix.html)
 
                         # Create reference
                         reference = {
@@ -270,12 +291,12 @@ class PinyinGlyphGenerator:
         canvas_tracking: float,
         target_advance_width_of_hanzi: float,
     ) -> list[float]:
-        """Calculate pinyin character positions on canvas (from legacy code)."""
+        """Calculate pinyin character positions on canvas"""
         is_avoid_overlapping_mode = getattr(
             self.font_config, "is_avoid_overlapping_mode", False
         )
 
-        # If 6+ characters, use full hanzi width to avoid overlapping (legacy logic)
+        # If 6+ characters, use full hanzi width to avoid overlapping
         if is_avoid_overlapping_mode and len(pronunciation) >= 6:
             canvas_width = target_advance_width_of_hanzi
 

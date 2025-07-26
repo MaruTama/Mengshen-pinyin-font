@@ -51,18 +51,19 @@ class GSUBTableGenerator:
         # > calt も rclt も featute の数が多いと有効にならない。 feature には上限がある？ので、今は初期化して使う
         # > rclt は calt と似ていて、かつ無効にできないタグ
 
-        # Initialize base GSUB structure
-        # TODO: レガシーコードとfeature ごとに使用する lookup table が違う気がするので確認する
-        # 問題ないか確認する. GSUB_table.py p102-114
-
         # レガシーコードコメント:
         # > feature ごとに使用する lookup table を指定する
         # > rclt_00000/rclt_00001 は lookup_rclt_0, lookup_rclt_1, lookup_rclt_2 を使用
         self.gsub_data: Dict[str, Any] = {
+            # レガシーコードコメント:
+            # > 文字体系 ごとに使用する feature を指定する
             "languages": {
                 "DFLT_DFLT": {"features": ["aalt_00000", "rclt_00000"]},
+                # レガシーコードコメント:
+                # > 'hani' = CJK (中国語/日本語/韓国語)
                 "hani_DFLT": {"features": ["aalt_00001", "rclt_00001"]},
             },
+            # feature ごとに使用する lookup table を指定する
             "features": {
                 "aalt_00000": ["lookup_aalt_0", "lookup_aalt_1"],
                 "aalt_00001": ["lookup_aalt_0", "lookup_aalt_1"],
@@ -70,11 +71,13 @@ class GSUBTableGenerator:
                 "rclt_00001": ["lookup_rclt_0", "lookup_rclt_1", "lookup_rclt_2"],
             },
             "lookups": {
+                # aalt_0 は拼音が一つのみの漢字 + 記号とか。置き換え対象が一つのみのとき
                 "lookup_aalt_0": {
                     "type": "gsub_single",
                     "flags": {},
                     "subtables": [{}],
                 },
+                # aalt_1 は拼音が複数の漢字
                 "lookup_aalt_1": {
                     "type": "gsub_alternate",
                     "flags": {},
@@ -99,7 +102,13 @@ class GSUBTableGenerator:
                     "subtables": [],
                 },
             },
-            "lookupOrder": ["lookup_aalt_0"],
+            "lookupOrder": [
+                "lookup_aalt_0",
+                "lookup_aalt_1",
+                "lookup_rclt_0",
+                "lookup_rclt_1",
+                "lookup_rclt_2",
+            ],
         }
 
     def generate_gsub_table(self) -> Dict[str, Any]:
@@ -131,10 +140,14 @@ class GSUBTableGenerator:
                         order = int(str_order)
 
                         # Skip order 1 (standard pronunciation)
+                        # レガシーコードコメント:
+                        # > self.PATTERN_ONE_TXT の order = 1 は標準的なピンインなので無視する
                         if order == 1:
                             continue
 
                         # Order 2+ -> index 0+
+                        # レガシーコードコメント:
+                        # > 2 から異読のピンイン。添字に使うために -2 して 0 にする。
                         idx = order - 2
                         while len(self.pattern_one) <= idx:
                             self.pattern_one.append({})

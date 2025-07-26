@@ -28,6 +28,7 @@ from ..processing.optimized_utility import set_cmap_table
 from ..types import HeadTable, HheaTable, OS2Table, StatsDict
 from ..utils.cmap_utils import load_cmap_table_from_path
 from ..utils.logging_config import get_builder_logger
+from ..utils.shell_utils import SecurityError, safe_command_execution
 from .font_assembler import FontAssembler
 from .glyph_manager import GlyphManager
 
@@ -814,19 +815,28 @@ class FontBuilder:
         # Execute otfccbuild directly
         self._execute_otfccbuild_command(json_path, output_path)
 
-    # TODO: shell_utils.pyの実装を参照して、必要に応じてshell_utilsを使用する？
     def _execute_otfccbuild_command(self, json_path: Path, output_path: Path) -> None:
-        """Execute otfccbuild command with proper error handling."""
+        """Execute otfccbuild command with proper security and error handling."""
         try:
-            subprocess.run(
-                ["otfccbuild", str(json_path), "-o", str(output_path)],
-                check=True,
-                capture_output=True,
-                text=True,
-                timeout=FontConstants.CONVERSION_TIMEOUT_SECONDS,
+            # Use secure shell_utils instead of direct subprocess.run to prevent shell injection
+            # This addresses the TODO: replaces vulnerable legacy shell.py (shell=True) with secure implementation
+            result = safe_command_execution(
+                ["otfccbuild", str(json_path), "-o", str(output_path)]
             )
-        except subprocess.CalledProcessError as e:
-            self.logger.error("Error during otfccbuild: %s", e.stderr)
+
+            if result.returncode != 0:
+                error_msg = (
+                    result.stderr.decode("utf-8", "ignore")
+                    if result.stderr
+                    else "Unknown error"
+                )
+                self.logger.error("Error during otfccbuild: %s", error_msg)
+                raise subprocess.CalledProcessError(
+                    result.returncode, result.args, stderr=error_msg
+                )
+
+        except SecurityError as e:
+            self.logger.error("Security error during otfccbuild: %s", e)
             raise
         except subprocess.TimeoutExpired as e:
             self.logger.error("otfccbuild timed out: %s", e)
