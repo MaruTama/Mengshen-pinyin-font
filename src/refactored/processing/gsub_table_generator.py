@@ -54,16 +54,20 @@ class GSUBTableGenerator:
         # Initialize base GSUB structure
         # TODO: レガシーコードとfeature ごとに使用する lookup table が違う気がするので確認する
         # 問題ないか確認する. GSUB_table.py p102-114
+
+        # レガシーコードコメント:
+        # > feature ごとに使用する lookup table を指定する
+        # > rclt_00000/rclt_00001 は lookup_rclt_0, lookup_rclt_1, lookup_rclt_2 を使用
         self.gsub_data: Dict[str, Any] = {
             "languages": {
-                "DFLT_DFLT": {"features": ["aalt_00000", "rclt_00002"]},
-                "hani_DFLT": {"features": ["aalt_00001", "rclt_00003"]},
+                "DFLT_DFLT": {"features": ["aalt_00000", "rclt_00000"]},
+                "hani_DFLT": {"features": ["aalt_00001", "rclt_00001"]},
             },
             "features": {
                 "aalt_00000": ["lookup_aalt_0", "lookup_aalt_1"],
                 "aalt_00001": ["lookup_aalt_0", "lookup_aalt_1"],
-                "rclt_00002": ["lookup_rclt_2", "lookup_rclt_3", "lookup_rclt_4"],
-                "rclt_00003": ["lookup_rclt_2", "lookup_rclt_3", "lookup_rclt_4"],
+                "rclt_00000": ["lookup_rclt_0", "lookup_rclt_1", "lookup_rclt_2"],
+                "rclt_00001": ["lookup_rclt_0", "lookup_rclt_1", "lookup_rclt_2"],
             },
             "lookups": {
                 "lookup_aalt_0": {
@@ -76,17 +80,20 @@ class GSUBTableGenerator:
                     "flags": {},
                     "subtables": [{}],
                 },
+                # pattern one
+                "lookup_rclt_0": {
+                    "type": "gsub_chaining",
+                    "flags": {},
+                    "subtables": [],
+                },
+                # pattern two
+                "lookup_rclt_1": {
+                    "type": "gsub_chaining",
+                    "flags": {},
+                    "subtables": [],
+                },
+                # exception pattern
                 "lookup_rclt_2": {
-                    "type": "gsub_chaining",
-                    "flags": {},
-                    "subtables": [],
-                },
-                "lookup_rclt_3": {
-                    "type": "gsub_chaining",
-                    "flags": {},
-                    "subtables": [],
-                },
-                "lookup_rclt_4": {
                     "type": "gsub_chaining",
                     "flags": {},
                     "subtables": [],
@@ -102,9 +109,9 @@ class GSUBTableGenerator:
 
         # Generate features in legacy order
         self._make_aalt_feature()
-        self._make_rclt0_feature()  # Pattern one -> creates lookup_11_*
-        self._make_rclt1_feature()  # Pattern two -> updates lookup_rclt_3
-        self._make_rclt2_feature()  # Exception pattern -> updates lookup_rclt_4
+        self._make_rclt0_feature()  # Pattern one -> updates lookup_rclt_0
+        self._make_rclt1_feature()  # Pattern two -> updates lookup_rclt_1
+        self._make_rclt2_feature()  # Exception pattern -> updates lookup_rclt_2
 
         # Set final lookup order (matches legacy)
         self._make_lookup_order()
@@ -285,9 +292,9 @@ class GSUBTableGenerator:
             }
             self.lookup_order.add(lookup_name)
 
-        # Generate substitution rules for lookup_rclt_2
-        rclt_2_subtables = cast(
-            List[Dict[str, Any]], lookups["lookup_rclt_2"]["subtables"]
+        # Generate substitution rules for lookup_rclt_0 (pattern one)
+        rclt_0_subtables = cast(
+            List[Dict[str, Any]], lookups["lookup_rclt_0"]["subtables"]
         )
 
         for idx in range(max_num_patterns):
@@ -308,7 +315,7 @@ class GSUBTableGenerator:
                 ss_index = FontConstants.SS_VARIATIONAL_PRONUNCIATION + idx
                 lookup_subtables[cid] = f"{cid}.ss{ss_index:02d}"
 
-                # Process context patterns for rclt_2
+                # Process context patterns for rclt_0 (pattern one)
                 if isinstance(pattern_info, dict) and "patterns" in pattern_info:
                     patterns_str = pattern_info["patterns"]
                     patterns = patterns_str.strip("[]").split("|")
@@ -336,7 +343,7 @@ class GSUBTableGenerator:
                             context_char, self.cmap_table
                         )
                         if context_cid:
-                            rclt_2_subtables.append(
+                            rclt_0_subtables.append(
                                 {
                                     "match": [[context_cid], [cid]],
                                     "apply": [{"at": 1, "lookup": lookup_name}],
@@ -352,7 +359,7 @@ class GSUBTableGenerator:
                             context_char, self.cmap_table
                         )
                         if context_cid:
-                            rclt_2_subtables.append(
+                            rclt_0_subtables.append(
                                 {
                                     "match": [[cid], [context_cid]],
                                     "apply": [{"at": 0, "lookup": lookup_name}],
@@ -375,7 +382,7 @@ class GSUBTableGenerator:
                                     match_cids.append([char_cid])
 
                             if match_cids:
-                                rclt_2_subtables.append(
+                                rclt_0_subtables.append(
                                     {
                                         "match": match_cids,
                                         "apply": [
@@ -387,7 +394,7 @@ class GSUBTableGenerator:
                                 )
 
     def _make_rclt1_feature(self) -> None:
-        """Generate pattern two -> updates lookup_rclt_3."""
+        """Generate pattern two -> updates lookup_rclt_1."""
         if not self.pattern_two:
             return
 
@@ -418,10 +425,10 @@ class GSUBTableGenerator:
 
                 self.lookup_order.add(lookup_name)
 
-        # Generate contextual rules for lookup_rclt_3 (legacy: lookup_rclt_1)
+        # Generate contextual rules for lookup_rclt_1 (pattern two)
         if "patterns" in self.pattern_two:
-            rclt_3_subtables = cast(
-                List[Dict[str, Any]], lookups["lookup_rclt_3"]["subtables"]
+            rclt_1_subtables = cast(
+                List[Dict[str, Any]], lookups["lookup_rclt_1"]["subtables"]
             )
             patterns_dict = cast(
                 Dict[str, List[Dict[str, str]]], self.pattern_two["patterns"]
@@ -447,7 +454,7 @@ class GSUBTableGenerator:
                     ]
 
                     if match_cids:
-                        rclt_3_subtables.append(
+                        rclt_1_subtables.append(
                             {
                                 "match": match_cids,
                                 "apply": applies,
@@ -457,7 +464,7 @@ class GSUBTableGenerator:
                         )
 
     def _make_rclt2_feature(self) -> None:
-        """Generate exception patterns -> updates lookup_rclt_4."""
+        """Generate exception patterns -> updates lookup_rclt_2."""
         if not self.exception_pattern:
             return
 
@@ -488,10 +495,10 @@ class GSUBTableGenerator:
 
                 self.lookup_order.add(lookup_name)
 
-        # Generate contextual rules for lookup_rclt_4
+        # Generate contextual rules for lookup_rclt_2 (exception pattern)
         if "patterns" in self.exception_pattern:
-            rclt_4_subtables = cast(
-                List[Dict[str, Any]], lookups["lookup_rclt_4"]["subtables"]
+            rclt_2_subtables = cast(
+                List[Dict[str, Any]], lookups["lookup_rclt_2"]["subtables"]
             )
             patterns_dict = cast(
                 Dict[str, Dict[str, Any]], self.exception_pattern["patterns"]
@@ -524,7 +531,7 @@ class GSUBTableGenerator:
                         ]
 
                         if match_cids:
-                            rclt_4_subtables.append(
+                            rclt_2_subtables.append(
                                 {
                                     "match": match_cids,
                                     "apply": [],
@@ -552,7 +559,7 @@ class GSUBTableGenerator:
                     ]
 
                     if match_cids:
-                        rclt_4_subtables.append(
+                        rclt_2_subtables.append(
                             {
                                 "match": match_cids,
                                 "apply": applies,
@@ -598,7 +605,7 @@ class GSUBTableGenerator:
         final_order.extend(lookup_11_list)
 
         # Add rclt lookups
-        final_order.extend(["lookup_rclt_2", "lookup_rclt_3", "lookup_rclt_4"])
+        final_order.extend(["lookup_rclt_0", "lookup_rclt_1", "lookup_rclt_2"])
 
         self.logger.debug("Final lookup order: %s", final_order)
         self.gsub_data["lookupOrder"] = final_order
