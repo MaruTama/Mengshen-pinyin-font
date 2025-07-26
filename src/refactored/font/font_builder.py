@@ -12,13 +12,13 @@ import orjson
 from ..config import (
     HAN_SERIF,
     HANDWRITTEN,
+    VERSION,
     FontConstants,
     FontMetadata,
     FontType,
     ProjectPaths,
 )
 from ..config.font_config import FontConfig
-from ..config.font_name_tables import VERSION
 from ..data import CharacterDataManager, MappingDataManager, PinyinDataManager
 from ..data.mapping_data import JsonCmapDataSource
 from ..processing.gsub_table_generator import GSUBTableGenerator

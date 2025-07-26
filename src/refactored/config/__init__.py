@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+from . import font_name_tables
 from .font_config import (
     FontConfig,
     FontConstants,
@@ -11,7 +12,7 @@ from .font_config import (
     HanziCanvas,
     PinyinCanvas,
 )
-from .name_table import HAN_SERIF, HANDWRITTEN, VERSION, FontNameEntry
+from .font_name_tables import HAN_SERIF, HANDWRITTEN, VERSION, FontNameEntry
 from .paths import ProjectPaths
 
 __all__ = [
@@ -26,4 +27,5 @@ __all__ = [
     "HAN_SERIF",
     "HANDWRITTEN",
     "VERSION",
+    "font_name_tables",
 ]

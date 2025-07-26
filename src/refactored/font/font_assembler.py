@@ -10,13 +10,13 @@ from typing import Any, Dict, List, cast
 import orjson
 
 from ..config import (
+    VERSION,
     FontConstants,
     FontMetadata,
     FontType,
     ProjectPaths,
     font_name_tables,
 )
-from ..config.font_name_tables import VERSION
 
 # Import comprehensive type definitions
 from ..types import FontData, HeadTable, StatsDict
