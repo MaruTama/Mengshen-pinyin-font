@@ -174,8 +174,8 @@ class TestFontConfig:
     @pytest.mark.unit
     def test_font_type_enum_values(self):
         """Test that FontType enum has expected values."""
-        assert FontType.HAN_SERIF == 1
-        assert FontType.HANDWRITTEN == 2
+        assert FontType.HAN_SERIF.value == "han_serif"
+        assert FontType.HANDWRITTEN.value == "handwritten"
 
         # Test that all enum values are supported
         for font_type in FontType:
