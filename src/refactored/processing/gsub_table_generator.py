@@ -47,7 +47,11 @@ class GSUBTableGenerator:
         self.pattern_two: Dict[str, Any] = {}
         self.exception_pattern: Dict[str, Any] = {}
 
-        # Initialize base GSUB structure (matches legacy exactly)
+        # レガシー実装からの重要な知識（元コメントを完全保持）:
+        # > calt も rclt も featute の数が多いと有効にならない。 feature には上限がある？ので、今は初期化して使う
+        # > rclt は calt と似ていて、かつ無効にできないタグ
+
+        # Initialize base GSUB structure
         self.gsub_data: Dict[str, Any] = {
             "languages": {
                 "DFLT_DFLT": {"features": ["aalt_00000", "rclt_00002"]},
@@ -90,7 +94,7 @@ class GSUBTableGenerator:
         }
 
     def generate_gsub_table(self) -> Dict[str, Any]:
-        """Generate complete GSUB table with legacy structure."""
+        """Generate complete GSUB table."""
         # Load pattern files
         self._load_pattern_data()
 
@@ -142,7 +146,7 @@ class GSUBTableGenerator:
                 self.exception_pattern = orjson.loads(f.read())
 
     def _make_aalt_feature(self) -> None:
-        """Generate aalt feature (exact legacy compatibility)."""
+        """Generate aalt feature."""
         aalt_0_subtables = cast(
             Dict[str, str], self.gsub_data["lookups"]["lookup_aalt_0"]["subtables"][0]
         )
@@ -186,8 +190,10 @@ class GSUBTableGenerator:
         self.lookup_order.add("lookup_aalt_1")
 
     def _make_rclt0_feature(self) -> None:
-        """Generate pattern one -> creates lookup_11_* tables (legacy structure)."""
+        """Generate pattern one -> creates lookup_11_* tables."""
         max_num_patterns = len(self.pattern_one)
+        # レガシー実装からの重要な知識（元コメントを完全保持）:
+        # > ピンインは10通りまでしか対応していません
         if max_num_patterns > 10:
             raise ValueError("Maximum 10 pronunciation patterns supported")
 
@@ -299,7 +305,7 @@ class GSUBTableGenerator:
                                 )
 
     def _make_rclt1_feature(self) -> None:
-        """Generate pattern two -> updates lookup_rclt_3 (legacy compatibility)."""
+        """Generate pattern two -> updates lookup_rclt_3."""
         if not self.pattern_two:
             return
 
@@ -474,7 +480,7 @@ class GSUBTableGenerator:
                         )
 
     def _make_lookup_order(self) -> None:
-        """Set final lookup order matching legacy structure."""
+        """Set final lookup order."""
         # Convert set to sorted list (matches legacy order)
         self.logger.debug("lookup_order contents: %s", self.lookup_order)
         self.logger.debug(

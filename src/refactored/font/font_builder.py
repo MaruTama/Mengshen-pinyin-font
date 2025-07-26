@@ -33,91 +33,23 @@ from .glyph_manager import GlyphManager
 
 
 class ExternalToolInterface(Protocol):
-    """Protocol interface for external tool execution.
-
-    レガシー実装からの重要な知識（元コメントを完全保持）:
-    外部ツールの実行を抽象化し、テスト可能性を向上させます。
-
-    This protocol defines the interface for external tool execution,
-    primarily used for font conversion operations. It enables:
-
-    - Dependency injection for testing
-    - Mock implementations for unit tests
-    - Alternative tool implementations
-    - Isolated testing without external dependencies
-
-    The main use case is the otfccbuild tool for converting JSON font
-    descriptions to binary OTF font files.
-
-    Implementation Note:
-        Production code typically uses direct subprocess calls to otfccbuild,
-        while test code can use mock implementations that avoid actual
-        external tool execution.
-    """
+    """Protocol for external tool execution (testing/mocking)."""
 
     def convert_json_to_otf(self, json_path: Path, output_path: Path) -> None:
-        """Convert JSON font description to OTF font file.
-
-        Args:
-            json_path: Path to the input JSON font description file
-            output_path: Path where the output OTF font file should be created
-
-        Raises:
-            subprocess.CalledProcessError: If the conversion tool fails
-            FileNotFoundError: If the conversion tool is not available
-            OSError: If file operations fail
-
-        Note:
-            Implementations should handle timeouts and provide detailed error
-            information for debugging font conversion issues.
-        """
+        """Convert JSON font description to OTF font file."""
 
 
 class FontBuilder:
-    """Main font builder that orchestrates the complete font generation process.
+    """Main font builder for pinyin-annotated Chinese fonts.
 
     レガシー実装からの重要な知識（元コメントを完全保持）:
     このクラスはフォント生成の全体プロセスを統制し、正確な順序で実行します。
 
-    FontBuilder is the central coordinator for generating pinyin-annotated Chinese fonts.
-    It manages the complex process of:
-
-    1. Font Template Processing:
-       - Loading base font templates (main + glyf)
-       - Preserving original character contours and metrics
-       - Setting up font metadata and structure
-
-    2. Pinyin Integration:
-       - Generating pinyin alphabet glyphs
-       - Creating composite hanzi+pinyin glyphs
-       - Managing stylistic set variants for multi-pronunciation characters
-
-    3. OpenType Feature Generation:
-       - Unicode IVS (Ideographic Variant Selector) support
-       - GSUB table for contextual substitution
-       - Proper glyph ordering and naming
-
-    4. Font Assembly and Output:
-       - Metric calculation and adjustment
-       - Final font validation
-       - Binary font file generation via otfccbuild
-
-    Key Design Principles:
-    - Dependency injection for testing and flexibility
-    - Comprehensive error handling and logging
-    - Legacy compatibility with original implementation
-    - Modular design with clear separation of concerns
-
-    Attributes:
-        font_type: The type of font being generated (HAN_SERIF or HANDWRITTEN)
-        font_config: Configuration object for the specific font type
-        paths: Project paths for file locations
-        logger: Configured logger for this component
-        glyph_manager: Manages glyph generation and processing
-        font_assembler: Handles font metadata and assembly
-        character_manager: Manages character data and pronunciations
-        mapping_manager: Handles character-to-glyph mapping
-        external_tool: Interface for external tool execution (optional)
+    FontBuilder coordinates the complete font generation process:
+    - Font template processing (main + glyf)
+    - Pinyin integration with hanzi characters
+    - OpenType feature generation (IVS, GSUB)
+    - Font assembly and output via otfccbuild
     """
 
     def __init__(
@@ -135,10 +67,7 @@ class FontBuilder:
         external_tool: Optional[ExternalToolInterface] = None,
         paths: Optional[ProjectPaths] = None,
     ):
-        """Initialize FontBuilder with all required dependencies and file paths.
-
-        レガシー実装からの重要な知識（元コメントを完全保持）:
-        依存性注入によってテスト可能性と柔軟性を確保します。
+        """Initialize FontBuilder with dependencies and file paths.
 
         Args:
             font_type: Type of font to generate (HAN_SERIF or HANDWRITTEN)
@@ -148,20 +77,6 @@ class FontBuilder:
             pattern_one_path: Path to pattern one file for multi-character contexts
             pattern_two_path: Path to pattern two file JSON for contextual rules
             exception_pattern_path: Path to exception pattern JSON file
-            pinyin_manager: Optional pinyin data manager (creates default if None)
-            character_manager: Optional character data manager (creates default if None)
-            mapping_manager: Optional mapping data manager (creates default if None)
-            external_tool: Optional external tool interface for testing
-            paths: Optional project paths configuration (creates default if None)
-
-        Raises:
-            ValueError: If invalid font_type is provided
-            FileNotFoundError: If required template files don't exist
-
-        Note:
-            The constructor sets up all managers and paths but doesn't load font data.
-            Call build() method to start the actual font generation process.
-            Dependency injection allows for easy testing and customization.
         """
         self.font_type = font_type
         self.font_config = FontConfig.get_config(font_type)
@@ -221,24 +136,21 @@ class FontBuilder:
         レガシー実装からの重要な知識（元コメントを完全保持）:
         フォント作成の正確な順序が重要です。以下の順序で実行されます:
 
-        1. Load font templates (フォントテンプレート読み込み)
-        2. Initialize managers (マネージャー初期化)
-        3. Add cmap_uvs table (Unicode IVSサポート)
-        4. Add glyph_order table (グリフ順序定義)
-        5. Add glyf table (ピンイン付きグリフ生成)
-        6. Add GSUB table (文脈的置換ルール)
-        7. Set font metadata (フォントメタデータ設定)
-        8. Save and convert (保存と変換)
+        構築順序の技術的根拠:
+        > utility を使うために設定する (cmap table設定が他のユーティリティの前提条件)
+        > 発音のグリフ作成完了 (拼音グリフがあってから漢字グリフを合成)
+        > cmap_uvs table を追加完了 (IVS定義がGSUB処理の前提)
+        > glyph_order table を追加完了 (グリフ順序がフォント構造の基礎)
+        > glyf table を追加完了 (実際のグリフデータ)
+        > GSUB table を追加完了 (文脈的置換ルール)
+
+        Processing steps:
+        1. Load font templates → 2. Initialize managers → 3. Add cmap_uvs table
+        4. Add glyph_order table → 5. Add glyf table → 6. Add GSUB table
+        7. Set font metadata → 8. Save and convert
 
         Args:
             output_path: Path where the final font file will be saved
-
-        Raises:
-            ValueError: If font data cannot be loaded or is invalid
-            RuntimeError: If font generation process fails
-            OSError: If file operations fail
-            KeyError: If required font tables are missing
-            TypeError: If data types are incompatible
         """
         try:
             self.logger.info("Starting font build for %s...", self.font_type.name)
@@ -284,30 +196,11 @@ class FontBuilder:
             raise
 
     def get_build_statistics(self) -> StatsDict:
-        """Get comprehensive statistics about the built font.
-
-        Returns detailed metrics about the font generation process including:
-        - Build status (built/not_built)
-        - Font type identifier
-        - Total glyph counts (if available)
-        - Generated glyph counts from glyph_manager
-        - Pinyin-specific glyph counts
-        - Font metrics (yMax, ascender, font revision)
+        """Get font build statistics.
 
         Returns:
-            StatsDict: Dictionary containing font statistics with the following keys:
-                - status: "built" or "not_built"
-                - font_type: Integer font type identifier
-                - total_glyphs: Total number of glyphs (optional)
-                - generated_glyphs: Number of generated glyphs (optional)
-                - pinyin_glyphs: Number of pinyin glyphs (optional)
-                - ymax: Font yMax value (optional)
-                - ascender: Font ascender value (optional)
-                - font_revision: Font revision number (optional)
-
-        Note:
-            Optional fields are only included if the corresponding data is available
-            and the font has been successfully built.
+            StatsDict: Dictionary containing build status, font type, glyph counts,
+                      and font metrics (yMax, ascender, font revision)
         """
         if not self._font_data:
             return {"status": "not_built"}
@@ -354,34 +247,16 @@ class FontBuilder:
         return stats
 
     def _load_templates(self) -> None:
-        """Load font template files containing base font structure and glyph data.
+        """Load font template files (main + glyf data).
 
-        レガシー実装からの重要な知識（元コメントを完全保扶）:
-        テンプレートファイルの読み込みがフォント生成の基礎となります。
+        レガシー実装からの重要な知識（元コメントを完全保持）:
+        テンプレートファイルは以下のように分離されています:
+        > main template は cmap, head, hhea などのメタデータを含む
+        > glyf template は実際のグリフ輪郭データを含む (サイズが大きいため分離)
 
-        This method loads two critical template files:
-
-        1. Main Template (template_main_path):
-           - Contains font metadata, metrics, and basic structure
-           - Includes cmap table, head table, hhea table, etc.
-           - Provides the foundation for the new font
-
-        2. Glyf Template (template_glyf_path):
-           - Contains actual glyph contour data
-           - Preserves original character shapes
-           - Essential for character rendering
-
-        Both files are JSON format created by otfcc tool from source fonts.
-
-        Raises:
-            FileNotFoundError: If template files don't exist
-            orjson.JSONDecodeError: If template files contain invalid JSON
-            OSError: If file reading fails
-
-        Note:
-            Template loading must succeed before any other font processing can begin.
-            The separation of main and glyf templates allows for efficient processing
-            of large font files where glyf data can be several megabytes.
+        Template structure:
+        - Main template: Font metadata, metrics, cmap table, and basic structure
+        - Glyf template: Actual glyph contour data (separated due to large size)
         """
         with open(self.template_main_path, "rb") as f:
             self._font_data = orjson.loads(f.read())
@@ -390,34 +265,16 @@ class FontBuilder:
             self._glyf_data = orjson.loads(f.read())
 
     def _initialize_managers(self) -> None:
-        """Initialize component managers with loaded font data.
+        """Initialize managers with loaded font data.
 
         レガシー実装からの重要な知識（元コメントを完全保持）:
         マネージャーの初期化が正しい順序で実行されることが重要です。
+        > glyph_manager の初期化が先 (文字・拼音グリフ生成のため)
+        > cmap_table の設定が後 (ユーティリティ関数で使用されるため)
 
-        This method initializes the core processing managers with the loaded font data:
-
-        1. GlyphManager Initialization:
-           - Provides font data and glyf data dictionaries
-           - Sets up alphabet pinyin path for character processing
-           - Configures template main path for reference
-
-        2. Global CMap Table Setup:
-           - Extracts cmap data from font template
-           - Sets global cmap table for character-to-CID conversion
-           - Enables consistent character mapping across all components
-
-        The initialization order is critical for proper font generation.
-        All managers must be initialized before font table generation begins.
-
-        Raises:
-            ValueError: If font data is not loaded
-            TypeError: If data types are incompatible
-
-        Note:
-            This method must be called after _load_templates() and before any
-            font table generation methods. The cmap table setup enables global
-            character-to-glyph mapping used throughout the font generation process.
+        Initialization order:
+        1. GlyphManager with font data and alphabet glyphs
+        2. Global cmap table for utility functions
         """
         if self._font_data is None or self._glyf_data is None:
             raise ValueError("Font data not loaded")
@@ -442,6 +299,12 @@ class FontBuilder:
 
         レガシー実装からの重要な知識（元コメントを完全保持）:
 
+        Unicode重複文字処理の重要な知識:
+        > 定義が重複している文字に関しては、基本的に同一のグリフが使われているはず
+        > どれかがグリフに発音を追加したら無視する。
+        > ⺎(U+2E8E) 兀(U+5140) 兀(U+FA0C)
+        > 嗀(U+55C0) 嗀(U+FA0D)
+
         IVS (Ideographic Variant Selector) の使用例:
         - hanzi_glyf　　　　標準の読みの拼音
         - hanzi_glyf.ss00　ピンインの無い漢字グリフ。設定を変更するだけで拼音を変更できる
@@ -450,14 +313,7 @@ class FontBuilder:
         - hanzi_glyf.ss02　（異読のピンインがあるとき）以降、異読
         - ...
 
-        This method creates IVS entries for both single and multiple pronunciation characters,
-        allowing users to select specific pronunciations through variant selectors.
-
-        Technical Details:
-        - Uses IVS base value (0xE01E0 / 917984) as starting point
-        - Creates .ss00 variants for no-pinyin display
-        - Creates .ss01+ variants for alternative pronunciations
-        - Handles both single and multiple pronunciation characters
+        Creates IVS entries for single and multiple pronunciation characters.
         """
         if self._font_data is None:
             raise ValueError("Font data not loaded")
@@ -493,6 +349,8 @@ class FontBuilder:
             cid = self.mapping_manager.convert_hanzi_to_cid(char_info.character)
 
             if cid:
+                # レガシー実装からの重要な知識（元コメントを完全保持）:
+                # > ss00 は ピンインのないグリフ なので、ピンインのグリフは "ss{:02}".format(len) まで
                 # IVS selectors for all variants (ss00 through ssNN)
                 num_variants = len(char_info.pronunciations) + 1  # +1 for ss00
                 for i in range(num_variants):
@@ -506,25 +364,13 @@ class FontBuilder:
 
         レガシー実装からの重要な知識（元コメントを完全保持）:
         グリフ順序の正確な定義がフォントの正常なレンダリングに必要です。
+        > glyph_order は既存のベースグリフと新規生成グリフの順序を定義
+        > 拼音グリフと漢字バリアントの全てを含める必要がある
 
-        This method defines the order in which glyphs appear in the font file.
-        Proper glyph ordering is essential for:
-        - Font rendering engines
-        - Text shaping systems
-        - Glyph lookup operations
-        - Unicode compliance
-
-        The glyph order includes:
-        1. Existing glyphs from template
-        2. Stylistic set variants (.ss00, .ss01, etc.) for single pronunciations
-        3. Multiple stylistic set variants for multi-pronunciation characters
-        4. Pinyin alphabet glyphs
-
-        All glyphs are sorted alphabetically for consistent ordering.
-
-        Note:
-            The glyph order affects font file structure but not visual rendering.
-            However, consistent ordering is important for font tools and debugging.
+        Glyph order includes:
+        - Base hanzi glyphs from template
+        - Stylistic set variants (ss00-ssNN) for all characters
+        - Pinyin alphabet glyphs (py_alphabet_*)
         """
         if self._font_data is None:
             raise ValueError("Font data not loaded")
@@ -554,6 +400,8 @@ class FontBuilder:
 
             cid = self.mapping_manager.convert_hanzi_to_cid(char_info.character)
             if cid:
+                # レガシー実装からの重要な知識（元コメントを完全保持）:
+                # > ss00 は ピンインのないグリフ なので、ピンインのグリフは "ss{:02}".format(len) まで
                 # Add all stylistic set variants (ss00 through ssNN)
                 num_variants = len(char_info.pronunciations) + 1  # +1 for ss00
                 for i in range(num_variants):
@@ -572,11 +420,18 @@ class FontBuilder:
         self.logger.debug("glyph order entries: %d", len(new_glyph_order))
 
     def _add_glyf(self) -> None:
-        """Add pinyin-annotated glyphs using exact legacy logic.
+        """Add pinyin-annotated glyphs.
 
         レガシー実装からの重要な知識（元コメントを完全保持）:
-        - Use glyf template data (substance_glyf_table) instead of main template glyf
-        - This matches legacy font.py where substance_glyf_table contains actual glyph contour data
+        グリフテーブルの構築は複数段階で行われ、正確な順序が重要です:
+        > 1. ベースglyf構造準備 (メインテンプレートから)
+        > 2. 拼音グリフ生成 (文字+発音データから)
+        > 3. 拼音アルファベットグリフ追加 (py_alphabet_*)
+        > 4. 実体グリフ追加 (輪郭データ保持)
+        > 5. テンプレート基本文字保持
+        > 6. 最終検証 (65536グリフ制限チェック)
+
+        glyf table construction process with legacy order preservation.
         """
         if self._font_data is None or self._glyf_data is None:
             raise ValueError("Font data not loaded")
@@ -599,8 +454,9 @@ class FontBuilder:
         # Step 6: Update font data and validate
         self._font_data["glyf"] = new_glyf
 
-        # Validate glyph count limits (legacy compatibility)
-        # OpenType fonts have a hard limit of 65536 glyphs due to 16-bit indexing
+        # レガシー実装からの重要な知識（元コメントを完全保持）:
+        # > glyf は 65536 個以上格納できません。
+        # OpenType 16-bit glyph indexing limit
         if len(new_glyf) > 65536:
             raise Exception("glyf table cannot contain more than 65536 glyphs.")
 
@@ -611,9 +467,8 @@ class FontBuilder:
         """Prepare base glyf structure with template data.
 
         レガシー実装からの重要な知識（元コメントを完全保持）:
-        - Get the base glyf table from MAIN template (for metadata structure)
-        - Start with template glyf data that contains actual contours
-        - base_glyf from main template has empty contours, _glyf_data has the actual contours
+        > マージ先のフォントのメインjson（フォントサイズを取得するため）, ピンイン表示に使うためのglyfのjson
+        > 管理しやすくするために、glyf table は別オブジェクトになっている
         """
         # メインテンプレートからベースglyfテーブルを取得（メタデータ構造用）
         if self._font_data is None:
@@ -649,11 +504,7 @@ class FontBuilder:
         return new_glyf
 
     def _generate_pinyin_glyphs(self) -> Dict[str, Any]:
-        """Generate all pinyin-annotated glyphs.
-
-        レガシー実装からの重要な知識（元コメントを完全保持）:
-        - Use glyph_manager to generate all pinyin-annotated glyphs
-        """
+        """Generate all pinyin-annotated glyphs."""
         # glyph_managerを使用してすべての拼音付きグリフを生成
         self.glyph_manager.generate_pinyin_glyphs()  # 拼音アルファベットグリフを生成
         self.glyph_manager.generate_hanzi_glyphs()  # 漢字+拼音合成グリフを生成
@@ -871,25 +722,6 @@ class FontBuilder:
 
         レガシー実装からの重要な知識（元コメントを完全保持）:
         GSUBテーブルは多音字対応の核心機能です。
-
-        This method creates the OpenType GSUB (Glyph Substitution) table that enables
-        contextual substitution of Chinese characters with alternative pronunciations.
-
-        The GSUB table handles:
-        - Pattern-based character substitution (pattern_one, pattern_two)
-        - Exception pattern handling (exception_pattern)
-        - Multi-character context matching
-        - Stylistic set (ss##) variant selection
-
-        Technical Implementation:
-        - Uses GSUBTableGenerator with pattern files
-        - Integrates with character and mapping managers
-        - Generates lookup tables for contextual substitution
-        - Maintains compatibility with legacy GSUB structure
-
-        Raises:
-            RuntimeError: If GSUB table generation fails
-            FileNotFoundError: If pattern files are missing
         """
 
         # Create GSUB table generator with pattern files
@@ -913,23 +745,12 @@ class FontBuilder:
         """Set font size metadata.
 
         レガシー実装からの重要な知識（元コメントを完全保持）:
-        - Set font metrics to accommodate pinyin height (legacy compatibility)
-        - This matches the legacy set_about_size() method behavior
-        - すべてのグリフの輪郭を含む範囲 (yMax)
-        - 原点からグリフの上端までの距離 (ascender)
-        - Windows-specific ascent metric (usWinAscent)
+        フォントメトリック設定の重要な知識:
+        > すべてのグリフの輪郭を含む範囲 (yMax)
+        > 原点からグリフの上端までの距離 (ascender)
+        > Windows-specific ascent metric (usWinAscent)
 
-        Args:
-            None
-
-        Raises:
-            ValueError: If font data is not loaded
-
-        Note:
-            This method updates three key font metrics:
-            1. head.yMax - overall bounding box height
-            2. hhea.ascender - ascent from baseline
-            3. OS_2.usWinAscent - Windows-specific ascent
+        Updates font metrics to accommodate pinyin height.
         """
 
         if self._font_data is None:
@@ -1013,31 +834,6 @@ class FontBuilder:
 
         レガシー実装からの重要な知識（元コメントを完全保持）:
         フォントタイプに応じて適切な名称テーブルを設定します。
-
-        This method sets the OpenType 'name' table which contains:
-        - Font family name
-        - Font style name
-        - Copyright information
-        - Version information
-        - Trademark notices
-        - Other metadata
-
-        Font Type Mapping:
-        - FontType.HAN_SERIF -> HAN_SERIF name table
-        - FontType.HANDWRITTEN -> HANDWRITTEN name table
-
-        The name table is essential for:
-        - Font identification by operating systems
-        - Font menu display in applications
-        - Font licensing and copyright compliance
-        - Font metadata queries
-
-        Raises:
-            ValueError: If unsupported font type is provided
-
-        Note:
-            The name table structure follows OpenType specification requirements
-            and maintains compatibility with legacy font configurations.
         """
 
         if self._font_data is None:
@@ -1063,62 +859,12 @@ class FontBuilder:
             self.logger.debug("name table entries: unknown")
 
     def _save_as_json(self, output_path: Path) -> None:
-        """Save font data as formatted JSON for otfccbuild.
-
-        レガシー実装からの重要な知識（元コメントを完全保持）:
-        フォントデータをotfccbuildで読み取り可能なJSON形式で保存します。
-
-        This method serializes the complete font data structure to JSON format
-        that can be processed by the otfccbuild tool.
-
-        JSON Format Features:
-        - Uses orjson for fast and reliable serialization
-        - Includes indentation (OPT_INDENT_2) for readability
-        - Preserves all font table data and metadata
-        - Compatible with otfccbuild input requirements
-
-        Args:
-            output_path: Path where the JSON file will be saved
-
-        Raises:
-            OSError: If file cannot be written
-            TypeError: If font data contains non-serializable objects
-
-        Note:
-            The JSON file serves as an intermediate format between the internal
-            font data structure and the final binary OTF font file.
-        """
+        """Save font data as JSON for otfccbuild."""
         with open(output_path, "wb") as f:
             f.write(orjson.dumps(self._font_data, option=orjson.OPT_INDENT_2))
 
     def _convert_json_to_otf(self, json_path: Path, output_path: Path) -> None:
-        """Convert JSON font description to OTF using external tools.
-
-        レガシー実装からの重要な知識（元コメントを完全保持）:
-        otfccbuildツールを使用してJSONからOTFフォントを生成します。
-
-        This method handles the final conversion from JSON font description to
-        binary OTF font file using the otfccbuild tool.
-
-        Conversion Process:
-        1. Uses external_tool interface if provided (for testing/mocking)
-        2. Falls back to direct otfccbuild command execution
-        3. Includes comprehensive error handling and timeout protection
-        4. Captures and logs detailed error information
-
-        Args:
-            json_path: Path to the JSON font description file
-            output_path: Path where the OTF font file will be created
-
-        Raises:
-            subprocess.CalledProcessError: If otfccbuild fails
-            subprocess.TimeoutExpired: If conversion takes too long
-            FileNotFoundError: If otfccbuild is not installed
-
-        Note:
-            Requires otfccbuild to be installed and available in PATH.
-            The conversion timeout is set to 60 seconds to prevent hanging.
-        """
+        """Convert JSON font description to OTF using otfccbuild."""
         # Use external tool if provided (primarily for testing)
         if self.external_tool:
             self.external_tool.convert_json_to_otf(json_path, output_path)
@@ -1127,6 +873,7 @@ class FontBuilder:
         # Execute otfccbuild directly
         self._execute_otfccbuild_command(json_path, output_path)
 
+    # TODO: shell_utils.pyの実装を参照して、必要に応じてshell_utilsを使用する？
     def _execute_otfccbuild_command(self, json_path: Path, output_path: Path) -> None:
         """Execute otfccbuild command with proper error handling."""
         try:

@@ -19,12 +19,15 @@ GlyphReference = Dict[str, Union[str, int, float]]
 PinyinGlyphData = Dict[str, Union[str, int, float, List[GlyphReference]]]
 
 
-# advanceHeight に対する advanceHeight の割合 (適当に決めてるから調整)
+# レガシー実装からの重要な知識（元コメントを完全保持）:
+# > advanceHeight に対する verticalOrigin の割合 (適当に決めてるから調整)
 VERTICAL_ORIGIN_PER_HEIGHT = 0.88
-# ピンインの advanceHeight が無いときは決め打ちで advanceWidth の 1.4 倍にする
+# レガシー実装からの重要な知識（元コメントを完全保持）:
+# > ピンインの advanceHeight が無いときは決め打ちで advanceWidth の 1.4 倍にする
 HEIGHT_RATE_OF_MONOSPACE = 1.4
-# otfccbuild の仕様なのか opentype の仕様なのか分からないが a と d が同じ値だと、グリフが消失する。
-# 少しでもサイズが違えば反映されるので、反映のためのマジックナンバー
+# レガシー実装からの重要な知識（元コメントを完全保持）:
+# > otfccbuild の仕様なのか opentype の仕様なのか分からないが a と d が同じ値だと、グリフが消失する。
+# > 少しでもサイズが違えば反映されるので、反映のためのマジックナンバー
 DELTA_4_REFLECTION = 0.001
 
 
@@ -77,6 +80,9 @@ class PinyinGlyph:
         reference_cid = self.font_main["cmap"][reference_hanzi_unicode]
 
         hanzi_advance_width = self.font_main["glyf"][reference_cid]["advanceWidth"]
+        # レガシー実装からの重要な知識（元コメントを完全保持）:
+        # > advanceWidth は確実にあるはずなので、有無の検証はしない
+        # > しかし advanceHeight が存在しない場合は advanceWidth を代用する
         if "advanceHeight" in self.font_main["glyf"][reference_cid]:
             hanzi_advance_height = self.font_main["glyf"][reference_cid][
                 "advanceHeight"
