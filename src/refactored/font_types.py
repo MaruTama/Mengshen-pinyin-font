@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Type definitions for the Mengshen font project."""
+"""Font-specific type definitions for the Mengshen font project."""
 
 from __future__ import annotations
 

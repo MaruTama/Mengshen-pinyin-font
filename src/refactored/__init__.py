@@ -19,6 +19,6 @@ from .cli import main
 
 # Package-level imports for convenience
 from .config import FontConfig, FontType
-from .font import FontBuilder
+from .generation import FontBuilder
 
 __all__ = ["FontType", "FontConfig", "FontBuilder", "main"]

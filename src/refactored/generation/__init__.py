@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Font generation module."""
+"""Font generation business logic module."""
 
 from __future__ import annotations
 

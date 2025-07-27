@@ -12,7 +12,7 @@ from typing import List, Optional
 from refactored.config.font_config import FontConfig, FontType
 from refactored.config.paths import DIR_TEMP
 
-from ..utils.logging_config import get_scripts_logger, setup_logging
+from ..utils.logging_config import LOGGER_SCRIPTS, get_logger, setup_logging
 from ..utils.shell_utils import ShellExecutor
 
 TEMPLATE_TEMP_JSON = "template_temp.json"
@@ -65,7 +65,7 @@ class TemplateJsonMaker:
         template_glyf_json_path = os.path.join(DIR_TEMP, f"template_glyf_{style}.json")
 
         if is_docker_environment():
-            logger = get_scripts_logger()
+            logger = get_logger(LOGGER_SCRIPTS)
             logger.info(
                 "Docker environment detected, using Python JSON processing for glyf extraction"
             )
@@ -96,7 +96,7 @@ class TemplateJsonMaker:
         template_main_json_path = os.path.join(DIR_TEMP, f"template_main_{style}.json")
 
         if is_docker_environment():
-            logger = get_scripts_logger()
+            logger = get_logger(LOGGER_SCRIPTS)
             logger.info(
                 "Docker environment detected, using Python JSON processing for %s",
                 style,
@@ -193,7 +193,7 @@ def make_template_main(args: Optional[List[str]] = None) -> None:
     maker = TemplateJsonMaker()
     maker.make_template(source_font, options.style)
 
-    logger = get_scripts_logger()
+    logger = get_logger(LOGGER_SCRIPTS)
     logger.info("Template JSON files created for %s style", options.style)
 
 

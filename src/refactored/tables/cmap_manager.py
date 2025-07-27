@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Simplified utility functions for font generation."""
+"""Character mapping table management for font processing."""
 
 from __future__ import annotations
 
@@ -60,28 +60,3 @@ class CmapTableManager:
             List of CID strings
         """
         return [self.convert_hanzi_to_cid(hanzi) for hanzi in hanzi_list]
-
-
-# Global instance for backward compatibility
-_global_cmap_manager = CmapTableManager()
-
-
-# Legacy global functions for backward compatibility
-def set_cmap_table(new_cmap_table: Dict[str, str]) -> None:
-    """Set the global cmap table for font processing."""
-    _global_cmap_manager.set_cmap_table(new_cmap_table)
-
-
-def get_cmap_table() -> Dict[str, str]:
-    """Get the current cmap table."""
-    return _global_cmap_manager.get_cmap_table()
-
-
-def convert_hanzi_to_cid(hanzi: str) -> str:
-    """Convert hanzi character to CID using cmap table."""
-    return _global_cmap_manager.convert_hanzi_to_cid(hanzi)
-
-
-def batch_convert_hanzi_to_cid(hanzi_list: list[str]) -> list[str]:
-    """Convert multiple hanzi characters to CIDs."""
-    return _global_cmap_manager.batch_convert_hanzi_to_cid(hanzi_list)

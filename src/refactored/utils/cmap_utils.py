@@ -10,7 +10,6 @@ Contains functions for loading and working with font character mapping tables.
 from __future__ import annotations
 
 import os
-from functools import lru_cache
 from pathlib import Path
 from typing import Dict, Optional
 
@@ -70,28 +69,28 @@ def load_cmap_table_from_path(template_path: str) -> Dict[str, str]:
         ) from e
 
 
-def set_cmap_table(new_cmap_table: Dict[str, str]) -> None:
-    """
-    Set the global cmap table.
+# def set_cmap_table(new_cmap_table: Dict[str, str]) -> None:
+#     """
+#     Set the global cmap table.
 
-    Args:
-        new_cmap_table: New character mapping table
-    """
-    globals()["cmap_table"] = new_cmap_table
+#     Args:
+#         new_cmap_table: New character mapping table
+#     """
+#     globals()["cmap_table"] = new_cmap_table
 
 
-def clear_cmap_table() -> None:
-    """Clear the global cmap table cache."""
-    globals()["cmap_table"] = {}
+# def clear_cmap_table() -> None:
+#     """Clear the global cmap table cache."""
+#     globals()["cmap_table"] = {}
 
 
 # 漢字から cid を取得する
-@lru_cache(maxsize=2048)
-def convert_str_hanzi_2_cid(str_hanzi: str) -> str:
-    """Convert hanzi character to CID with caching for performance."""
-    if len(cmap_table) == 0:
-        get_cmap_table()
-    return cmap_table[str(ord(str_hanzi))]
+# @lru_cache(maxsize=2048)
+# def convert_str_hanzi_2_cid(str_hanzi: str) -> str:
+#     """Convert hanzi character to CID with caching for performance."""
+#     if len(cmap_table) == 0:
+#         get_cmap_table()
+#     return cmap_table[str(ord(str_hanzi))]
 
 
 def convert_hanzi_to_cid_safe(
@@ -122,83 +121,83 @@ def convert_hanzi_to_cid_safe(
     return mapping_table.get(unicode_value)
 
 
-def get_unicode_from_cid(
-    cid: str, cmap: Optional[Dict[str, str]] = None
-) -> Optional[str]:
-    """
-    Get Unicode value from CID by reverse lookup.
+# def get_unicode_from_cid(
+#     cid: str, cmap: Optional[Dict[str, str]] = None
+# ) -> Optional[str]:
+#     """
+#     Get Unicode value from CID by reverse lookup.
 
-    Args:
-        cid: Character ID to look up
-        cmap: Optional custom cmap table to use
+#     Args:
+#         cid: Character ID to look up
+#         cmap: Optional custom cmap table to use
 
-    Returns:
-        Unicode string if found, None if not found
-    """
-    # Use provided cmap or global cmap
-    mapping_table = cmap if cmap else cmap_table
+#     Returns:
+#         Unicode string if found, None if not found
+#     """
+#     # Use provided cmap or global cmap
+#     mapping_table = cmap if cmap else cmap_table
 
-    # Load global cmap if empty and no custom cmap provided
-    if not mapping_table and not cmap:
-        get_cmap_table()
-        mapping_table = cmap_table
+#     # Load global cmap if empty and no custom cmap provided
+#     if not mapping_table and not cmap:
+#         get_cmap_table()
+#         mapping_table = cmap_table
 
-    # Reverse lookup
-    for unicode_str, mapped_cid in mapping_table.items():
-        if mapped_cid == cid:
-            return unicode_str
+#     # Reverse lookup
+#     for unicode_str, mapped_cid in mapping_table.items():
+#         if mapped_cid == cid:
+#             return unicode_str
 
-    return None
-
-
-def get_hanzi_from_cid(
-    cid: str, cmap: Optional[Dict[str, str]] = None
-) -> Optional[str]:
-    """
-    Get hanzi character from CID.
-
-    Args:
-        cid: Character ID to look up
-        cmap: Optional custom cmap table to use
-
-    Returns:
-        Hanzi character if found, None if not found
-    """
-    unicode_str = get_unicode_from_cid(cid, cmap)
-
-    if unicode_str:
-        try:
-            return chr(int(unicode_str))
-        except (ValueError, OverflowError):
-            return None
-
-    return None
+#     return None
 
 
-def validate_cmap_table(cmap: Dict[str, str]) -> bool:
-    """
-    Validate cmap table structure.
+# def get_hanzi_from_cid(
+#     cid: str, cmap: Optional[Dict[str, str]] = None
+# ) -> Optional[str]:
+#     """
+#     Get hanzi character from CID.
 
-    Args:
-        cmap: Character mapping table to validate
+#     Args:
+#         cid: Character ID to look up
+#         cmap: Optional custom cmap table to use
 
-    Returns:
-        True if valid, False otherwise
-    """
-    if not isinstance(cmap, dict):
-        return False
+#     Returns:
+#         Hanzi character if found, None if not found
+#     """
+#     unicode_str = get_unicode_from_cid(cid, cmap)
 
-    for unicode_str, cid in cmap.items():
-        # Check that keys are valid Unicode values
-        try:
-            unicode_value = int(unicode_str)
-            if unicode_value < 0:
-                return False
-        except ValueError:
-            return False
+#     if unicode_str:
+#         try:
+#             return chr(int(unicode_str))
+#         except (ValueError, OverflowError):
+#             return None
 
-        # Check that values are valid CID strings
-        if not isinstance(cid, str) or not cid:
-            return False
+#     return None
 
-    return True
+
+# def validate_cmap_table(cmap: Dict[str, str]) -> bool:
+#     """
+#     Validate cmap table structure.
+
+#     Args:
+#         cmap: Character mapping table to validate
+
+#     Returns:
+#         True if valid, False otherwise
+#     """
+#     if not isinstance(cmap, dict):
+#         return False
+
+#     for unicode_str, cid in cmap.items():
+#         # Check that keys are valid Unicode values
+#         try:
+#             unicode_value = int(unicode_str)
+#             if unicode_value < 0:
+#                 return False
+#         except ValueError:
+#             return False
+
+#         # Check that values are valid CID strings
+#         if not isinstance(cid, str) or not cid:
+#             return False
+
+#     return True

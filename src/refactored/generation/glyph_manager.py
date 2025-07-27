@@ -12,7 +12,7 @@ import orjson
 
 from ..config import FontConstants, FontMetadata, FontType
 from ..data import CharacterDataManager, MappingDataManager
-from ..utils.logging_config import get_debug_logger
+from ..utils.logging_config import LOGGER_DEBUG, get_logger
 from ..utils.pinyin_utils import simplification_pronunciation
 
 # Font data types
@@ -75,7 +75,7 @@ class PinyinGlyphGenerator:
         self.font_type = font_type
         self.font_config = font_config
         self._pinyin_alphabets: Optional[FontGlyphDict] = None
-        self.logger = get_debug_logger()
+        self.logger = get_logger(LOGGER_DEBUG)
         self._pronunciation_glyphs: Optional[PinyinGlyphDict] = None
 
     def load_alphabet_glyphs(self, alphabet_path: Path) -> None:
@@ -384,7 +384,7 @@ class HanziGlyphGenerator:
         self.character_manager = character_manager
         self.mapping_manager = mapping_manager
         self.pinyin_generator = pinyin_generator
-        self.logger = get_debug_logger()
+        self.logger = get_logger(LOGGER_DEBUG)
 
         # Duplicate definition tracking
         self._duplicate_unicode_groups = [
@@ -660,7 +660,7 @@ class GlyphManager:
         self.hanzi_generator = HanziGlyphGenerator(
             font_config, character_manager, mapping_manager, self.pinyin_generator
         )
-        self.logger = get_debug_logger()
+        self.logger = get_logger(LOGGER_DEBUG)
 
         self._all_glyphs: FontGlyphDict = {}
         self._pronunciation_glyphs: PinyinGlyphDict = {}

@@ -73,22 +73,8 @@ def get_logger(name: str = "mengshen") -> logging.Logger:
     return logging.getLogger(name)
 
 
-# Backward compatibility functions
-def get_cli_logger() -> logging.Logger:
-    """Get logger for CLI operations."""
-    return get_logger("mengshen.cli")
-
-
-def get_builder_logger() -> logging.Logger:
-    """Get logger for font building operations."""
-    return get_logger("mengshen.builder")
-
-
-def get_debug_logger() -> logging.Logger:
-    """Get logger for debug information."""
-    return get_logger("mengshen.debug")
-
-
-def get_scripts_logger() -> logging.Logger:
-    """Get logger for script operations."""
-    return get_logger("mengshen.scripts")
+# Standard logger names used throughout the application
+LOGGER_CLI = "mengshen.cli"
+LOGGER_BUILDER = "mengshen.builder"
+LOGGER_DEBUG = "mengshen.debug"
+LOGGER_SCRIPTS = "mengshen.scripts"

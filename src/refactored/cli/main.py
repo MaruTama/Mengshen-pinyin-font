@@ -9,8 +9,8 @@ from pathlib import Path
 from typing import Optional
 
 from ..config import FontType, ProjectPaths
-from ..font import FontBuilder
-from ..utils.logging_config import get_cli_logger, setup_logging
+from ..generation import FontBuilder
+from ..utils.logging_config import LOGGER_CLI, get_logger, setup_logging
 
 
 class FontGenerationCLI:
@@ -19,7 +19,7 @@ class FontGenerationCLI:
     def __init__(self, paths: Optional[ProjectPaths] = None):
         """Initialize CLI with project paths."""
         self.paths = paths or ProjectPaths()
-        self.logger = get_cli_logger()
+        self.logger = get_logger(LOGGER_CLI)
 
     def _create_argument_parser(self) -> argparse.ArgumentParser:
         """Create command line argument parser."""
