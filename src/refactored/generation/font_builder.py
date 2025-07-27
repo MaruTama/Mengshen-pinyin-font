@@ -27,7 +27,7 @@ from ..font_types import HeadTable, HheaTable, OS2Table
 from ..tables.cmap_manager import CmapTableManager
 from ..tables.gsub_table_generator import GSUBTableGenerator
 from ..utils.cmap_utils import load_cmap_table_from_path
-from ..utils.logging_config import LOGGER_BUILDER, get_logger
+from ..utils.logging_config import get_logger
 from ..utils.shell_utils import SecurityError, safe_command_execution
 from .font_assembler import FontAssembler
 from .glyph_manager import GlyphManager
@@ -92,7 +92,7 @@ class FontBuilder:
         self.pinyin_manager = pinyin_manager or PinyinDataManager()
 
         # Logging
-        self.logger = get_logger(LOGGER_BUILDER)
+        self.logger = get_logger("mengshen.font_builder")
         self.character_manager = character_manager or CharacterDataManager(
             self.pinyin_manager
         )

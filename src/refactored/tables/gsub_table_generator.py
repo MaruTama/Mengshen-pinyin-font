@@ -13,7 +13,7 @@ from ..data import CharacterDataManager, MappingDataManager
 
 # Import utility functions
 from ..utils.cmap_utils import convert_hanzi_to_cid_safe
-from ..utils.logging_config import LOGGER_DEBUG, get_logger
+from ..utils.logging_config import get_logger
 
 
 class GSUBTableGenerator:
@@ -35,7 +35,7 @@ class GSUBTableGenerator:
         self.character_manager = character_manager
         self.mapping_manager = mapping_manager
         self.cmap_table = cmap_table
-        self.logger = get_logger(LOGGER_DEBUG)
+        self.logger = get_logger("mengshen.gsub_table")
 
         # Track dynamically created lookups
         self.lookup_order: set[str] = set()

@@ -73,8 +73,7 @@ def get_logger(name: str = "mengshen") -> logging.Logger:
     return logging.getLogger(name)
 
 
-# Standard logger names used throughout the application
-LOGGER_CLI = "mengshen.cli"
-LOGGER_BUILDER = "mengshen.builder"
-LOGGER_DEBUG = "mengshen.debug"
-LOGGER_SCRIPTS = "mengshen.scripts"
+# Usage examples:
+# logger = get_logger("mengshen.font_builder")
+# logger.info("INFO level message")
+# logger.debug("DEBUG level message")

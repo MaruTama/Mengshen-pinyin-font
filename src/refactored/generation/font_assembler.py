@@ -17,7 +17,7 @@ from ..config import (
 
 # Import comprehensive type definitions
 from ..font_types import FontData, HeadTable
-from ..utils.logging_config import LOGGER_BUILDER, get_logger
+from ..utils.logging_config import get_logger
 
 
 class FontAssembler:
@@ -32,7 +32,7 @@ class FontAssembler:
         """
         self.font_config: FontMetadata = font_config
         self.paths = paths
-        self.logger = get_logger(LOGGER_BUILDER)
+        self.logger = get_logger("mengshen.font_assembler")
 
     def _get_current_font_timestamp(self) -> int:
         """Get current time as TrueType font timestamp.

@@ -11,7 +11,7 @@ from typing import Dict, List, Optional, Union
 from refactored.config.font_config import FontConfig, FontType
 from refactored.config.paths import DIR_TEMP
 
-from ..utils.logging_config import LOGGER_SCRIPTS, get_logger, setup_logging
+from ..utils.logging_config import get_logger, setup_logging
 from ..utils.shell_utils import ShellExecutor
 
 # Font glyph data types (Python 3.10+ syntax)
@@ -96,7 +96,7 @@ class LatinAlphabetRetriever:
         try:
             self.shell.execute(cmd)
         except (OSError, RuntimeError) as e:
-            logger = get_logger(LOGGER_SCRIPTS)
+            logger = get_logger("mengshen.scripts.retrieve_alphabet")
             logger.error("Error converting font to JSON: %s", e)
             raise
 
@@ -126,7 +126,7 @@ class LatinAlphabetRetriever:
                 return result_dict
             return {}
         except (OSError, ValueError, RuntimeError, KeyError, TypeError) as e:
-            logger = get_logger(LOGGER_SCRIPTS)
+            logger = get_logger("mengshen.scripts.retrieve_alphabet")
             logger.error("Error extracting cmap table: %s", e)
             return {}
 
@@ -156,7 +156,7 @@ class LatinAlphabetRetriever:
                 return result_dict
             return {}
         except (OSError, ValueError, RuntimeError, KeyError, TypeError) as e:
-            logger = get_logger(LOGGER_SCRIPTS)
+            logger = get_logger("mengshen.scripts.retrieve_alphabet")
             logger.error("Error extracting glyf table: %s", e)
             return {}
 
@@ -182,7 +182,7 @@ class LatinAlphabetRetriever:
             with open(output_path, "w", encoding="utf-8") as f:
                 json.dump(alphabet_glyphs, f, ensure_ascii=False, indent=2)
         except (OSError, ValueError, RuntimeError, KeyError, TypeError) as e:
-            logger = get_logger(LOGGER_SCRIPTS)
+            logger = get_logger("mengshen.scripts.retrieve_alphabet")
             logger.error("Error saving alphabet JSON: %s", e)
             raise
 
@@ -206,7 +206,7 @@ class LatinAlphabetRetriever:
             # Save result
             self.save_alphabet_json(alphabet_glyphs, output_json_path)
 
-            logger = get_logger(LOGGER_SCRIPTS)
+            logger = get_logger("mengshen.scripts.retrieve_alphabet")
             logger.info(
                 "Successfully extracted %d alphabet glyphs for %s style",
                 len(alphabet_glyphs),
@@ -253,7 +253,7 @@ def retrieve_alphabet_main(args: Optional[List[str]] = None) -> None:
     retriever = LatinAlphabetRetriever()
     retriever.retrieve_alphabet(source_font, options.style)
 
-    logger = get_logger(LOGGER_SCRIPTS)
+    logger = get_logger("mengshen.scripts.retrieve_alphabet")
     logger.info("Latin alphabet extraction completed for %s style", options.style)
 
 
