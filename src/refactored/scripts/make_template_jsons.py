@@ -56,7 +56,7 @@ class TemplateJsonMaker:
         """Convert OpenType font to JSON format."""
         template_temp_json_path = os.path.join(DIR_TEMP, TEMPLATE_TEMP_JSON)
         # Use --ugly for faster processing, prettify later only if needed
-        cmd = f"otfccdump -o {template_temp_json_path} --ugly {source_font_name}"
+        cmd = ["otfccdump", "-o", template_temp_json_path, "--ugly", source_font_name]
         self.shell.execute(cmd)
 
     def make_new_glyf_table_json(self, style: str) -> None:
@@ -87,8 +87,13 @@ class TemplateJsonMaker:
 
     def _fallback_to_jq_glyf(self, temp_path: str, output_path: str) -> None:
         """Extract glyf table using jq."""
-        cmd = f"jq '.glyf' {temp_path} > {output_path}"
-        self.shell.execute(cmd)
+        # Execute jq command and capture output
+        cmd = ["jq", ".glyf", temp_path]
+        result = self.shell.execute(cmd)
+
+        # Write output to file
+        with open(output_path, "wb") as f:
+            f.write(result.stdout)
 
     def delete_glyf_table_on_main_json(self, style: str) -> None:
         """Create main template JSON with glyf contours removed."""
@@ -124,8 +129,13 @@ class TemplateJsonMaker:
 
     def _fallback_to_jq_main(self, temp_path: str, output_path: str) -> None:
         """Create main template using jq."""
-        cmd = f"jq '.glyf |= map_values( (select(1).contours |= []) // .)' {temp_path} > {output_path}"
-        self.shell.execute(cmd)
+        # Execute jq command and capture output
+        cmd = ["jq", ".glyf |= map_values( (select(1).contours |= []) // .)", temp_path]
+        result = self.shell.execute(cmd)
+
+        # Write output to file
+        with open(output_path, "wb") as f:
+            f.write(result.stdout)
 
     def make_template(self, source_font_name: str, style: str) -> None:
         """Create template JSON files from font."""

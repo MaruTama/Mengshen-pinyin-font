@@ -97,114 +97,114 @@ def simplification_pronunciation(pronunciation: str) -> str:
         return "".join(result)
 
 
-def normalize_pinyin(pinyin: str) -> str:
-    """
-    Normalize pinyin by removing tone marks while preserving structure.
+# def normalize_pinyin(pinyin: str) -> str:
+#     """
+#     Normalize pinyin by removing tone marks while preserving structure.
 
-    Args:
-        pinyin: Raw pinyin with possible tone marks
+#     Args:
+#         pinyin: Raw pinyin with possible tone marks
 
-    Returns:
-        Normalized pinyin without tone marks
-    """
-    # Map tone characters to base characters
-    tone_mapping = {
-        # a variations
-        "ā": "a",
-        "á": "a",
-        "ǎ": "a",
-        "à": "a",
-        # e variations
-        "ē": "e",
-        "é": "e",
-        "ě": "e",
-        "è": "e",
-        # i variations
-        "ī": "i",
-        "í": "i",
-        "ǐ": "i",
-        "ì": "i",
-        # o variations
-        "ō": "o",
-        "ó": "o",
-        "ǒ": "o",
-        "ò": "o",
-        # u variations
-        "ū": "u",
-        "ú": "u",
-        "ǔ": "u",
-        "ù": "u",
-        # ü variations
-        "ǖ": "ü",
-        "ǘ": "ü",
-        "ǚ": "ü",
-        "ǜ": "ü",
-        # m variations
-        "m̄": "m",
-        "ḿ": "m",
-        "m̀": "m",
-        # n variations
-        "ń": "n",
-        "ň": "n",
-        "ǹ": "n",
-    }
+#     Returns:
+#         Normalized pinyin without tone marks
+#     """
+#     # Map tone characters to base characters
+#     tone_mapping = {
+#         # a variations
+#         "ā": "a",
+#         "á": "a",
+#         "ǎ": "a",
+#         "à": "a",
+#         # e variations
+#         "ē": "e",
+#         "é": "e",
+#         "ě": "e",
+#         "è": "e",
+#         # i variations
+#         "ī": "i",
+#         "í": "i",
+#         "ǐ": "i",
+#         "ì": "i",
+#         # o variations
+#         "ō": "o",
+#         "ó": "o",
+#         "ǒ": "o",
+#         "ò": "o",
+#         # u variations
+#         "ū": "u",
+#         "ú": "u",
+#         "ǔ": "u",
+#         "ù": "u",
+#         # ü variations
+#         "ǖ": "ü",
+#         "ǘ": "ü",
+#         "ǚ": "ü",
+#         "ǜ": "ü",
+#         # m variations
+#         "m̄": "m",
+#         "ḿ": "m",
+#         "m̀": "m",
+#         # n variations
+#         "ń": "n",
+#         "ň": "n",
+#         "ǹ": "n",
+#     }
 
-    result = []
-    for char in pinyin:
-        result.append(tone_mapping.get(char, char))
+#     result = []
+#     for char in pinyin:
+#         result.append(tone_mapping.get(char, char))
 
-    return "".join(result)
+#     return "".join(result)
 
 
-def extract_tone_number(pinyin: str) -> int:
-    """
-    Extract tone number from pinyin with tone marks.
+# def extract_tone_number(pinyin: str) -> int:
+#     """
+#     Extract tone number from pinyin with tone marks.
 
-    Args:
-        pinyin: Pinyin with tone marks
+#     Args:
+#         pinyin: Pinyin with tone marks
 
-    Returns:
-        Tone number (1-4), or 0 if neutral tone
-    """
-    tone_map = {
-        # First tone (ā)
-        "ā": 1,
-        "ē": 1,
-        "ī": 1,
-        "ō": 1,
-        "ū": 1,
-        "ǖ": 1,
-        "m̄": 1,
-        # Second tone (á)
-        "á": 2,
-        "é": 2,
-        "í": 2,
-        "ó": 2,
-        "ú": 2,
-        "ǘ": 2,
-        "ḿ": 2,
-        "ń": 2,
-        # Third tone (ǎ)
-        "ǎ": 3,
-        "ě": 3,
-        "ǐ": 3,
-        "ǒ": 3,
-        "ǔ": 3,
-        "ǚ": 3,
-        "ň": 3,
-        # Fourth tone (à)
-        "à": 4,
-        "è": 4,
-        "ì": 4,
-        "ò": 4,
-        "ù": 4,
-        "ǜ": 4,
-        "m̀": 4,
-        "ǹ": 4,
-    }
+#     Returns:
+#         Tone number (1-4), or 0 if neutral tone
+#     """
+#     tone_map = {
+#         # First tone (ā)
+#         "ā": 1,
+#         "ē": 1,
+#         "ī": 1,
+#         "ō": 1,
+#         "ū": 1,
+#         "ǖ": 1,
+#         "m̄": 1,
+#         # Second tone (á)
+#         "á": 2,
+#         "é": 2,
+#         "í": 2,
+#         "ó": 2,
+#         "ú": 2,
+#         "ǘ": 2,
+#         "ḿ": 2,
+#         "ń": 2,
+#         # Third tone (ǎ)
+#         "ǎ": 3,
+#         "ě": 3,
+#         "ǐ": 3,
+#         "ǒ": 3,
+#         "ǔ": 3,
+#         "ǚ": 3,
+#         "ň": 3,
+#         # Fourth tone (à)
+#         "à": 4,
+#         "è": 4,
+#         "ì": 4,
+#         "ò": 4,
+#         "ù": 4,
+#         "ǜ": 4,
+#         "m̀": 4,
+#         "ǹ": 4,
+#     }
 
-    for char in pinyin:
-        if char in tone_map:
-            return tone_map[char]
+#     for char in pinyin:
+#         if char in tone_map:
+#             return tone_map[char]
 
-    return 0  # Neutral tone
+#     return 0  # Neutral tone

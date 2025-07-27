@@ -92,7 +92,7 @@ class LatinAlphabetRetriever:
 
     def convert_otf2json(self, source_font_name: str, output_json: str) -> None:
         """Convert OpenType font to JSON format."""
-        cmd = f"otfccdump -o {output_json} --pretty {source_font_name}"
+        cmd = ["otfccdump", "-o", output_json, "--pretty", source_font_name]
         try:
             self.shell.execute(cmd)
         except (OSError, RuntimeError) as e:
@@ -102,9 +102,10 @@ class LatinAlphabetRetriever:
 
     def get_cmap_table(self, source_font_json: str) -> Dict[str, str]:
         """Extract cmap table from font JSON."""
-        cmd = f"cat {source_font_json} | jq '.cmap'"
+        # Use jq to extract cmap table
+        cmd = ["jq", ".cmap", source_font_json]
         try:
-            result = self.shell.execute(cmd, capture_output=True)
+            result = self.shell.execute(cmd)
             # Handle both direct output and MockResult objects
             output_str: str
             if hasattr(result, "stdout"):
@@ -132,9 +133,10 @@ class LatinAlphabetRetriever:
 
     def get_glyf_table(self, source_font_json: str) -> FontTable:
         """Extract glyf table from font JSON."""
-        cmd = f"cat {source_font_json} | jq '.glyf'"
+        # Use jq to extract glyf table
+        cmd = ["jq", ".glyf", source_font_json]
         try:
-            result = self.shell.execute(cmd, capture_output=True)
+            result = self.shell.execute(cmd)
             # Handle both direct output and MockResult objects
             output_str: str
             if hasattr(result, "stdout"):

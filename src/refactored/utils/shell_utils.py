@@ -8,11 +8,8 @@ preventing shell injection vulnerabilities.
 
 from __future__ import annotations
 
-import shlex
 import subprocess
-import urllib.parse
-from pathlib import Path
-from typing import List, Union
+from typing import List, Optional, Union
 
 
 class SecurityError(Exception):
@@ -51,13 +48,27 @@ def safe_command_execution(cmd: Union[List[str], str]) -> subprocess.CompletedPr
 
     # Check for dangerous shell operators in arguments
     # Note: We're more permissive here to allow legitimate tool usage
-    dangerous_patterns = [";", "&&", "||", "|", "`", "$(", "$()"]
-    for arg in cmd:
-        for pattern in dangerous_patterns:
-            if pattern in arg:
-                raise SecurityError(
-                    f"Dangerous shell operator '{pattern}' detected in: {arg}"
-                )
+    dangerous_patterns = [";", "&&", "||", "`", "$(", "$()"]
+
+    # Special handling for jq - allow pipe operators in jq filter expressions
+    if len(cmd) > 0 and cmd[0].split("/")[-1] == "jq":
+        # For jq commands, only check for the most dangerous patterns (no pipe restriction)
+        jq_dangerous_patterns = [";", "&&", "||", "`", "$(", "$()"]
+        for arg in cmd:
+            for pattern in jq_dangerous_patterns:
+                if pattern in arg:
+                    raise SecurityError(
+                        f"Dangerous shell operator '{pattern}' detected in jq command: {arg}"
+                    )
+    else:
+        # For other commands, check for all dangerous patterns including pipes
+        dangerous_patterns.append("|")
+        for arg in cmd:
+            for pattern in dangerous_patterns:
+                if pattern in arg:
+                    raise SecurityError(
+                        f"Dangerous shell operator '{pattern}' detected in: {arg}"
+                    )
 
     # Use allowlist approach - only permit required font generation commands
     if len(cmd) > 0:
@@ -159,286 +170,286 @@ def safe_command_execution(cmd: Union[List[str], str]) -> subprocess.CompletedPr
         raise SecurityError(f"Command execution failed: {e}")
 
 
-def validate_file_path(file_path: str) -> Path:
-    """
-    Validate a file path to prevent path traversal attacks.
+# def validate_file_path(file_path: str) -> Path:
+#     """
+#     Validate a file path to prevent path traversal attacks.
 
-    Args:
-        file_path: Path to validate
+#     Args:
+#         file_path: Path to validate
 
-    Returns:
-        Validated Path object
+#     Returns:
+#         Validated Path object
 
-    Raises:
-        SecurityError: If path contains dangerous patterns
-    """
-    if not isinstance(file_path, str):
-        raise SecurityError("File path must be a string")
+#     Raises:
+#         SecurityError: If path contains dangerous patterns
+#     """
+#     if not isinstance(file_path, str):
+#         raise SecurityError("File path must be a string")
 
-    # Check path length limits (most filesystems have limits around 255-4096)
-    if len(file_path) > 512:  # Conservative limit for security
-        raise SecurityError(f"Path too long: {len(file_path)} characters (max 512)")
+#     # Check path length limits (most filesystems have limits around 255-4096)
+#     if len(file_path) > 512:  # Conservative limit for security
+#         raise SecurityError(f"Path too long: {len(file_path)} characters (max 512)")
 
-    # Normalize Unicode and decode URL encoding to detect obfuscated patterns
-    normalized_path = file_path
-    try:
-        # URL decode the path to detect encoded dangerous patterns
-        normalized_path = urllib.parse.unquote(normalized_path)
-        # Normalize Unicode to detect Unicode escapes
-        normalized_path = normalized_path.encode("utf-8").decode("unicode_escape")
-    except (UnicodeDecodeError, UnicodeEncodeError):
-        # If normalization fails, continue with original - better safe than sorry
-        pass
+#     # Normalize Unicode and decode URL encoding to detect obfuscated patterns
+#     normalized_path = file_path
+#     try:
+#         # URL decode the path to detect encoded dangerous patterns
+#         normalized_path = urllib.parse.unquote(normalized_path)
+#         # Normalize Unicode to detect Unicode escapes
+#         normalized_path = normalized_path.encode("utf-8").decode("unicode_escape")
+#     except (UnicodeDecodeError, UnicodeEncodeError):
+#         # If normalization fails, continue with original - better safe than sorry
+#         pass
 
-    # Check for URL schemes (file://, http://, ftp://, etc.)
-    if "://" in file_path or "://" in normalized_path:
-        raise SecurityError(f"URL schemes not allowed in file paths: {file_path}")
+#     # Check for URL schemes (file://, http://, ftp://, etc.)
+#     if "://" in file_path or "://" in normalized_path:
+#         raise SecurityError(f"URL schemes not allowed in file paths: {file_path}")
 
-    # Check for UNC paths (network shares)
-    if file_path.startswith("\\\\") or normalized_path.startswith("\\\\"):
-        raise SecurityError(f"UNC network paths not allowed: {file_path}")
+#     # Check for UNC paths (network shares)
+#     if file_path.startswith("\\\\") or normalized_path.startswith("\\\\"):
+#         raise SecurityError(f"UNC network paths not allowed: {file_path}")
 
-    # Check for path traversal patterns in both original and normalized
-    dangerous_patterns = ["../", "..\\", "/etc/", "/root/", "~/", "C:\\"]
-    for pattern in dangerous_patterns:
-        if pattern in file_path or pattern in normalized_path:
-            raise SecurityError(
-                f"Dangerous path pattern '{pattern}' detected in: {file_path}"
-            )
+#     # Check for path traversal patterns in both original and normalized
+#     dangerous_patterns = ["../", "..\\", "/etc/", "/root/", "~/", "C:\\"]
+#     for pattern in dangerous_patterns:
+#         if pattern in file_path or pattern in normalized_path:
+#             raise SecurityError(
+#                 f"Dangerous path pattern '{pattern}' detected in: {file_path}"
+#             )
 
-    # Convert to Path and resolve
-    try:
-        path = Path(file_path).resolve()
-    except Exception as e:
-        raise SecurityError(f"Invalid path: {e}")
+#     # Convert to Path and resolve
+#     try:
+#         path = Path(file_path).resolve()
+#     except Exception as e:
+#         raise SecurityError(f"Invalid path: {e}")
 
-    # Ensure path is within project directory (go up to workspace root)
-    project_root = Path(__file__).parent.parent.parent.parent.resolve()
-    try:
-        path.relative_to(project_root)
-    except ValueError:
-        raise SecurityError(f"Path outside project directory: {path}")
+#     # Ensure path is within project directory (go up to workspace root)
+#     project_root = Path(__file__).parent.parent.parent.parent.resolve()
+#     try:
+#         path.relative_to(project_root)
+#     except ValueError:
+#         raise SecurityError(f"Path outside project directory: {path}")
 
-    return path
-
-
-def safe_pipeline_execution(cmd: str) -> str:
-    """
-    Execute shell pipelines safely by breaking them into individual commands.
-
-    Args:
-        cmd: Command string containing pipes and/or redirections
-
-    Returns:
-        Final command output as string
-    """
-    # Handle complex pipeline + redirection patterns like "cat file | jq '.glyf' > output"
-    if " | " in cmd and " > " in cmd:
-        # Find the redirection part (should be at the end)
-        redirection_split = cmd.rsplit(" > ", 1)
-        if len(redirection_split) == 2:
-            pipeline_part = redirection_split[0].strip()
-            output_file = redirection_split[1].strip()
-
-            # Validate output file path
-            output_path = validate_file_path(output_file)
-
-            # Execute the pipeline part
-            pipeline_result = safe_pipeline_execution(pipeline_part)
-
-            # Write result to file
-            try:
-                with open(output_path, "w", encoding="utf-8") as f:
-                    f.write(pipeline_result)
-                return pipeline_result
-            except Exception as e:
-                raise SecurityError(f"Failed to write output file: {e}")
-
-    # Handle pipeline without redirection
-    elif " | " in cmd:
-        # Split pipeline into individual commands
-        commands = cmd.split(" | ")
-
-        # Process each command in the pipeline
-        input_data = None
-        for single_cmd in commands:
-            single_cmd = single_cmd.strip()
-
-            # Parse the individual command
-            try:
-                cmd_list = shlex.split(single_cmd)
-            except ValueError as e:
-                raise SecurityError(f"Invalid command syntax in pipeline: {e}")
-
-            # Execute the command
-            try:
-                if input_data is not None:
-                    # Pass output from previous command as input
-                    # Handle binary data properly
-                    input_bytes = (
-                        input_data.encode("utf-8")
-                        if isinstance(input_data, str)
-                        else input_data
-                    )
-                    result = subprocess.run(
-                        cmd_list,
-                        input=input_bytes,
-                        capture_output=True,
-                        shell=False,
-                        timeout=600,
-                    )
-                else:
-                    # First command in pipeline
-                    result = subprocess.run(
-                        cmd_list, capture_output=True, shell=False, timeout=600
-                    )
-
-                if result.returncode != 0:
-                    error_msg = (
-                        result.stderr.decode("utf-8", "ignore")
-                        if result.stderr
-                        else f"Command failed with return code {result.returncode}"
-                    )
-                    raise Exception(error_msg)
-
-                # Output becomes input for next command (keep as bytes)
-                input_data = result.stdout
-
-            except subprocess.TimeoutExpired as e:
-                raise SecurityError(f"Command timed out: {e}")
-            except Exception as e:
-                if "Command failed with return code" in str(e):
-                    raise e  # Re-raise the original error
-                raise SecurityError(f"Command execution failed: {e}")
-
-        # Convert final result to string for backward compatibility
-        if isinstance(input_data, bytes):
-            try:
-                return input_data.decode("utf-8")
-            except UnicodeDecodeError:
-                # For binary data, return empty string to match original behavior
-                return ""
-        return input_data or ""
-
-    # Handle redirection (>)
-    elif " > " in cmd:
-        parts = cmd.split(" > ")
-        if len(parts) != 2:
-            raise SecurityError("Invalid redirection syntax")
-
-        command_part = parts[0].strip()
-        output_file = parts[1].strip()
-
-        # Validate output file path
-        output_path = validate_file_path(output_file)
-
-        # Execute command and write to file
-        try:
-            cmd_list = shlex.split(command_part)
-            result = subprocess.run(
-                cmd_list, capture_output=True, shell=False, timeout=600
-            )
-
-            if result.returncode != 0:
-                error_msg = (
-                    result.stderr.decode("utf-8", "ignore")
-                    if result.stderr
-                    else f"Command failed with return code {result.returncode}"
-                )
-                raise Exception(error_msg)
-
-            # Write output to file (handle binary data)
-            if isinstance(result.stdout, bytes):
-                try:
-                    with open(output_path, "w", encoding="utf-8") as f:
-                        f.write(result.stdout.decode("utf-8"))
-                    return result.stdout.decode("utf-8")
-                except UnicodeDecodeError:
-                    # Write as binary file
-                    with open(output_path, "wb") as f:
-                        f.write(result.stdout)
-                    return ""
-            else:
-                with open(output_path, "w", encoding="utf-8") as f:
-                    f.write(result.stdout)
-                return result.stdout
-
-        except subprocess.TimeoutExpired as e:
-            raise SecurityError(f"Command timed out: {e}")
-        except Exception as e:
-            if "Command failed with return code" in str(e):
-                raise e
-            raise SecurityError(f"Command execution failed: {e}")
-
-    else:
-        # Simple command without pipes or redirection
-        try:
-            cmd_list = shlex.split(cmd)
-        except ValueError as e:
-            raise SecurityError(f"Invalid command syntax: {e}")
-
-        result = safe_command_execution(cmd_list)
-
-        if result.returncode != 0:
-            error_msg = (
-                str(result.stderr)
-                if result.stderr
-                else f"Command failed with return code {result.returncode}"
-            )
-            raise Exception(error_msg)
-
-        return (
-            result.stdout.decode("utf-8")
-            if isinstance(result.stdout, bytes)
-            else str(result.stdout)
-        )
-
-    # This should never be reached, but added for mypy
-    return ""
+#     return path
 
 
-def legacy_shell_process_replacement(cmd: str) -> str:
-    """
-    Safe replacement for the legacy shell.process() function.
+# def safe_pipeline_execution(cmd: str) -> str:
+#     """
+#     Execute shell pipelines safely by breaking them into individual commands.
 
-    This function provides backward compatibility while ensuring security.
-    Handles pipelines and redirections safely.
+#     Args:
+#         cmd: Command string containing pipes and/or redirections
 
-    Args:
-        cmd: Command string (will be safely parsed)
+#     Returns:
+#         Final command output as string
+#     """
+#     # Handle complex pipeline + redirection patterns like "cat file | jq '.glyf' > output"
+#     if " | " in cmd and " > " in cmd:
+#         # Find the redirection part (should be at the end)
+#         redirection_split = cmd.rsplit(" > ", 1)
+#         if len(redirection_split) == 2:
+#             pipeline_part = redirection_split[0].strip()
+#             output_file = redirection_split[1].strip()
 
-    Returns:
-        Command output as string
+#             # Validate output file path
+#             output_path = validate_file_path(output_file)
 
-    Raises:
-        SecurityError: If command is deemed unsafe
-    """
-    return safe_pipeline_execution(cmd)
+#             # Execute the pipeline part
+#             pipeline_result = safe_pipeline_execution(pipeline_part)
+
+#             # Write result to file
+#             try:
+#                 with open(output_path, "w", encoding="utf-8") as f:
+#                     f.write(pipeline_result)
+#                 return pipeline_result
+#             except Exception as e:
+#                 raise SecurityError(f"Failed to write output file: {e}")
+
+#     # Handle pipeline without redirection
+#     elif " | " in cmd:
+#         # Split pipeline into individual commands
+#         commands = cmd.split(" | ")
+
+#         # Process each command in the pipeline
+#         input_data = None
+#         for single_cmd in commands:
+#             single_cmd = single_cmd.strip()
+
+#             # Parse the individual command
+#             try:
+#                 cmd_list = shlex.split(single_cmd)
+#             except ValueError as e:
+#                 raise SecurityError(f"Invalid command syntax in pipeline: {e}")
+
+#             # Execute the command
+#             try:
+#                 if input_data is not None:
+#                     # Pass output from previous command as input
+#                     # Handle binary data properly
+#                     input_bytes = (
+#                         input_data.encode("utf-8")
+#                         if isinstance(input_data, str)
+#                         else input_data
+#                     )
+#                     result = subprocess.run(
+#                         cmd_list,
+#                         input=input_bytes,
+#                         capture_output=True,
+#                         shell=False,
+#                         timeout=600,
+#                     )
+#                 else:
+#                     # First command in pipeline
+#                     result = subprocess.run(
+#                         cmd_list, capture_output=True, shell=False, timeout=600
+#                     )
+
+#                 if result.returncode != 0:
+#                     error_msg = (
+#                         result.stderr.decode("utf-8", "ignore")
+#                         if result.stderr
+#                         else f"Command failed with return code {result.returncode}"
+#                     )
+#                     raise Exception(error_msg)
+
+#                 # Output becomes input for next command (keep as bytes)
+#                 input_data = result.stdout
+
+#             except subprocess.TimeoutExpired as e:
+#                 raise SecurityError(f"Command timed out: {e}")
+#             except Exception as e:
+#                 if "Command failed with return code" in str(e):
+#                     raise e  # Re-raise the original error
+#                 raise SecurityError(f"Command execution failed: {e}")
+
+#         # Convert final result to string for backward compatibility
+#         if isinstance(input_data, bytes):
+#             try:
+#                 return input_data.decode("utf-8")
+#             except UnicodeDecodeError:
+#                 # For binary data, return empty string to match original behavior
+#                 return ""
+#         return input_data or ""
+
+#     # Handle redirection (>)
+#     elif " > " in cmd:
+#         parts = cmd.split(" > ")
+#         if len(parts) != 2:
+#             raise SecurityError("Invalid redirection syntax")
+
+#         command_part = parts[0].strip()
+#         output_file = parts[1].strip()
+
+#         # Validate output file path
+#         output_path = validate_file_path(output_file)
+
+#         # Execute command and write to file
+#         try:
+#             cmd_list = shlex.split(command_part)
+#             result = subprocess.run(
+#                 cmd_list, capture_output=True, shell=False, timeout=600
+#             )
+
+#             if result.returncode != 0:
+#                 error_msg = (
+#                     result.stderr.decode("utf-8", "ignore")
+#                     if result.stderr
+#                     else f"Command failed with return code {result.returncode}"
+#                 )
+#                 raise Exception(error_msg)
+
+#             # Write output to file (handle binary data)
+#             if isinstance(result.stdout, bytes):
+#                 try:
+#                     with open(output_path, "w", encoding="utf-8") as f:
+#                         f.write(result.stdout.decode("utf-8"))
+#                     return result.stdout.decode("utf-8")
+#                 except UnicodeDecodeError:
+#                     # Write as binary file
+#                     with open(output_path, "wb") as f:
+#                         f.write(result.stdout)
+#                     return ""
+#             else:
+#                 with open(output_path, "w", encoding="utf-8") as f:
+#                     f.write(result.stdout)
+#                 return result.stdout
+
+#         except subprocess.TimeoutExpired as e:
+#             raise SecurityError(f"Command timed out: {e}")
+#         except Exception as e:
+#             if "Command failed with return code" in str(e):
+#                 raise e
+#             raise SecurityError(f"Command execution failed: {e}")
+
+#     else:
+#         # Simple command without pipes or redirection
+#         try:
+#             cmd_list = shlex.split(cmd)
+#         except ValueError as e:
+#             raise SecurityError(f"Invalid command syntax: {e}")
+
+#         result = safe_command_execution(cmd_list)
+
+#         if result.returncode != 0:
+#             error_msg = (
+#                 str(result.stderr)
+#                 if result.stderr
+#                 else f"Command failed with return code {result.returncode}"
+#             )
+#             raise Exception(error_msg)
+
+#         return (
+#             result.stdout.decode("utf-8")
+#             if isinstance(result.stdout, bytes)
+#             else str(result.stdout)
+#         )
+
+#     # This should never be reached, but added for mypy
+#     return ""
 
 
-def secure_shell_process(cmd: List[str]) -> None:
-    """
-    Secure shell process execution for font generation.
+# def legacy_shell_process_replacement(cmd: str) -> str:
+#     """
+#     Safe replacement for the legacy shell.process() function.
 
-    Args:
-        cmd: Command as list of strings for safe execution
+#     This function provides backward compatibility while ensuring security.
+#     Handles pipelines and redirections safely.
 
-    Raises:
-        SecurityError: If command execution fails
-    """
-    result = safe_command_execution(cmd)
+#     Args:
+#         cmd: Command string (will be safely parsed)
 
-    if result.returncode != 0:
-        error_msg = (
-            result.stderr or f"Command failed with return code {result.returncode}"
-        )
-        raise SecurityError(f"Font conversion failed: {error_msg}")
+#     Returns:
+#         Command output as string
+
+#     Raises:
+#         SecurityError: If command is deemed unsafe
+#     """
+#     return safe_pipeline_execution(cmd)
+
+
+# def secure_shell_process(cmd: List[str]) -> None:
+#     """
+#     Secure shell process execution for font generation.
+
+#     Args:
+#         cmd: Command as list of strings for safe execution
+
+#     Raises:
+#         SecurityError: If command execution fails
+#     """
+#     result = safe_command_execution(cmd)
+
+#     if result.returncode != 0:
+#         error_msg = (
+#             result.stderr or f"Command failed with return code {result.returncode}"
+#         )
+#         raise SecurityError(f"Font conversion failed: {error_msg}")
 
 
 class ShellExecutor:
     """Shell command executor for backward compatibility."""
 
-    def __init__(self, working_directory: str = None):
+    def __init__(self, working_directory: Optional[str] = None):
         self.working_directory = working_directory
         self.timeout = 60  # Default timeout in seconds
         self.check_security = True  # Enable security checks by default
@@ -490,13 +501,27 @@ class ShellExecutor:
             raise SecurityError("All command arguments must be strings")
 
         # Check for dangerous shell operators in arguments
-        dangerous_patterns = [";", "&&", "||", "|", "`", "$(", "$()"]
-        for arg in cmd:
-            for pattern in dangerous_patterns:
-                if pattern in arg:
-                    raise SecurityError(
-                        f"Dangerous shell operator '{pattern}' detected in: {arg}"
-                    )
+        dangerous_patterns = [";", "&&", "||", "`", "$(", "$()"]
+
+        # Special handling for jq - allow pipe operators in jq filter expressions
+        if len(cmd) > 0 and cmd[0].split("/")[-1] == "jq":
+            # For jq commands, only check for the most dangerous patterns (no pipe restriction)
+            jq_dangerous_patterns = [";", "&&", "||", "`", "$(", "$()"]
+            for arg in cmd:
+                for pattern in jq_dangerous_patterns:
+                    if pattern in arg:
+                        raise SecurityError(
+                            f"Dangerous shell operator '{pattern}' detected in jq command: {arg}"
+                        )
+        else:
+            # For other commands, check for all dangerous patterns including pipes
+            dangerous_patterns.append("|")
+            for arg in cmd:
+                for pattern in dangerous_patterns:
+                    if pattern in arg:
+                        raise SecurityError(
+                            f"Dangerous shell operator '{pattern}' detected in: {arg}"
+                        )
 
         # Use allowlist approach - only permit required font generation commands
         if len(cmd) > 0:
@@ -579,9 +604,8 @@ class ShellExecutor:
     def execute(
         self,
         command: Union[str, List[str]],
-        capture_output: bool = False,
-        timeout: int = None,
-        cwd: str = None,
+        timeout: Optional[int] = None,
+        cwd: Optional[str] = None,
     ) -> subprocess.CompletedProcess:
         """Execute a command safely."""
         try:
@@ -602,34 +626,12 @@ class ShellExecutor:
             # Handle both string and list commands
             if isinstance(command, list):
                 # For list commands, use safe_command_execution with timeout
-                result = self._safe_execute_with_timeout(command, exec_timeout)
-                return result
-            else:
-                # For string commands, use pipeline execution
-                if capture_output:
-                    output = legacy_shell_process_replacement(command)
-                    # Return a mock result for compatibility
-                    stdout_bytes = (
-                        output.encode("utf-8")
-                        if isinstance(output, str)
-                        else (output if isinstance(output, bytes) else b"")
-                    )
-                    return subprocess.CompletedProcess(
-                        args=command if isinstance(command, list) else [command],
-                        returncode=0,
-                        stdout=stdout_bytes,
-                        stderr=b"",
-                    )
-                else:
-                    legacy_shell_process_replacement(command)
-                    return subprocess.CompletedProcess(
-                        args=command if isinstance(command, list) else [command],
-                        returncode=0,
-                        stdout=b"",
-                        stderr=b"",
-                    )
+                return self._safe_execute_with_timeout(command, exec_timeout)
+
+            # For string commands, reject them for security
+            raise SecurityError("String commands not allowed - use list format")
         except subprocess.TimeoutExpired as e:
             # Re-raise timeout exceptions directly for test compatibility
             raise e
         except Exception as e:
-            raise SecurityError(f"Command execution failed: {e}")
+            raise SecurityError(f"Command execution failed: {e}") from e
