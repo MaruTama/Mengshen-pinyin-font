@@ -6,9 +6,10 @@ from __future__ import annotations
 import argparse
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
 from ..config import FontType, ProjectPaths
+from ..font_types import FontPaths
 from ..generation import FontBuilder
 from ..utils.logging_config import get_logger, setup_logging
 
@@ -69,7 +70,7 @@ Examples:
         }
         return type_mapping[style_str]
 
-    def _get_template_paths(self, font_type: FontType) -> dict:
+    def _get_template_paths(self, font_type: FontType) -> FontPaths:
         """Get template file paths for font type."""
         if font_type == FontType.HAN_SERIF:
             template_main_filename = "template_main_han_serif.json"
@@ -108,7 +109,7 @@ Examples:
 
         return self.paths.get_output_path(filename)
 
-    def _validate_prerequisites(self, template_paths: dict) -> list[str]:
+    def _validate_prerequisites(self, template_paths: FontPaths) -> List[str]:
         """Validate that all required files exist."""
         missing_files = []
 
@@ -118,7 +119,7 @@ Examples:
 
         return missing_files
 
-    def run(self, args: Optional[list[str]] = None) -> int:
+    def run(self, args: Optional[List[str]] = None) -> int:
         """Run the CLI application."""
         parser = self._create_argument_parser()
         parsed_args = parser.parse_args(args)

@@ -12,11 +12,14 @@ import orjson
 
 from ..config import FontConstants, FontMetadata, FontType
 from ..data import CharacterDataManager, MappingDataManager
+from ..font_types import (
+    GlyphData,
+    GlyphInstruction,
+)
 from ..utils.logging_config import get_logger
 from ..utils.pinyin_utils import simplification_pronunciation
 
-# Font data types
-GlyphData = Dict[str, Union[str, int, float, List[Dict[str, Union[str, int, float]]]]]
+# Font data types using font_types.py definitions
 FontGlyphDict = Dict[str, GlyphData]
 PinyinGlyphDict = Dict[str, GlyphData]
 
@@ -478,7 +481,7 @@ class HanziGlyphGenerator:
         # Get pinyin glyph data and copy references (EXACT legacy behavior)
         pinyin_glyph_data = pronunciation_glyphs[simplified_pronunciation]
         refs_raw = pinyin_glyph_data.get("references", [])
-        references: List[Dict[str, Union[str, int, float]]] = (
+        references: List[GlyphInstruction] = (
             copy.deepcopy(refs_raw) if isinstance(refs_raw, list) else []
         )
 
@@ -780,12 +783,12 @@ class GlyphManager:
         self._all_glyphs.update(multiple_glyphs)
 
         # Validate glyph count (temporarily disabled for debugging)
-        total_glyphs = len(self._font_data[FontConstants.GLYF_TABLE]) + len(
-            self._all_glyphs
+        font_glyf_table = self._font_data.get(FontConstants.GLYF_TABLE, {})
+        font_glyf_table_dict = (
+            font_glyf_table if isinstance(font_glyf_table, dict) else {}
         )
-        self.logger.debug(
-            "Base glyphs: %d", len(self._font_data[FontConstants.GLYF_TABLE])
-        )
+        total_glyphs = len(font_glyf_table_dict) + len(self._all_glyphs)
+        self.logger.debug("Base glyphs: %d", len(font_glyf_table_dict))
         self.logger.debug("Generated glyphs: %d", len(self._all_glyphs))
         self.logger.debug("Total glyphs: %d", total_glyphs)
 

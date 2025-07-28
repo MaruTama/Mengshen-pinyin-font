@@ -10,12 +10,13 @@ from typing import Dict, Optional, Protocol
 import orjson
 
 from ..config import FontConstants, ProjectPaths
+from ..font_types import CmapTable, StatsDict
 
 
 class CmapDataSource(Protocol):
     """Protocol for character map data sources."""
 
-    def get_cmap_table(self) -> Dict[str, str]:
+    def get_cmap_table(self) -> CmapTable:
         """Get character map table."""
         raise NotImplementedError
 
@@ -26,7 +27,7 @@ class JsonCmapDataSource:
     def __init__(self, template_path: Path):
         """Initialize with template JSON path."""
         self.template_path = template_path
-        self._cmap_table: Optional[Dict[str, str]] = None
+        self._cmap_table: Optional[CmapTable] = None
 
     def _load_cmap_table(self) -> None:
         """Load cmap table from JSON template."""
@@ -41,7 +42,7 @@ class JsonCmapDataSource:
 
         self._cmap_table = font_data.get("cmap", {})
 
-    def get_cmap_table(self) -> Dict[str, str]:
+    def get_cmap_table(self) -> CmapTable:
         """Get character map table."""
         self._load_cmap_table()
         if self._cmap_table is None:
@@ -60,7 +61,7 @@ class MappingDataManager:
         """Initialize with optional cmap data source and paths."""
         self.paths = paths or ProjectPaths()
         self._cmap_source = cmap_source
-        self._cmap_table: Optional[Dict[str, str]] = None
+        self._cmap_table: Optional[CmapTable] = None
 
     def _get_cmap_source(self) -> CmapDataSource:
         """Get or create cmap data source."""
@@ -69,7 +70,7 @@ class MappingDataManager:
             self._cmap_source = JsonCmapDataSource(template_path)
         return self._cmap_source
 
-    def get_cmap_table(self) -> Dict[str, str]:
+    def get_cmap_table(self) -> CmapTable:
         """Get character map table."""
         if self._cmap_table is None:
             self._cmap_table = self._get_cmap_source().get_cmap_table()
@@ -112,7 +113,7 @@ class MappingDataManager:
         except (ValueError, OverflowError):
             return None
 
-    def get_glyph_statistics(self) -> dict:
+    def get_glyph_statistics(self) -> StatsDict:
         """Get glyph mapping statistics."""
         cmap_table = self.get_cmap_table()
         return {

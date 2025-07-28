@@ -6,16 +6,16 @@ from __future__ import annotations
 import argparse
 import json
 import os
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional
 
 from refactored.config.font_config import FontConfig, FontType
 from refactored.config.paths import DIR_TEMP
 
+from ..font_types import GlyphData
 from ..utils.logging_config import get_logger, setup_logging
 from ..utils.shell_utils import ShellExecutor
 
-# Font glyph data types (Python 3.10+ syntax)
-GlyphData = Dict[str, Union[str, int, float, List[Dict[str, Union[str, int, float]]]]]
+# Font glyph data types - using font_types.py definitions
 FontTable = Dict[str, GlyphData]
 
 

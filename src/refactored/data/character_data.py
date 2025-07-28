@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from functools import lru_cache
 from typing import Iterator, List, Optional, Protocol, Union
 
+from ..font_types import StatsDict
 from .pinyin_data import PinyinDataManager, get_default_pinyin_manager
 
 
@@ -117,7 +118,7 @@ class CharacterDataManager:
         """Get all characters with multiple pronunciations (cached)."""
         return list(self.iter_multiple_pronunciation_characters())
 
-    def get_statistics(self) -> dict:
+    def get_statistics(self) -> StatsDict:
         """Get character statistics."""
         total = 0
         single_count = 0

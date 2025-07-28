@@ -7,6 +7,7 @@ from functools import lru_cache
 from typing import Dict, List, Optional, Protocol
 
 from ..config import FontConstants, ProjectPaths
+from ..font_types import PinyinMappings
 
 
 class PinyinDataSource(Protocol):
@@ -16,7 +17,7 @@ class PinyinDataSource(Protocol):
         """Get pinyin pronunciations for a character."""
         raise NotImplementedError
 
-    def get_all_mappings(self) -> Dict[str, List[str]]:
+    def get_all_mappings(self) -> PinyinMappings:
         """Get all character to pinyin mappings."""
         raise NotImplementedError
 
@@ -27,7 +28,7 @@ class MergedMappingPinyinDataSource:
     def __init__(self, paths: Optional[ProjectPaths] = None):
         """Initialize with project paths."""
         self.paths = paths or ProjectPaths()
-        self._data: Optional[Dict[str, List[str]]] = None
+        self._data: Optional[PinyinMappings] = None
 
     def _load_data(self) -> None:
         """Load pinyin mapping data from merged-mapping-table.txt."""
@@ -70,7 +71,7 @@ class MergedMappingPinyinDataSource:
             return None
         return self._data.get(hanzi)
 
-    def get_all_mappings(self) -> Dict[str, List[str]]:
+    def get_all_mappings(self) -> PinyinMappings:
         """Get all character to pinyin mappings."""
         self._load_data()
         if self._data is None:
@@ -90,7 +91,7 @@ class PinyinDataManager:
         """Get pinyin pronunciations for a character (cached)."""
         return self._data_source.get_pinyin(hanzi)
 
-    def get_all_mappings(self) -> Dict[str, List[str]]:
+    def get_all_mappings(self) -> PinyinMappings:
         """Get all character to pinyin mappings."""
         return self._data_source.get_all_mappings()
 

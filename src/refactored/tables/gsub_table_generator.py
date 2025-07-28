@@ -4,12 +4,23 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, List, cast
+from typing import Dict, List, cast
 
 import orjson
 
 from ..config import FontConstants
 from ..data import CharacterDataManager, MappingDataManager
+
+# Import pattern data types from font_types
+from ..font_types import (
+    ChainingRule,
+    ChainingRuleApply,
+    CmapTable,
+    ExceptionPatternData,
+    GSUBTable,
+    PatternOneData,
+    PatternTwoData,
+)
 
 # Import utility functions
 from ..utils.cmap_utils import convert_hanzi_to_cid_safe
@@ -26,7 +37,7 @@ class GSUBTableGenerator:
         exception_pattern_path: Path,
         character_manager: CharacterDataManager,
         mapping_manager: MappingDataManager,
-        cmap_table: Dict[str, str],
+        cmap_table: CmapTable,
     ):
         """Initialize with pattern files and data managers."""
         self.pattern_one_path = pattern_one_path
@@ -41,11 +52,11 @@ class GSUBTableGenerator:
         self.lookup_order: set[str] = set()
 
         # Pattern data with proper structure
-        self.pattern_one: List[Dict[str, Dict[str, str]]] = [
+        self.pattern_one: PatternOneData = [
             {}
         ]  # [index][hanzi] = {"variational_pronunciation": str, "patterns": str}
-        self.pattern_two: Dict[str, Any] = {}
-        self.exception_pattern: Dict[str, Any] = {}
+        self.pattern_two: PatternTwoData = {}
+        self.exception_pattern: ExceptionPatternData = {}
 
         # レガシーコードコメント:
         # > calt も rclt も featute の数が多いと有効にならない。 feature には上限がある？ので、今は初期化して使う
@@ -54,7 +65,7 @@ class GSUBTableGenerator:
         # レガシーコードコメント:
         # > feature ごとに使用する lookup table を指定する
         # > rclt_00000/rclt_00001 は lookup_rclt_0, lookup_rclt_1, lookup_rclt_2 を使用
-        self.gsub_data: Dict[str, Any] = {
+        self.gsub_data: GSUBTable = {
             # レガシーコードコメント:
             # > 文字体系 ごとに使用する feature を指定する
             "languages": {
@@ -111,7 +122,7 @@ class GSUBTableGenerator:
             ],
         }
 
-    def generate_gsub_table(self) -> Dict[str, Any]:
+    def generate_gsub_table(self) -> GSUBTable:
         """Generate complete GSUB table."""
         # Load pattern files
         self._load_pattern_data()
@@ -210,7 +221,8 @@ class GSUBTableGenerator:
             Dict[str, str], self.gsub_data["lookups"]["lookup_aalt_0"]["subtables"][0]
         )
         aalt_1_subtables = cast(
-            Dict[str, Any], self.gsub_data["lookups"]["lookup_aalt_1"]["subtables"][0]
+            Dict[str, List[str]],
+            self.gsub_data["lookups"]["lookup_aalt_1"]["subtables"][0],
         )
 
         # Single pronunciation characters -> lookup_aalt_0 (legacy method)
@@ -307,7 +319,7 @@ class GSUBTableGenerator:
 
         # Generate substitution rules for lookup_rclt_0 (pattern one)
         rclt_0_subtables = cast(
-            List[Dict[str, Any]], lookups["lookup_rclt_0"]["subtables"]
+            List[ChainingRule], lookups["lookup_rclt_0"]["subtables"]
         )
 
         for idx in range(max_num_patterns):
@@ -441,14 +453,14 @@ class GSUBTableGenerator:
         # Generate contextual rules for lookup_rclt_1 (pattern two)
         if "patterns" in self.pattern_two:
             rclt_1_subtables = cast(
-                List[Dict[str, Any]], lookups["lookup_rclt_1"]["subtables"]
+                List[ChainingRule], lookups["lookup_rclt_1"]["subtables"]
             )
             patterns_dict = cast(
-                Dict[str, List[Dict[str, str]]], self.pattern_two["patterns"]
+                Dict[str, List[Dict[str, str]]], self.pattern_two.get("patterns", {})
             )
 
             for phrase, pattern_list in patterns_dict.items():
-                applies = []
+                applies: List[ChainingRuleApply] = []
                 ats = []
 
                 for i, table in enumerate(pattern_list):
@@ -460,11 +472,11 @@ class GSUBTableGenerator:
                             applies.append({"at": i, "lookup": lookup_name})
 
                 if applies:
-                    match_cids = [
-                        [convert_hanzi_to_cid_safe(char, self.cmap_table)]
-                        for char in phrase
-                        if convert_hanzi_to_cid_safe(char, self.cmap_table)
-                    ]
+                    match_cids: List[List[str]] = []
+                    for char in phrase:
+                        cid = convert_hanzi_to_cid_safe(char, self.cmap_table)
+                        if cid:
+                            match_cids.append([cid])
 
                     if match_cids:
                         rclt_1_subtables.append(
@@ -511,17 +523,15 @@ class GSUBTableGenerator:
         # Generate contextual rules for lookup_rclt_2 (exception pattern)
         if "patterns" in self.exception_pattern:
             rclt_2_subtables = cast(
-                List[Dict[str, Any]], lookups["lookup_rclt_2"]["subtables"]
+                List[ChainingRule], lookups["lookup_rclt_2"]["subtables"]
             )
-            patterns_dict = cast(
-                Dict[str, Dict[str, Any]], self.exception_pattern["patterns"]
-            )
+            patterns_dict = self.exception_pattern.get("patterns", {})
 
             for phrase, setting in patterns_dict.items():
                 if not isinstance(setting, dict):
                     continue
                 ignore_pattern = setting.get("ignore")
-                pattern_list = setting.get("pattern", [])
+                pattern_list = setting.get("pattern") or []
 
                 # Handle ignore patterns
                 if ignore_pattern:
@@ -537,16 +547,16 @@ class GSUBTableGenerator:
 
                     if target_char and at_pos >= 0:
                         ignore_phrase = ignore_pattern.replace(" ", "").replace("'", "")
-                        match_cids = [
-                            [convert_hanzi_to_cid_safe(char, self.cmap_table)]
-                            for char in ignore_phrase
-                            if convert_hanzi_to_cid_safe(char, self.cmap_table)
-                        ]
+                        ignore_match_cids: List[List[str]] = []
+                        for char in ignore_phrase:
+                            cid = convert_hanzi_to_cid_safe(char, self.cmap_table)
+                            if cid:
+                                ignore_match_cids.append([cid])
 
-                        if match_cids:
+                        if ignore_match_cids:
                             rclt_2_subtables.append(
                                 {
-                                    "match": match_cids,
+                                    "match": ignore_match_cids,
                                     "apply": [],
                                     "inputBegins": at_pos,
                                     "inputEnds": at_pos + 1,
@@ -554,7 +564,7 @@ class GSUBTableGenerator:
                             )
 
                 # Handle normal patterns
-                applies = []
+                applies: List[ChainingRuleApply] = []
                 ats = []
 
                 for i, table in enumerate(pattern_list):
@@ -565,11 +575,11 @@ class GSUBTableGenerator:
                             applies.append({"at": i, "lookup": lookup_name})
 
                 if applies:
-                    match_cids = [
-                        [convert_hanzi_to_cid_safe(char, self.cmap_table)]
-                        for char in phrase
-                        if convert_hanzi_to_cid_safe(char, self.cmap_table)
-                    ]
+                    match_cids: List[List[str]] = []
+                    for char in phrase:
+                        cid = convert_hanzi_to_cid_safe(char, self.cmap_table)
+                        if cid:
+                            match_cids.append([cid])
 
                     if match_cids:
                         rclt_2_subtables.append(

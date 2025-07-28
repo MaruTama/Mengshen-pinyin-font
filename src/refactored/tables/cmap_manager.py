@@ -4,13 +4,15 @@
 from __future__ import annotations
 
 from functools import lru_cache
-from typing import Dict, Optional
+from typing import Optional
+
+from ..font_types import CmapTable
 
 
 class CmapTableManager:
     """Manages character mapping table operations."""
 
-    def __init__(self, cmap_table: Optional[Dict[str, str]] = None):
+    def __init__(self, cmap_table: Optional[CmapTable] = None):
         """Initialize with optional cmap table.
 
         Args:
@@ -18,7 +20,7 @@ class CmapTableManager:
         """
         self.cmap_table = cmap_table or {}
 
-    def set_cmap_table(self, new_cmap_table: Dict[str, str]) -> None:
+    def set_cmap_table(self, new_cmap_table: CmapTable) -> None:
         """Set the cmap table.
 
         Args:
@@ -26,7 +28,7 @@ class CmapTableManager:
         """
         self.cmap_table = new_cmap_table
 
-    def get_cmap_table(self) -> Dict[str, str]:
+    def get_cmap_table(self) -> CmapTable:
         """Get the current cmap table.
 
         Returns:

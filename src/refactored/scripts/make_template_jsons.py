@@ -7,11 +7,12 @@ import argparse
 import concurrent.futures
 import json
 import os
-from typing import List, Optional
+from typing import Dict, List, Optional, Union
 
 from refactored.config.font_config import FontConfig, FontType
 from refactored.config.paths import DIR_TEMP
 
+from ..font_types import FontData, FontTableValue
 from ..utils.logging_config import get_logger, setup_logging
 from ..utils.shell_utils import ShellExecutor
 
@@ -26,7 +27,7 @@ def is_docker_environment() -> bool:
     return os.path.exists("/.dockerenv") or os.environ.get("DOCKER_ENV") == "true"
 
 
-def load_font_json_with_encoding(file_path: str) -> dict:
+def load_font_json_with_encoding(file_path: str) -> FontData:
     """Load JSON file with multiple encoding attempts."""
     for encoding in SUPPORTED_ENCODINGS:
         try:
@@ -40,7 +41,10 @@ def load_font_json_with_encoding(file_path: str) -> dict:
     raise ValueError("Could not decode JSON file with any supported encoding")
 
 
-def save_json_compact(data: dict, file_path: str) -> None:
+def save_json_compact(
+    data: Union[FontData, FontTableValue, Dict[str, Union[str, int, float]]],
+    file_path: str,
+) -> None:
     """Save JSON data in compact format."""
     with open(file_path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, separators=(",", ":"))

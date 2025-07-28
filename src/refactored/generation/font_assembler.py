@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Any, cast
+from typing import cast
 
 from ..config import (
     VERSION,
@@ -16,7 +16,7 @@ from ..config import (
 )
 
 # Import comprehensive type definitions
-from ..font_types import FontData, HeadTable
+from ..font_types import FontData, HeadTable, NameTable
 from ..utils.logging_config import get_logger
 
 
@@ -74,10 +74,12 @@ class FontAssembler:
         )
 
         if font_type == FontType.HAN_SERIF:
-            font_data[FontConstants.NAME_TABLE] = cast(Any, font_name_tables.HAN_SERIF)
+            font_data[FontConstants.NAME_TABLE] = cast(
+                NameTable, font_name_tables.HAN_SERIF
+            )
         elif font_type == FontType.HANDWRITTEN:
             font_data[FontConstants.NAME_TABLE] = cast(
-                Any, font_name_tables.HANDWRITTEN
+                NameTable, font_name_tables.HANDWRITTEN
             )
         else:
             raise ValueError(f"Unsupported font type: {font_type}")

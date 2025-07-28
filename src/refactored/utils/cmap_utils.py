@@ -11,14 +11,16 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Optional
 
 import orjson
 
 from refactored.config.paths import DIR_TEMP
 
+from ..font_types import CmapTable
+
 # Global cmap table cache
-cmap_table: Dict[str, str] = {}
+cmap_table: CmapTable = {}
 
 
 def get_cmap_table() -> None:
@@ -31,7 +33,7 @@ def get_cmap_table() -> None:
     globals()["cmap_table"] = merged_font["cmap"]
 
 
-def load_cmap_table_from_path(template_path: str) -> Dict[str, str]:
+def load_cmap_table_from_path(template_path: str) -> CmapTable:
     """
     Load cmap table from specific template JSON file.
 
@@ -94,7 +96,7 @@ def load_cmap_table_from_path(template_path: str) -> Dict[str, str]:
 
 
 def convert_hanzi_to_cid_safe(
-    hanzi: str, cmap: Optional[Dict[str, str]] = None
+    hanzi: str, cmap: Optional[CmapTable] = None
 ) -> Optional[str]:
     """
     Safely convert hanzi character to CID with error handling.

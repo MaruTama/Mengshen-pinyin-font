@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import subprocess
 from pathlib import Path
-from typing import Any, Dict, Optional, Protocol, cast
+from typing import Dict, List, Optional, Protocol, cast
 
 import orjson
 
@@ -23,7 +23,16 @@ from ..data import CharacterDataManager, MappingDataManager, PinyinDataManager
 from ..data.mapping_data import JsonCmapDataSource
 
 # Import comprehensive type definitions
-from ..font_types import HeadTable, HheaTable, OS2Table
+from ..font_types import (
+    CmapTable,
+    FontData,
+    GlyphData,
+    HeadTableData,
+    HheaTableData,
+    NameTable,
+    OS2Table,
+    StatsDict,
+)
 from ..tables.cmap_manager import CmapTableManager
 from ..tables.gsub_table_generator import GSUBTableGenerator
 from ..utils.cmap_utils import load_cmap_table_from_path
@@ -127,9 +136,9 @@ class FontBuilder:
         # External tool interface
         self.external_tool = external_tool
 
-        # Font data with proper typing
-        self._font_data: Optional[Dict[str, Any]] = None
-        self._glyf_data: Optional[Dict[str, Any]] = None
+        # Font data with FontData typing
+        self._font_data: Optional[FontData] = None
+        self._glyf_data: Optional[Dict[str, GlyphData]] = None
 
     def build(self, output_path: Path) -> None:
         """Build the complete font following exact legacy processing order.
@@ -190,7 +199,7 @@ class FontBuilder:
             self.logger.error("Unexpected font build error: %s", e)
             raise
 
-    def get_build_statistics(self) -> Dict[str, Any]:
+    def get_build_statistics(self) -> StatsDict:
         """Get font build statistics."""
         return {"status": "placeholder"}
 
@@ -269,18 +278,18 @@ class FontBuilder:
             raise ValueError("Font data not loaded")
 
         # Cast to proper types for the glyph manager
-        font_data_dict = cast(Dict[str, Dict[str, Any]], self._font_data)
-        glyf_data_dict = cast(Dict[str, Dict[str, Any]], self._glyf_data)
+        font_glyf_table = cast(Dict[str, GlyphData], self._font_data.get("glyf", {}))
+        glyf_data_dict = self._glyf_data or {}
 
         self.glyph_manager.initialize(
-            font_data_dict,
+            font_glyf_table,
             glyf_data_dict,
             self.alphabet_pinyin_path,
         )
 
         cmap_data = self._font_data.get("cmap")
         if isinstance(cmap_data, dict):
-            cmap_table = cast(Dict[str, str], cmap_data)
+            cmap_table = cast(CmapTable, cmap_data)
             self.cmap_manager.set_cmap_table(cmap_table)
 
     def _add_cmap_uvs(self) -> None:
@@ -303,7 +312,7 @@ class FontBuilder:
         if "cmap_uvs" not in self._font_data:
             self._font_data["cmap_uvs"] = {}
 
-        cmap_uvs = cast(Dict[str, str], self._font_data["cmap_uvs"])
+        cmap_uvs = cast(CmapTable, self._font_data["cmap_uvs"])
         ivs_base = FontConstants.IVS_BASE  # 0xE01E0 (917984)
 
         # Add IVS entries for single-pronunciation characters
@@ -362,7 +371,7 @@ class FontBuilder:
         # Start with existing glyph order
         glyph_order_raw = self._font_data.get("glyph_order", [])
         if isinstance(glyph_order_raw, list):
-            existing_order = set(glyph_order_raw)
+            existing_order = set(cast(List[str], glyph_order_raw))
         else:
             existing_order = set()
 
@@ -446,7 +455,7 @@ class FontBuilder:
         # Finalize the glyf table
         self._finalize_glyf_table(new_glyf)
 
-    def _prepare_base_glyf_structure(self) -> Dict[str, Any]:
+    def _prepare_base_glyf_structure(self) -> Dict[str, GlyphData]:
         """Prepare base glyf structure with template data.
 
         > マージ先のフォントのメインjson（フォントサイズを取得するため）, ピンイン表示に使うためのglyfのjson
@@ -457,7 +466,7 @@ class FontBuilder:
             raise ValueError("Font data not loaded")
         base_glyf_raw = self._font_data.get("glyf", {})
         base_glyf = (
-            cast(Dict[str, Any], base_glyf_raw)
+            cast(Dict[str, GlyphData], base_glyf_raw)
             if isinstance(base_glyf_raw, dict)
             else {}
         )
@@ -466,7 +475,7 @@ class FontBuilder:
         # メインテンプレートのbase_glyfは空の輪郭、_glyf_dataが実際の輪郭を持つ
         if self._glyf_data is None:
             raise ValueError("Glyf data not loaded")
-        new_glyf = dict(self._glyf_data)
+        new_glyf = self._glyf_data.copy() if self._glyf_data else {}
 
         # 必要に応じてbase_glyfからメタデータをマージ
         for glyph_name, glyph_data in base_glyf.items():
@@ -475,7 +484,7 @@ class FontBuilder:
 
         return new_glyf
 
-    def _generate_pinyin_glyphs(self) -> Dict[str, Any]:
+    def _generate_pinyin_glyphs(self) -> Dict[str, GlyphData]:
         """Generate all pinyin-annotated glyphs."""
         # glyph_managerを使用してすべての拼音付きグリフを生成
         self.glyph_manager.generate_pinyin_glyphs()  # 拼音アルファベットグリフを生成
@@ -485,7 +494,7 @@ class FontBuilder:
         return self.glyph_manager.get_all_glyphs()
 
     def _add_pinyin_alphabet_glyphs(
-        self, new_glyf: Dict[str, Any], generated_glyphs: Dict[str, Any]
+        self, new_glyf: Dict[str, GlyphData], generated_glyphs: Dict[str, GlyphData]
     ) -> None:
         """Add pinyin alphabet glyphs to the glyf table."""
         # 2. 拼音アルファベットグリフを追加（レガシーpy_alphabetから）
@@ -513,7 +522,7 @@ class FontBuilder:
         )
 
     def _add_substance_glyphs_with_contour_preservation(
-        self, new_glyf: Dict[str, Any], generated_glyphs: Dict[str, Any]
+        self, new_glyf: Dict[str, GlyphData], generated_glyphs: Dict[str, GlyphData]
     ) -> None:
         """
         Add substance glyphs with template contour preservation.
@@ -534,7 +543,7 @@ class FontBuilder:
             self._process_single_substance_glyph(new_glyf, glyph_name, glyph_data)
 
     def _process_single_substance_glyph(
-        self, new_glyf: Dict[str, Any], glyph_name: str, glyph_data: Dict[str, Any]
+        self, new_glyf: Dict[str, GlyphData], glyph_name: str, glyph_data: GlyphData
     ) -> None:
         """
         Process a single substance glyph with contour preservation logic.
@@ -543,7 +552,7 @@ class FontBuilder:
         base_glyph_name = glyph_name.split(".")[0]  # Remove .ss## suffix
 
         if self._glyf_data is not None and base_glyph_name in self._glyf_data:
-            template_glyph = cast(Dict[str, Any], self._glyf_data[base_glyph_name])
+            template_glyph = self._glyf_data[base_glyph_name]
 
             # Check glyph content to decide merge strategy
             content_info = self._analyze_glyph_content(glyph_data, template_glyph)
@@ -579,7 +588,7 @@ class FontBuilder:
             )
 
     def _analyze_glyph_content(
-        self, glyph_data: Dict[str, Any], template_glyph: Dict[str, Any]
+        self, glyph_data: GlyphData, template_glyph: GlyphData
     ) -> Dict[str, bool]:
         """
         Analyze glyph content to determine merge strategy.
@@ -614,7 +623,9 @@ class FontBuilder:
             "template_has_contours": template_has_contours,
         }
 
-    def _preserve_template_basic_characters(self, new_glyf: Dict[str, Any]) -> None:
+    def _preserve_template_basic_characters(
+        self, new_glyf: Dict[str, GlyphData]
+    ) -> None:
         """
         Preserve basic character glyphs from template.
 
@@ -642,7 +653,7 @@ class FontBuilder:
         )
 
     def _debug_basic_character_preservation(
-        self, glyph_name: str, glyph_data: Any
+        self, glyph_name: str, glyph_data: GlyphData
     ) -> None:
         """Debug specific basic character preservation."""
         # Debug specific basic characters
@@ -660,7 +671,7 @@ class FontBuilder:
                 contour_count,
             )
 
-    def _finalize_glyf_table(self, new_glyf: Dict[str, Any]) -> None:
+    def _finalize_glyf_table(self, new_glyf: Dict[str, GlyphData]) -> None:
         """
         Finalize the glyf table.
 
@@ -722,7 +733,7 @@ class FontBuilder:
             # Update font metrics to accommodate pinyin height (explicit for tests)
             if self._font_data:
                 # Update head.yMax
-                head_table = cast(HeadTable, self._font_data.get("head", {}))
+                head_table = cast(HeadTableData, self._font_data.get("head", {}))
                 if isinstance(head_table, dict) and "yMax" in head_table:
                     current_ymax = head_table["yMax"]
                     if isinstance(
@@ -731,7 +742,7 @@ class FontBuilder:
                         head_table["yMax"] = advance_added_pinyin_height
 
                 # Update hhea.ascender
-                hhea_table = cast(HheaTable, self._font_data.get("hhea", {}))
+                hhea_table = cast(HheaTableData, self._font_data.get("hhea", {}))
                 if isinstance(hhea_table, dict) and "ascender" in hhea_table:
                     current_ascender = hhea_table["ascender"]
                     if (
@@ -790,16 +801,20 @@ class FontBuilder:
 
         # Set name table based on font type
         if self.font_type == FontType.HAN_SERIF:
-            self._font_data["name"] = cast(Any, HAN_SERIF)
+            self._font_data["name"] = cast(NameTable, HAN_SERIF)
             self.logger.debug("name table set: HAN_SERIF")
         elif self.font_type == FontType.HANDWRITTEN:
-            self._font_data["name"] = cast(Any, HANDWRITTEN)
+            self._font_data["name"] = cast(NameTable, HANDWRITTEN)
             self.logger.debug("name table set: HANDWRITTEN")
         else:
             raise ValueError(f"Unsupported font type: {self.font_type}")
 
         name_table = self._font_data.get("name")
-        if name_table and hasattr(name_table, "__len__"):
+        if (
+            name_table
+            and hasattr(name_table, "__len__")
+            and not isinstance(name_table, (str, int, float))
+        ):
             try:
                 self.logger.debug("name table entries: %d", len(name_table))
             except TypeError:
