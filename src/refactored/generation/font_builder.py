@@ -35,7 +35,6 @@ from ..font_types import (
 )
 from ..tables.cmap_manager import CmapTableManager
 from ..tables.gsub_table_generator import GSUBTableGenerator
-from ..utils.cmap_utils import load_cmap_table_from_path
 from ..utils.logging_config import get_logger
 from ..utils.shell_utils import SecurityError, safe_command_execution
 from .font_assembler import FontAssembler
@@ -114,11 +113,9 @@ class FontBuilder:
             )
         self.mapping_manager = mapping_manager
 
-        # Load cmap table for character conversion
-        self._cmap_table = load_cmap_table_from_path(str(self.template_main_path))
-
-        # Initialize cmap table manager
-        self.cmap_manager = CmapTableManager(self._cmap_table)
+        # Initialize cmap table manager from template path
+        self.cmap_manager = CmapTableManager.from_path(str(self.template_main_path))
+        self._cmap_table = self.cmap_manager.get_cmap_table()
 
         # Font processing components
         self.glyph_manager = GlyphManager(

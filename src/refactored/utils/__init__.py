@@ -10,7 +10,6 @@ from __future__ import annotations
 
 from typing import Any, Callable, Union
 
-from .cmap_utils import get_cmap_table
 from .pinyin_utils import PINYIN_TONE_TO_NUMERIC, simplification_pronunciation
 from .shell_utils import SecurityError, ShellExecutor, safe_command_execution
 
@@ -41,7 +40,6 @@ def __getattr__(name: str) -> Any:
 __all__ = [
     "PINYIN_TONE_TO_NUMERIC",
     "simplification_pronunciation",
-    "get_cmap_table",
     "ShellExecutor",
     "safe_command_execution",
     "SecurityError",

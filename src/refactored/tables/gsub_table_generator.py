@@ -21,10 +21,10 @@ from ..font_types import (
     PatternOneData,
     PatternTwoData,
 )
+from ..utils.logging_config import get_logger
 
 # Import utility functions
-from ..utils.cmap_utils import convert_hanzi_to_cid_safe
-from ..utils.logging_config import get_logger
+from .cmap_manager import CmapTableManager
 
 
 class GSUBTableGenerator:
@@ -46,6 +46,7 @@ class GSUBTableGenerator:
         self.character_manager = character_manager
         self.mapping_manager = mapping_manager
         self.cmap_table = cmap_table
+        self.cmap_manager = CmapTableManager(cmap_table)
         self.logger = get_logger("mengshen.gsub_table")
 
         # Track dynamically created lookups
@@ -231,7 +232,7 @@ class GSUBTableGenerator:
         )
         for char_info in single_pinyin_characters:
             hanzi = char_info.character
-            cid = convert_hanzi_to_cid_safe(hanzi, self.cmap_table)
+            cid = self.cmap_manager.convert_hanzi_to_cid_safe(hanzi)
             if cid:
                 aalt_0_subtables[cid] = f"{cid}.ss00"
 
@@ -244,7 +245,7 @@ class GSUBTableGenerator:
         for char_info in multiple_pinyin_characters:
             hanzi = char_info.character
             pinyins = char_info.pronunciations
-            cid = convert_hanzi_to_cid_safe(hanzi, self.cmap_table)
+            cid = self.cmap_manager.convert_hanzi_to_cid_safe(hanzi)
             if not cid:
                 continue
             alternate_list = []
@@ -332,7 +333,7 @@ class GSUBTableGenerator:
                 if not self.mapping_manager.has_glyph_for_character(hanzi):
                     continue
 
-                cid = convert_hanzi_to_cid_safe(hanzi, self.cmap_table)
+                cid = self.cmap_manager.convert_hanzi_to_cid_safe(hanzi)
                 if not cid:
                     continue
 
@@ -364,8 +365,8 @@ class GSUBTableGenerator:
                     # Left context patterns: [context] target'
                     for pattern in left_match:
                         context_char = pattern.replace("~", "")
-                        context_cid = convert_hanzi_to_cid_safe(
-                            context_char, self.cmap_table
+                        context_cid = self.cmap_manager.convert_hanzi_to_cid_safe(
+                            context_char
                         )
                         if context_cid:
                             rclt_0_subtables.append(
@@ -380,8 +381,8 @@ class GSUBTableGenerator:
                     # Right context patterns: target' [context]
                     for pattern in right_match:
                         context_char = pattern.replace("~", "")
-                        context_cid = convert_hanzi_to_cid_safe(
-                            context_char, self.cmap_table
+                        context_cid = self.cmap_manager.convert_hanzi_to_cid_safe(
+                            context_char
                         )
                         if context_cid:
                             rclt_0_subtables.append(
@@ -400,8 +401,8 @@ class GSUBTableGenerator:
                             chars = list(pattern.replace("~", hanzi))
                             match_cids = []
                             for char in chars:
-                                char_cid = convert_hanzi_to_cid_safe(
-                                    char, self.cmap_table
+                                char_cid = self.cmap_manager.convert_hanzi_to_cid_safe(
+                                    char
                                 )
                                 if char_cid:
                                     match_cids.append([char_cid])
@@ -442,7 +443,7 @@ class GSUBTableGenerator:
                     Dict[str, str], lookups[lookup_name]["subtables"][0]
                 )
                 for hanzi, target in table.items():
-                    cid = convert_hanzi_to_cid_safe(hanzi, self.cmap_table)
+                    cid = self.cmap_manager.convert_hanzi_to_cid_safe(hanzi)
                     if cid and isinstance(target, str):
                         # Replace hanzi with cid in target (exact legacy method)
                         target_cid = target.replace(hanzi, cid)
@@ -474,7 +475,7 @@ class GSUBTableGenerator:
                 if applies:
                     match_cids: List[List[str]] = []
                     for char in phrase:
-                        cid = convert_hanzi_to_cid_safe(char, self.cmap_table)
+                        cid = self.cmap_manager.convert_hanzi_to_cid_safe(char)
                         if cid:
                             match_cids.append([cid])
 
@@ -512,7 +513,7 @@ class GSUBTableGenerator:
                     Dict[str, str], lookups[lookup_name]["subtables"][0]
                 )
                 for hanzi, target in table.items():
-                    cid = convert_hanzi_to_cid_safe(hanzi, self.cmap_table)
+                    cid = self.cmap_manager.convert_hanzi_to_cid_safe(hanzi)
                     if cid and isinstance(target, str):
                         # Replace hanzi with cid in target (exact legacy method)
                         target_cid = target.replace(hanzi, cid)
@@ -549,7 +550,7 @@ class GSUBTableGenerator:
                         ignore_phrase = ignore_pattern.replace(" ", "").replace("'", "")
                         ignore_match_cids: List[List[str]] = []
                         for char in ignore_phrase:
-                            cid = convert_hanzi_to_cid_safe(char, self.cmap_table)
+                            cid = self.cmap_manager.convert_hanzi_to_cid_safe(char)
                             if cid:
                                 ignore_match_cids.append([cid])
 
@@ -577,7 +578,7 @@ class GSUBTableGenerator:
                 if applies:
                     match_cids: List[List[str]] = []
                     for char in phrase:
-                        cid = convert_hanzi_to_cid_safe(char, self.cmap_table)
+                        cid = self.cmap_manager.convert_hanzi_to_cid_safe(char)
                         if cid:
                             match_cids.append([cid])
 
