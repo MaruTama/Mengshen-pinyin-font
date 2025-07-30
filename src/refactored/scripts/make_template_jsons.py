@@ -96,8 +96,11 @@ class TemplateJsonMaker:
         result = self.shell.execute(cmd)
 
         # Write output to file
-        with open(output_path, "wb") as f:
-            f.write(result.stdout)
+        with open(output_path, "w", encoding="utf-8") as f:
+            if isinstance(result.stdout, bytes):
+                f.write(result.stdout.decode("utf-8"))
+            else:
+                f.write(result.stdout)
 
     def delete_glyf_table_on_main_json(self, style: str) -> None:
         """Create main template JSON with glyf contours removed."""
@@ -138,8 +141,11 @@ class TemplateJsonMaker:
         result = self.shell.execute(cmd)
 
         # Write output to file
-        with open(output_path, "wb") as f:
-            f.write(result.stdout)
+        with open(output_path, "w", encoding="utf-8") as f:
+            if isinstance(result.stdout, bytes):
+                f.write(result.stdout.decode("utf-8"))
+            else:
+                f.write(result.stdout)
 
     def make_template(self, source_font_name: str, style: str) -> None:
         """Create template JSON files from font."""
