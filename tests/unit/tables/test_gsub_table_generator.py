@@ -14,7 +14,7 @@ import pytest
 
 from refactored.config import FontConstants
 from refactored.data import CharacterDataManager, MappingDataManager
-from refactored.processing.gsub_table_generator import GSUBTableGenerator
+from refactored.tables.gsub_table_generator import GSUBTableGenerator
 
 
 class TestGSUBTableGeneratorInitialization:

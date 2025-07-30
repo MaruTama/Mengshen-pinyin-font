@@ -185,7 +185,7 @@ class TestCompletePipeline:
             PinyinDataManager,
         )
         from refactored.data.mapping_data import JsonCmapDataSource
-        from refactored.font.font_builder import FontBuilder
+        from refactored.generation.font_builder import FontBuilder
 
         # Use test files created by fixture
         template_main_path = create_test_files["template_main"]
@@ -241,7 +241,7 @@ class TestCompletePipeline:
             PinyinDataManager,
         )
         from refactored.data.mapping_data import JsonCmapDataSource
-        from refactored.processing.gsub_table_generator import GSUBTableGenerator
+        from refactored.tables.gsub_table_generator import GSUBTableGenerator
 
         # Create mock pattern files
         pattern_one_path = temp_dir / "pattern_one.txt"
@@ -446,7 +446,7 @@ class TestPipelineErrorHandling:
     def test_missing_template_files(self, temp_dir):
         """Test behavior when template files are missing."""
         from refactored.config import ProjectPaths
-        from refactored.font.font_builder import FontBuilder
+        from refactored.generation.font_builder import FontBuilder
 
         # Create FontBuilder with non-existent files
         non_existent_path = temp_dir / "non_existent.json"
@@ -470,7 +470,7 @@ class TestPipelineErrorHandling:
         corrupted_file = temp_dir / "corrupted.json"
         corrupted_file.write_text("{ invalid json content }")
 
-        from refactored.font.font_builder import FontBuilder
+        from refactored.generation.font_builder import FontBuilder
 
         with pytest.raises((ValueError, KeyError, RuntimeError)):
             builder = FontBuilder(
@@ -490,7 +490,7 @@ class TestPipelineErrorHandling:
         # This is difficult to test without actually filling up disk
         # For now, just verify that the pipeline handles large files gracefully
 
-        from refactored.font.font_builder import FontBuilder
+        from refactored.generation.font_builder import FontBuilder
 
         # Create very large mock data (simulate large font)
         large_glyf_data = {

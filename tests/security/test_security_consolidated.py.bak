@@ -27,11 +27,10 @@ class TestSecurityConsolidated:
     @pytest.mark.security
     def test_path_traversal_prevention(self, sample_path_traversal_attacks):
         """Test that path traversal attacks are prevented."""
-        # Note: validate_file_path is currently not implemented in shell_utils.py
-        # This test is disabled until path validation is implemented
-        pytest.skip(
-            "validate_file_path not implemented - path traversal prevention handled at command level"
-        )
+        for malicious_path in sample_path_traversal_attacks:
+            with pytest.raises((SecurityError, ValueError)):
+                # Any path validation should reject these patterns
+                validate_file_path(malicious_path)
 
     @pytest.mark.security
     def test_safe_command_execution_list_format(self):
@@ -58,7 +57,7 @@ class TestSecurityConsolidated:
 
         for path in restricted_paths:
             with pytest.raises((SecurityError, ValueError)):
-                pass  # validate_file_path not implemented
+                validate_file_path(path)
 
     @pytest.mark.security
     def test_safe_path_validation(self):
@@ -75,7 +74,7 @@ class TestSecurityConsolidated:
 
         for path in safe_paths:
             # Should not raise exception
-            pass  # validate_file_path not implemented
+            validate_file_path(path)
 
     @pytest.mark.security
     def test_shell_executor_security(self):
@@ -120,7 +119,7 @@ class TestSecurityConsolidated:
         for path in problematic_paths:
             # These should either raise an error or be handled safely
             try:
-                pass  # validate_file_path not implemented
+                validate_file_path(path)
                 # If no error, path should be safe
                 assert not path.startswith("/")
             except (SecurityError, ValueError):
@@ -140,7 +139,7 @@ class TestSecurityConsolidated:
         for attack in unicode_attacks:
             # Test that unicode attacks are handled appropriately
             try:
-                pass  # validate_file_path not implemented
+                validate_file_path(attack)
                 # If no error, ensure path is normalized
                 assert "\u0000" not in attack
             except (SecurityError, ValueError):
@@ -160,7 +159,7 @@ class TestSecurityConsolidated:
         for attack in encoding_attacks:
             # Test that encoding attacks are handled appropriately
             try:
-                pass  # validate_file_path not implemented
+                validate_file_path(attack)
                 # If no error, ensure path doesn't contain dangerous patterns
                 assert ".." not in attack or not attack.startswith(".")
             except (SecurityError, ValueError):

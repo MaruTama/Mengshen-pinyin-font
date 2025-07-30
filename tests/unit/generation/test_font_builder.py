@@ -101,7 +101,7 @@ class TestFontBuilder:
 
         with (
             patch(
-                "refactored.tables.cmap_manager.CmapTableManager.from_path"
+                "refactored.tables.cmap_manager.CmapTableManager.from_path",
             ) as mock_cmap_from_path,
             patch(
                 "refactored.generation.font_builder.PinyinDataManager"
@@ -117,10 +117,6 @@ class TestFontBuilder:
                 "refactored.generation.font_builder.FontAssembler"
             ) as mock_assembler_cls,
         ):
-            # Set up the mock CmapTableManager
-            mock_cmap_manager = Mock()
-            mock_cmap_manager.get_cmap_table.return_value = {}
-            mock_cmap_from_path.return_value = mock_cmap_manager
 
             builder = FontBuilder(
                 font_type=FontType.HAN_SERIF,
@@ -475,10 +471,6 @@ class TestFontBuilder:
             patch("orjson.loads", return_value={"cmap": {}}),
             patch("orjson.dumps", return_value=b'{"test": "data"}'),
         ):
-            # Set up the mock CmapTableManager
-            mock_cmap_manager = Mock()
-            mock_cmap_manager.get_cmap_table.return_value = {}
-            mock_cmap_from_path.return_value = mock_cmap_manager
 
             builder = FontBuilder(
                 font_type=FontType.HAN_SERIF,
