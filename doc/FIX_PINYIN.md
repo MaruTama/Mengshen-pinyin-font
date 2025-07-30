@@ -1,12 +1,17 @@
-# Wrong idioms in `pypinyin`
+# FIX_PINYIN
+
+## Wrong idioms in `pypinyin`
+
 - 长城(ZhǎngChéng -> ChángChéng)
 - 银行(YínXíng -> YínHáng)
 - 首都(ShǒuDōu -> Shǒudū)
 
-# Wrong hanzi in `pypinyin`
+## Wrong hanzi in `pypinyin`
+
 为(wèi -> wéi)
 
-# Collection of Chinese characters that are not found in `pypinyin`
+## Collection of Chinese characters that are not found in `pypinyin`
+
 Following table is the collection of Chinese characters that are found in [Word dictionary](https://www.mdbg.net/chinese/dictionary)
 
 |统一码(unicode)|汉字(Hanzi)|旧字/異体字(Old/Variant character)|拼音(pinyin)|网址(URL)|
@@ -112,7 +117,7 @@ Following table is the collection of Chinese characters that are found in [Word 
 |U+2CB29|𬬩|釴|yì|[GlyphWiki](http://glyphwiki.org/wiki/u2cb29),[Wiktionary zh](https://zh.wiktionary.org/wiki/%E9%87%B4)|
 |U+2CB31|𬬱|釿|jīn, yǐn, yín|[GlyphWiki](http://glyphwiki.org/wiki/u2cb31),[Wiktionary zh](https://zh.wiktionary.org/wiki/%E9%87%BF)|
 |U+2CB39|𬬹|鉮|huán, shén, shēn|[GlyphWiki](http://glyphwiki.org/wiki/u2cb39),[Wiktionary zh](https://zh.wiktionary.org/wiki/%E9%89%AE)|
-|U+2CB6C|𬭬|鏏|wèi|[GlyphWiki](http://glyphwiki.org/wiki/u2cb6c),[Wiktionary zh](https://zh.wiktionary.org/wiki/%E9%8F%8F)
+|U+2CB6C|𬭬|鏏|wèi|[GlyphWiki](http://glyphwiki.org/wiki/u2cb6c),[Wiktionary zh](https://zh.wiktionary.org/wiki/%E9%8F%8F)|
 |U+2CB6F|𬭯|䥕|piě|[GlyphWiki](http://glyphwiki.org/wiki/u2cb6f),[Wiktionary](https://en.wiktionary.org/wiki/%E4%A5%95)|
 |U+2CBBF|𬮿|隑|gāi, ái, qí­|[GlyphWiki](http://glyphwiki.org/wiki/u2cbbf),[Wiktionary zh](https://zh.wiktionary.org/wiki/%E9%9A%91)|
 |U+2CCFF|𬳿|駼|tú|[GlyphWiki](http://glyphwiki.org/wiki/u2ccff),[Wiktionary zh](https://zh.wiktionary.org/wiki/%E9%A7%BC)|

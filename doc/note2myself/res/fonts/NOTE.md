@@ -1,73 +1,101 @@
-# otfcc
+# フォントのビルド
 
-```
+## otfcc
+
+```bash
 # Xcode をインストールしておく
 mas install 497799835
 # Xcode は最初は [Command line Tools:] リストボックスが空欄になっているため、error になってしまう。
 # 以下の対処をすると直る。
 # [エラー：xcode-select: error: tool 'xcodebuild' requires Xcode, but active developer directory '/Library/Developer/CommandLineTools' is a command line tools instance](https://qiita.com/eytyet/items/59c5bad1c167d5addc68)
 
-brew tap caryll/tap 
+brew tap caryll/tap
 brew install otfcc-mac64
 ```
 
-# otf -> json
-```
+## otf -> json
+
+```bash
 otfccdump --pretty -o output.json ./res/fonts/SourceHanSerifCN-Regular.ttf
 
 ```
 
-```
+```bash
 # 巨大すぎてeditor で読み込めないときは、jq でタグ指定したり、less コマンドで逐次追っていく。
 # [jqコマンド(jsonデータの加工, 整形)の使い方](https://www.wakuwakubank.com/posts/676-linux-jq/)
 brew install jq
-cat output.json | jq > output2.json 
-less output2.json 
+cat output.json | jq > output2.json
+less output2.json
 ```
 
-# json -> otf
-```
+## json -> otf
+
+```bash
 otfccbuild sawarabi_setting.json -o otfbuild.ttf
 ```
+
 ttx は少しみずらい。ufo がいいけど uvs に対応していないし、、、
 基本は glyph は ufo で編集して、設定とかは otfcc で json にするのがいいね.
 ufo4 ができたら、統一したい。
 
+## 設定を持つフォントのビルド
 
-
-
-
-# 設定を持つフォントのビルド
+```bash
 otfccbuild sawarabi_setting.json -o otfbuild.ttf
-# 設定フォントを ttx に変換
+```
+
+## 設定フォントを ttx に変換
+
+```bash
 ttx -t GSUB otfbuild.ttf
-# 設定フォントの ttx を グリフを持つフォントへマージする
+```
+
+## 設定フォントの ttx を グリフを持つフォントへマージする
+
+```bash
 ttx -m SawarabiMincho-Regular.ttf otfbuild.ttx
+```
 
-# 各テーブルごとに出力
+## 各テーブルごとに出力
+
+```bash
 ttx -s -d ./output SawarabiMincho-Regular.ttf
-# output GSUB table 
-# cmap
+```
+
+## output GSUB table
+
+## cmap
+
+```bash
 ttx -t GSUB -d ./output SawarabiMincho-Regular.ttf
-# marge
+```
+
+## marge
+
+```bash
 ttx -m test.ttf ./output/SawarabiMincho-Regular.ttx
+```
 
-
+```js
 lookup CNTXT_884C {
     sub uni4E0D uni884C' by uni8846;
     sub uni9280 uni884C' by uni8853;
-# same above
+```
+
+same above
+
+```js
 #     sub [uni4E0D uni9280]  uni884C' by uni8846;
 } CNTXT_884C;
-
-
-
-
-# json で見つけた箇所
-不　uni4E0D
-
-## cmap (unicode と グリフの対応)
 ```
+
+## json で見つけた箇所
+
+- 不　uni4E0D
+
+### cmap (unicode と グリフの対応)
+
+```json
 "cmap": {
         "32": "uni0020",
         ...
@@ -76,8 +104,9 @@ lookup CNTXT_884C {
 }
 ```
 
-## cmap_uvs
-```
+### cmap_uvs
+
+```json
 "cmap_uvs": {
         ...
         "19981 917984": "uni4E0D.ss00",
@@ -88,8 +117,9 @@ lookup CNTXT_884C {
 }
 ```
 
-## glyf
-```
+### glyf
+
+```json
 {
         ...
         "uni4E0D": {
@@ -140,11 +170,12 @@ lookup CNTXT_884C {
 }
 ```
 
-# Glyph Order
-.ss00 が無印のグリフ。設定を変更するだけで拼音を変更できる。
-.ss01 が標準の読みの拼音
+## Glyph Order
 
-```
+`.ss00` が無印のグリフ。設定を変更するだけで拼音を変更できる。
+`.ss01` が標準の読みの拼音
+
+```json
 "glyph_order": [
   ...
   "uni4E0D","uni4E0D.ss00","uni4E0D.ss01","uni4E0D.ss02","uni4E0D.ss03",
@@ -152,12 +183,12 @@ lookup CNTXT_884C {
 ]
 ```
 
-## GSUB aalt
+### GSUB aalt
 
 aalt_0 は拼音が一つのみの漢字 + 記号とか。置き換え対象が一つのみのとき
 aalt_1 は拼音が複数の漢字
 
-```
+```json
 "GSUB": {
         "languages": {
             "DFLT_DFLT": {
@@ -244,24 +275,25 @@ aalt_1 は拼音が複数の漢字
 }
 ```
 
+## calt を追加するために
 
-
-# calt を追加するために
-```
+```js
 lookup lookup_0 {
   sub A by X;
   sub uni884C by uni8846;
 } lookup_0;
 
 lookup calt0 {
-	sub [uni4E0D uni9280] uni884C' lookup lookup_0 ;
+ sub [uni4E0D uni9280] uni884C' lookup lookup_0 ;
 } calt0;
 lookup calt1 {
-	sub A' lookup lookup_0 F ;
+ sub A' lookup lookup_0 F ;
 } calt1;
 ```
-## json から抽出
-```
+
+### json から抽出
+
+```js
 "GSUB": {
     "languages": {
       "DFLT_DFLT": {
@@ -351,15 +383,14 @@ lookup calt1 {
   }
 ```
 
+## 注音の合成方法について
 
-
-
-# 注音の合成方法について
 zyt ㄊ（t） を例に
 unicode だと uni310A だけど注音用に別グリフになっている。
 
 zyt ㄊ
-```
+
+```json
         "zyt": {
             "advanceWidth": 306,
             "advanceHeight": 1024,
@@ -371,7 +402,8 @@ zyt ㄊ
 ```
 
 zya ㄚ
-```
+
+```json
         "zya": {
             "advanceWidth": 306,
             "advanceHeight": 1024,
@@ -383,16 +415,19 @@ zya ㄚ
 ```
 
 z_ta1 ㄊㄚ
-# [Apple-The 'glyf' table](https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6glyf.html)
-{"glyph":"zya","x":0,"y":50,"a":1,"b":0,"c":0,"d":1}
+
+## glyf table
+
+-[Apple-The 'glyf' table](https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6glyf.html)
+
+`{"glyph":"zya","x":0,"y":50,"a":1,"b":0,"c":0,"d":1}`
 
 a-d ってなんだ？
 > The transformation entries determine the values of an affine transformation applied to the component prior to its being incorporated into the parent glyph. Given the component matrix [a b c d e f], the transformation applied to the component is:
 
 アフィン変換でした
 
-
-```
+```json
         "z_ta1": {
             "advanceWidth": 512,
             "advanceHeight": 1024,
@@ -405,7 +440,8 @@ a-d ってなんだ？
 ```
 
 他 ㄊㄚ
-```
+
+```json
         "uni4ED6": {
             "advanceWidth": 1536,
             "advanceHeight": 1024,
@@ -427,7 +463,8 @@ a-d ってなんだ？
 ```
 
 uni310A ㄊ
-```
+
+```json
         "uni310A": {
             "advanceWidth": 1536,
             "advanceHeight": 1024,

@@ -1,0 +1,5 @@
+orjson
+pypinyin
+requests
+beautifulsoup4
+urllib3
