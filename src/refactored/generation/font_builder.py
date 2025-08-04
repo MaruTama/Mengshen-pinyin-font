@@ -200,57 +200,6 @@ class FontBuilder:
         """Get font build statistics."""
         return {"status": "placeholder"}
 
-    # def get_build_statistics(self) -> StatsDict:
-    #     """Get font build statistics.
-
-    #     Returns:
-    #         StatsDict: Dictionary containing build status, font type, glyph counts,
-    #                   and font metrics (yMax, ascender, font revision)
-    #     """
-    #     if not self._font_data:
-    #         return {"status": "not_built"}
-
-    #     stats: StatsDict = {
-    #         "status": "built",
-    #         "font_type": int(self.font_type),
-    #     }
-
-    #     # Add glyph counts if available
-    #     if "glyf" in self._font_data:
-    #         glyf_table = self._font_data["glyf"]
-    #         if hasattr(glyf_table, "__len__"):
-    #             stats["total_glyphs"] = len(glyf_table)
-
-    #     # Add generated glyph counts if glyph_manager is available
-    #     if hasattr(self, "glyph_manager") and self.glyph_manager:
-    #         generated_glyphs = self.glyph_manager.get_all_glyphs()
-    #         pinyin_glyph_names = self.glyph_manager.get_pinyin_glyph_names()
-
-    #         stats["generated_glyphs"] = len(generated_glyphs)
-    #         stats["pinyin_glyphs"] = len(pinyin_glyph_names)
-
-    #     # Add font metrics if available
-    #     if "head" in self._font_data:
-    #         head_table = cast(HeadTable, self._font_data["head"])
-    #         if isinstance(head_table, dict):
-    #             if "yMax" in head_table:
-    #                 ymax_val = head_table["yMax"]
-    #                 if isinstance(ymax_val, (int, float)):
-    #                     stats["ymax"] = ymax_val
-    #             if "fontRevision" in head_table:
-    #                 revision_val = head_table["fontRevision"]
-    #                 if isinstance(revision_val, (int, float)):
-    #                     stats["font_revision"] = revision_val
-
-    #     if "hhea" in self._font_data:
-    #         hhea_table = cast(HheaTable, self._font_data["hhea"])
-    #         if isinstance(hhea_table, dict) and "ascender" in hhea_table:
-    #             ascender_val = hhea_table["ascender"]
-    #             if isinstance(ascender_val, (int, float)):
-    #                 stats["ascender"] = ascender_val
-
-    #     return stats
-
     def _load_templates(self) -> None:
         """Load font template files (main + glyf data).
 
@@ -754,41 +703,6 @@ class FontBuilder:
                     os2_table["usWinAscent"] = advance_added_pinyin_height
 
         self.logger.debug("font revision set to: %s", VERSION)
-
-    # def _log_font_metrics_debug_info(self) -> None:
-    #     """Log font metrics debug information."""
-    #     # Debug logging with safe access
-    #     if self._font_data:
-    #         head_table = cast(HeadTable, self._font_data.get("head", {}))
-    #         hhea_table = cast(HheaTable, self._font_data.get("hhea", {}))
-    #         os2_table = cast(OS2Table, self._font_data.get("OS_2", {}))
-    #     else:
-    #         head_table = cast(HeadTable, {})
-    #         hhea_table = cast(HheaTable, {})
-    #         os2_table = cast(OS2Table, {})
-
-    #     ymax_val = (
-    #         head_table.get("yMax", "unknown")
-    #         if isinstance(head_table, dict)
-    #         else "unknown"
-    #     )
-    #     hhea_ascent_debug = (
-    #         hhea_table.get("ascender", "unknown")
-    #         if isinstance(hhea_table, dict)
-    #         else "unknown"
-    #     )
-    #     us_win_ascent_val = (
-    #         os2_table.get("usWinAscent", "unknown")
-    #         if isinstance(os2_table, dict)
-    #         else "unknown"
-    #     )
-
-    #     self.logger.debug(
-    #         "Font metrics updated - yMax: %s, ascender: %s, usWinAscent: %s",
-    #         ymax_val,
-    #         hhea_ascent_debug,
-    #         us_win_ascent_val,
-    #     )
 
     def _set_copyright(self) -> None:
         """Set font copyright and naming information."""

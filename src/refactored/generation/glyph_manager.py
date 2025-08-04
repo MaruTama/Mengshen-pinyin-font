@@ -585,7 +585,6 @@ class HanziGlyphGenerator:
         else:
             advance_width = 1000.0
 
-        # processed_count = 0  # Commented out as it's not used
         skipped_no_glyph = 0
         skipped_duplicate = 0
         skipped_no_cid = 0
