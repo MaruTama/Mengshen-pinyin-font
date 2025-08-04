@@ -1,0 +1,16 @@
+# Development and testing dependencies
+pytest>=7.0.0
+pytest-cov>=4.0.0
+pytest-mock>=3.0.0
+pytest-benchmark>=4.0.0
+pytest-watch>=4.2.0
+hypothesis>=6.0.0
+black>=22.0.0
+mypy>=1.0.0
+bandit>=1.7.0
+flake8>=5.0.0
+isort>=5.0.0
+
+# Git hooks management
+# Install lefthook: https://github.com/evilmartians/lefthook/blob/master/docs/install.md
+# Usage: lefthook install

@@ -1,0 +1,28 @@
+[flake8]
+max-line-length = 88
+extend-ignore = 
+    E203,
+    E501,
+    W503,
+    E402
+exclude = 
+    .git,
+    __pycache__,
+    .pytest_cache,
+    .mypy_cache,
+    .venv,
+    venv,
+    build,
+    dist,
+    outputs,
+    tmp,
+    tools,
+    res/phonics/pinyin-data
+per-file-ignores =
+    # Tests can have longer lines and different import patterns
+    tests/*:E501,F401,F811,F841
+    # Legacy files may have different patterns
+    src/legacy/*:E402,F401
+    # Refactored code can have complex functions during development
+    src/refactored/*:C901
+max-complexity = 12
