@@ -14,7 +14,7 @@ class GSUBTable:
     def __init__(self, GSUB, PATTERN_ONE_TXT, PATTERN_TWO_JSON, EXCEPTION_PATTERN_JSON):
         # TODO:
         # 今は上書きするだけ
-        # calt も rclt も featute の数が多いと有効にならない。 feature には上限がある？ので、今は初期化して使う
+        # calt も rclt も feature の数が多いと有効にならない。 feature には上限がある？ので、今は初期化して使う
         # rclt は calt と似ていて、かつ無効にできないタグ [Tag:'rclt'](https://docs.microsoft.com/en-us/typography/opentype/spec/features_pt#-tag-rclt)
         # 代替文字の指定、置換条件の指定
         # self.GSUB                   = GSUB

@@ -11,7 +11,7 @@ from pypinyin import Style, lazy_pinyin, pinyin
 BAIDU_URL = "https://hanyu.baidu.com/s?wd={}&from=zici"
 ZDIC_URL = "https://www.zdic.net/hans/{}"
 
-MARGED_MAPPING_TABLE = "marged-mapping-table.txt"
+MARGED_MAPPING_TABLE = "merged-mapping-table.txt"
 
 
 NORMAL_PRONUNCIATION = 0
