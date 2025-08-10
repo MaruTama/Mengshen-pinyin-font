@@ -7,3 +7,5 @@ jq
 defcon
 ufo-extractor
 ufo2ft
+psutil
+requests
