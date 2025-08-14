@@ -22,7 +22,239 @@
 [シャオライ/Xiaolai Font](https://github.com/lxgw/kose-font) をベースにしている。これはグリフ数削減のためにハングル文字(a960 #ꥠ ~ d7fb #ퟻ) を除去して使っている。
 拼音部分には [瀬戸フォント](https://ja.osdn.net/projects/setofont/releases/p14368) を利用している。
 
-## 依存関係の解消
+## 環境要件
+
+### Python環境
+
+```bash
+pyenv global 3.11.2
+```
+
+### 外部ツールインストール
+
+#### otfcc
+
+[otfcc](https://github.com/caryll/otfcc) は軽量で IVS にも対応している。
+
+##### macOSの場合
+
+```shell
+brew tap caryll/tap
+brew install otfcc-mac64
+```
+
+##### debian/ubuntuの場合
+
+```shell
+# ビルド用依存関係をインストール
+$ sudo apt-get update && sudo apt-get install -y \
+    build-essential \
+    libfreetype6-dev \
+    uuid-dev \
+    unzip
+
+# premake5をダウンロード・インストール
+$ wget -O /tmp/premake5.tar.gz "https://github.com/premake/premake-core/releases/download/v5.0.0-beta2/premake-5.0.0-beta2-linux.tar.gz"
+$ cd /tmp
+$ sudo tar -xzf premake5.tar.gz
+$ sudo mv premake5 /usr/local/bin/
+$ sudo chmod +x /usr/local/bin/premake5
+$ rm -f /tmp/premake5.tar.gz
+
+# premake5のバージョン確認
+$ premake5 --version
+
+# otfccをソースからビルド
+$ git clone --depth 1 --branch v0.10.4 https://github.com/caryll/otfcc.git /tmp/otfcc
+$ cd /tmp/otfcc
+$ git submodule update --init --recursive
+$ premake5 gmake
+$ cd build/gmake
+$ make config=release_x64
+
+# ビルドされたバイナリをシステムにインストール
+$ sudo cp ../../bin/release-x64/* /usr/local/bin/
+
+# インストール確認
+$ otfccdump --version
+$ otfccbuild --version
+
+# 一時ファイル削除
+$ rm -rf /tmp/otfcc
+```
+
+#### jq
+
+[jq](https://stedolan.github.io/jq/) は、json から少ない労力で値抽出・集計・整形して表示したりできるコマンドです。
+
+##### macOSの場合
+
+```shell
+# Xcode をインストールしておく
+$ mas install 497799835
+# Xcode は最初は [Command line Tools:] リストボックスが空欄になっているため、error になってしまう。
+# 以下の対処をすると直る。
+# [エラー：xcode-select: error: tool 'xcodebuild' requires Xcode, but active developer directory '/Library/Developer/CommandLineTools' is a command line tools instance](https://qiita.com/eytyet/items/59c5bad1c167d5addc68)
+
+$ brew tap caryll/tap
+$ brew install otfcc-mac64
+$ brew install jq
+```
+
+##### debian/ubuntuの場合
+
+```shell
+sudo apt -y install jq
+```
+
+## セットアップ
+
+### 1. Gitサブモジュールの初期化
+
+このプロジェクトは拼音データとして外部のGitサブモジュールを使用しています。最初にサブモジュールを初期化する必要があります：
+
+```bash
+# プロジェクトのクローン後、サブモジュールを初期化
+git submodule update --init --recursive
+```
+
+### 2. 依存関係のインストール
+
+```bash
+# Python依存関係をインストール
+pip install -e .
+```
+
+### 3. 開発環境のセットアップ（任意）
+
+#### 開発用依存関係のインストール
+
+```bash
+# 開発・テスト用のツールをインストール
+pip install -e ".[dev]"
+```
+
+#### Git フック（Lefthook）
+
+開発時の品質管理のため、Lefthookを使用してGitフックを設定できます：
+
+```bash
+# Lefthookのインストール（macOS）
+brew install lefthook
+
+# 追加ツールのインストール（markdownlint, cspellが必要）
+npm install -g markdownlint-cli cspell
+
+# Gitフックを有効化
+lefthook install
+
+# 設定確認
+lefthook version
+```
+
+## 基本的なビルド手順
+
+おすすめは Docker を使う方法です。
+
+#### Docker版（完全パイプライン）
+
+下記 1~5 の手順を Docker コンテナ内で実行します。
+
+```bash
+cd <PROJECT ROOT>
+# han_serifフォントのみ生成
+docker-compose -f docker/docker-compose.yml up pipeline-han-serif
+
+# handwrittenフォントのみ生成
+docker-compose -f docker/docker-compose.yml up pipeline-handwritten
+
+# 両方のフォントを生成
+docker-compose -f docker/docker-compose.yml up pipeline-all
+```
+
+### 1. 多音字の辞書を作る（省略可能）
+
+[詳細へ](../res/phonics/duo_yin_zi/README_JP.md)
+
+```bash
+cd res/phonics/duo_yin_zi/scripts/
+python make_pattern_table.py
+```
+
+### 2. 対象の漢字のunicodeテーブルを作る（省略可能）
+
+[詳細へ](../res/phonics/unicode_mapping_table/README_JP.md)
+
+```bash
+cd res/phonics/unicode_mapping_table/
+python make_unicode_pinyin_map_table.py
+```
+
+### 3. ベースフォントをJSONにダンプ
+
+glyf table はサイズが大きく閲覧のときに不便なので他のテーブルと分離する。
+
+#### レガシー版
+
+```bash
+cd <PROJECT-ROOT>
+python src/legacy/make_template_jsons.py <BASE-FONT-NAME>
+# 例:
+# python src/legacy/make_template_jsons.py ./res/fonts/han-serif/SourceHanSerifCN-Regular.ttf
+```
+
+#### リファクタ版
+
+```bash
+cd <PROJECT-ROOT>
+# han-serif
+PYTHONPATH=src python -m refactored.scripts.make_template_jsons --style han_serif
+# handwritten
+PYTHONPATH=src python -m refactored.scripts.make_template_jsons --style handwritten
+```
+
+### 4. 拼音表示用文字の抽出
+
+固定幅の英字フォントのみ対応
+
+#### レガシー版
+
+```bash
+cd <PROJECT-ROOT>
+python src/legacy/retrieve_latin_alphabet.py <FONT-NAME-FOR-PINYIN>
+# 例:
+# python src/legacy/retrieve_latin_alphabet.py ./res/fonts/han-serif/mplus-1m-medium.ttf
+```
+
+#### リファクタ版
+
+```bash
+# han-serif
+PYTHONPATH=src python -m refactored.scripts.retrieve_latin_alphabet --style han_serif
+# handwritten
+PYTHONPATH=src python -m refactored.scripts.retrieve_latin_alphabet --style handwritten
+```
+
+### 5. フォント生成
+
+#### レガシー版
+
+```bash
+cd <PROJECT-ROOT>
+time python src/legacy/main.py --style han_serif
+# または
+time python src/legacy/main.py --style handwritten
+```
+
+#### リファクタ版
+
+```bash
+time PYTHONPATH=src python -m refactored.cli.main -t han_serif
+# または
+time PYTHONPATH=src python -m refactored.cli.main -t handwritten
+```
+
+## 開発・テストコマンド
 
 ### テストコマンド
 
@@ -85,99 +317,16 @@ PYTHONPATH=src python -m refactored.scripts.retrieve_latin_alphabet --style han_
 PYTHONPATH=src python -m refactored.scripts.retrieve_latin_alphabet --style handwritten
 
 # フォント生成
-cd ../../../..
-python src/main.py -t han_serif
-python src/main.py -t handwritten
+# han-serif
+time PYTHONPATH=src python -m refactored.cli.main -t han_serif
+# handwritten
+time PYTHONPATH=src python -m refactored.cli.main -t handwritten
 
 # 6. 🎯 Integration: 完全なテストスイートを実行
 python -m pytest tests/ --cov=src
 
 # 7. ✅ Validation: 回帰がないことを確認
 python -m pytest tests/integration/test_complete_pipeline.py
-```
-
-## ビルドコマンド
-
-### フォント生成
-
-#### レガシー版
-
-```bash
-# han_serifフォントを生成
-python3 src/main.py -t han_serif
-
-# handwrittenフォントを生成
-python3 src/main.py -t handwritten
-
-# ビルドプロセスの時間測定
-time python3 src/main.py
-```
-
-#### リファクタ版
-
-```bash
-# han_serifフォントを生成
-PYTHONPATH=src python -m refactored.cli.main -t han_serif
-
-# handwrittenフォントを生成
-PYTHONPATH=src python -m refactored.cli.main -t handwritten
-```
-
-### 依存関係セットアップ
-
-```bash
-# Python依存関係をインストール
-pip install -r requirements.txt
-
-# 外部依存関係をインストール（macOS）
-brew tap caryll/tap
-brew install otfcc-mac64
-brew install jq
-```
-
-### パターンテーブル生成
-
-```bash
-# 多音字パターンテーブルを生成
-cd res/phonics/duo_yin_zi/scripts
-python3 make_pattern_table.py
-```
-
-### otfcc
-
-[otfcc](https://github.com/caryll/otfcc) は軽量で IVS にも対応している。
-
-### jq
-
-[jq](https://stedolan.github.io/jq/) は、json から少ない労力で値抽出・集計・整形して表示したりできるコマンドです。
-
-### mac only
-
-```shell
-# Xcode をインストールしておく
-$ mas install 497799835
-# Xcode は最初は [Command line Tools:] リストボックスが空欄になっているため、error になってしまう。
-# 以下の対処をすると直る。
-# [エラー：xcode-select: error: tool 'xcodebuild' requires Xcode, but active developer directory '/Library/Developer/CommandLineTools' is a command line tools instance](https://qiita.com/eytyet/items/59c5bad1c167d5addc68)
-
-$ brew tap caryll/tap
-$ brew install otfcc-mac64
-```
-
-### python
-
-```bash
-pyenv global 3.11.2
-pip install -r requirements.txt
-```
-
-## 開発環境のセットアップ
-
-### 開発用依存関係のインストール
-
-```bash
-# 開発・テスト用のツールをインストール
-$ pip install -r requirements-dev.txt
 ```
 
 ### 使用している開発支援ツール
@@ -192,6 +341,19 @@ $ pip install -r requirements-dev.txt
 #### セキュリティ
 
 - **bandit** (>=1.7.0) - セキュリティ脆弱性検出
+
+#### ドキュメント・マークダウン
+
+- **markdownlint-cli** - Markdownリンティング・自動修正
+- **cspell** - スペルチェック
+
+```bash
+# インストール（npm）
+npm install -g markdownlint-cli cspell
+
+# または（yarn）
+yarn global add markdownlint-cli cspell
+```
 
 #### テスト
 
@@ -269,7 +431,7 @@ $ lefthook version
 
 設定されているフック：
 
-- **pre-commit**: コードフォーマット（Black + isort）、リンティング（flake8）、セキュリティチェック
+- **pre-commit**: コードフォーマット（Black + isort）、リンティング（flake8）、セキュリティチェック、markdownlint（自動修正）、スペルチェック
 - **pre-push**: コア機能テスト（unit + security）
 
 ### 開発時のワークフロー
@@ -280,6 +442,8 @@ $ lefthook version
 # - Python構文チェック
 # - Pythonリンティング（flake8）
 # - セキュリティチェック（shell=True検出など）
+# - Markdownリンティング・自動修正（markdownlint）
+# - スペルチェック（cspell）
 
 # プッシュ前に自動実行される項目：
 # - コア機能テスト（unit + security）
@@ -295,116 +459,6 @@ flake8 src/ tests/
 lefthook run pre-commit
 lefthook run pre-push
 ```
-
-## 生成手順
-
-1. 多音字の辞書を作る(省略可能)
-
-   [詳細へ](../res/phonics/duo_yin_zi/README_JP.md)
-
-   ```bash
-   cd <PROJECT-ROOT>/res/phonics/duo_yin_zi/scripts/
-   python make_pattern_table.py
-   ```
-
-2. 対象の漢字の unicode テーブルを作る(省略可能)
-
-   [詳細へ](../res/phonics/unicode_mapping_table/README_JP.md)
-
-   ```bash
-   cd <PROJECT-ROOT>/res/phonics/unicode_mapping_table/
-   python make_unicode_pinyin_map_table.py
-   ```
-
-3. ベースにするフォントを編集可能の状態（json）にダンプする
-
-   glyf table はサイズが大きく閲覧のときに不便なので他のテーブルと分離する。
-
-   ### フォントダンプ（レガシー版）
-
-   ```bash
-   $ cd <PROJECT-ROOT>
-   $ python src/make_template_jsons.py <BASE-FONT-NAME>
-   # e,g.:
-   # python src/make_template_jsons.py ./res/fonts/han-serif/SourceHanSerifCN-Regular.ttf
-   ```
-
-   ### フォントダンプ（リファクタ版）
-
-   ```bash
-   $ cd <PROJECT-ROOT>
-   # han-serif
-   $ PYTHONPATH=src python -m refactored.scripts.make_template_jsons --style han_serif
-   # handwritten
-   $ PYTHONPATH=src python -m refactored.scripts.make_template_jsons --style handwritten
-   ```
-
-4. 拼音表示のための文字を抽出する
-
-   固定幅の英字フォントのみ対応
-
-   ### 文字抽出（レガシー版）
-
-   ```bash
-   $ cd <PROJECT-ROOT>
-   $ python src/retrieve_latin_alphabet.py <FONT-NAME-FOR-PINYIN>
-   # e,g.:
-   # python src/retrieve_latin_alphabet.py ./res/fonts/han-serif/mplus-1m-medium.ttf
-   ```
-
-   ### 文字抽出（リファクタ版）
-
-   ```bash
-   $ cd <PROJECT-ROOT>
-   # han-serif
-   $ PYTHONPATH=src python -m refactored.scripts.retrieve_latin_alphabet --style han_serif
-   # handwritten
-   $ PYTHONPATH=src python -m refactored.scripts.retrieve_latin_alphabet --style handwritten
-   ```
-
-5. ビルドする
-
-   ```bash
-   cd <PROJECT ROOT>
-   ```
-
-   ### ビルド（レガシー版）
-
-   ```bash
-   time python src/main.py --style han_serif
-   ```
-
-   or
-
-   ```bash
-   time python src/main.py --style handwritten
-   ```
-
-   ### ビルド（リファクタ版）
-
-   ```bash
-   time PYTHONPATH=src python -m refactored.cli.main -t han_serif
-   ```
-
-   or
-
-   ```bash
-   time PYTHONPATH=src python -m refactored.cli.main -t handwritten
-   ```
-
-   ### Docker版（完全パイプライン）
-
-   ```bash
-   $ cd <PROJECT ROOT>
-   # han_serifフォントのみ生成
-   $ docker-compose -f docker/docker-compose.yml up pipeline-han-serif
-
-   # handwrittenフォントのみ生成
-   $ docker-compose -f docker/docker-compose.yml up pipeline-handwritten
-
-   # 両方のフォントを生成
-   $ docker-compose -f docker/docker-compose.yml up pipeline-all
-   ```
 
 ## 技術的メモ
 

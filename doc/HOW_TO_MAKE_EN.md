@@ -24,7 +24,240 @@ The font used here is based on [小赖字体/Xiaolai Font](https://github.com/lx
 And remove Hangul characters(a960 #ꥠ ~ d7fb #ퟻ) from this font to reduce glyphs.
 [SetoFontSP](https://ja.osdn.net/projects/setofont/releases/p14368) is used for the pinyin part of this font.
 
-## Dependencies
+## Environment Requirements
+
+### Python Environment
+
+```bash
+pyenv global 3.11.2
+```
+
+### External Tool Installation
+
+#### otfcc
+
+[otfcc](https://github.com/caryll/otfcc) is lightweight and supports IVS.
+
+##### macOS
+
+```shell
+brew tap caryll/tap
+brew install otfcc-mac64
+```
+
+##### debian/ubuntu
+
+```shell
+# Install build dependencies
+$ sudo apt-get update && sudo apt-get install -y \
+    build-essential \
+    libfreetype6-dev \
+    uuid-dev \
+    unzip
+
+# Download and install premake5
+$ wget -O /tmp/premake5.tar.gz "https://github.com/premake/premake-core/releases/download/v5.0.0-beta2/premake-5.0.0-beta2-linux.tar.gz"
+$ cd /tmp
+$ sudo tar -xzf premake5.tar.gz
+$ sudo mv premake5 /usr/local/bin/
+$ sudo chmod +x /usr/local/bin/premake5
+$ rm -f /tmp/premake5.tar.gz
+
+# Verify premake5 version
+$ premake5 --version
+
+# Build otfcc from source
+$ git clone --depth 1 --branch v0.10.4 https://github.com/caryll/otfcc.git /tmp/otfcc
+$ cd /tmp/otfcc
+$ git submodule update --init --recursive
+$ premake5 gmake
+$ cd build/gmake
+$ make config=release_x64
+
+# Install built binaries to system
+$ sudo cp ../../bin/release-x64/* /usr/local/bin/
+
+# Verify installation
+$ otfccdump --version
+$ otfccbuild --version
+
+# Clean up temporary files
+$ rm -rf /tmp/otfcc
+```
+
+#### jq
+
+[jq](https://stedolan.github.io/jq/) can mangle the data format that you have into the one that you want with very little effort.
+
+##### macOS
+
+```shell
+# Install Xcode by mas-cli
+$ mas install 497799835
+# Note: Xcode initially gets an error because the [Command line Tools:] list box is blank.
+# The following solutions will fix this problem.
+# Refer to [エラー：xcode-select: error: tool 'xcodebuild' requires Xcode, but active developer directory '/Library/Developer/CommandLineTools' is a command line tools instance](https://qiita.com/eytyet/items/59c5bad1c167d5addc68)
+
+$ brew tap caryll/tap
+$ brew install otfcc-mac64
+$ brew install jq
+```
+
+##### debian/ubuntu
+
+```shell
+sudo apt -y install jq
+```
+
+## Setup
+
+### 1. Git Submodule Initialization
+
+This project uses external Git submodules for pinyin data. You need to initialize submodules first:
+
+```bash
+# After cloning the project, initialize submodules
+git submodule update --init --recursive
+```
+
+### 2. Dependencies Installation
+
+```bash
+# Install Python dependencies
+pip install -e .
+```
+
+### 3. Development Environment Setup (Optional)
+
+#### Install Development Dependencies
+
+```bash
+# Install development and testing tools
+pip install -e ".[dev]"
+```
+
+#### Git Hooks (Lefthook)
+
+For development quality management, Lefthook can be used to set up Git hooks:
+
+```bash
+# Install Lefthook (macOS)
+brew install lefthook
+
+# Install additional tools (markdownlint and cspell required)
+npm install -g markdownlint-cli cspell
+
+# Enable Git hooks
+lefthook install
+
+# Verify configuration
+lefthook version
+```
+
+## Basic Build Steps
+
+The recommended approach is using Docker.
+
+#### Docker Version (Complete Pipeline)
+
+Execute steps 1-5 below inside a Docker container.
+
+```bash
+cd <PROJECT ROOT>
+# Generate han_serif font only
+docker-compose -f docker/docker-compose.yml up pipeline-han-serif
+
+# Generate handwritten font only
+docker-compose -f docker/docker-compose.yml up pipeline-handwritten
+
+# Generate both fonts
+docker-compose -f docker/docker-compose.yml up pipeline-all
+```
+
+### 1. Making a polyphone dictionary (optional)
+
+[Details](../res/phonics/duo_yin_zi/README_EN.md)
+
+```bash
+cd res/phonics/duo_yin_zi/scripts/
+python make_pattern_table.py
+```
+
+### 2. Make a Unicode table of the target Chinese characters (optional)
+
+[Details](../res/phonics/unicode_mapping_table/README_EN.md)
+
+```bash
+cd res/phonics/unicode_mapping_table/
+python make_unicode_pinyin_map_table.py
+```
+
+### 3. Dump base fonts to JSON
+
+The glyf table is large and inconvenient for browsing, so separate from other tables.
+
+#### Legacy Version
+
+```bash
+cd <PROJECT-ROOT>
+python src/legacy/make_template_jsons.py <BASE-FONT-NAME>
+# Example:
+# python src/legacy/make_template_jsons.py ./res/fonts/han-serif/SourceHanSerifCN-Regular.ttf
+```
+
+#### Refactored Version
+
+```bash
+cd <PROJECT-ROOT>
+# han-serif
+PYTHONPATH=src python -m refactored.scripts.make_template_jsons --style han_serif
+# handwritten
+PYTHONPATH=src python -m refactored.scripts.make_template_jsons --style handwritten
+```
+
+### 4. Extract characters for pinyin display
+
+**Note: Fixed-width Latin alphabet fonts only**
+
+#### Legacy Version
+
+```bash
+cd <PROJECT-ROOT>
+python src/legacy/retrieve_latin_alphabet.py <FONT-NAME-FOR-PINYIN>
+# Example:
+# python src/legacy/retrieve_latin_alphabet.py ./res/fonts/han-serif/mplus-1m-medium.ttf
+```
+
+#### Refactored Version
+
+```bash
+cd <PROJECT-ROOT>
+# han-serif
+PYTHONPATH=src python -m refactored.scripts.retrieve_latin_alphabet --style han_serif
+# handwritten
+PYTHONPATH=src python -m refactored.scripts.retrieve_latin_alphabet --style handwritten
+```
+
+### 5. Font Generation
+
+#### Legacy Version
+
+```bash
+cd <PROJECT-ROOT>
+time python src/legacy/main.py --style han_serif
+# or
+time python src/legacy/main.py --style handwritten
+```
+
+#### Refactored Version
+
+```bash
+time PYTHONPATH=src python -m refactored.cli.main -t han_serif
+# or
+time PYTHONPATH=src python -m refactored.cli.main -t handwritten
+```
+
+## Development & Test Commands
 
 ### Test Commands
 
@@ -87,78 +320,16 @@ PYTHONPATH=src python -m refactored.scripts.retrieve_latin_alphabet --style han_
 PYTHONPATH=src python -m refactored.scripts.retrieve_latin_alphabet --style handwritten
 
 # Font generation
-cd ../../../..
-python src/main.py -t han_serif
-python src/main.py -t handwritten
+# han-serif
+time PYTHONPATH=src python -m refactored.cli.main -t han_serif
+# handwritten
+time PYTHONPATH=src python -m refactored.cli.main -t handwritten
 
 # 6. 🎯 Integration: Run complete test suite
 python -m pytest tests/ --cov=src
 
 # 7. ✅ Validation: Ensure no regression
 python -m pytest tests/integration/test_complete_pipeline.py
-```
-
-## Build Commands
-
-### Font Generation
-
-#### Legacy Version
-
-```bash
-# Generate han_serif font
-python3 src/main.py -t han_serif
-
-# Generate handwritten font
-python3 src/main.py -t handwritten
-
-# Measure build process time
-time python3 src/main.py
-```
-
-#### Refactored Version
-
-```bash
-# Generate han_serif font
-PYTHONPATH=src python -m refactored.cli.main -t han_serif
-
-# Generate handwritten font
-PYTHONPATH=src python -m refactored.cli.main -t handwritten
-```
-
-### Dependency Setup
-
-```bash
-# Install Python dependencies
-pip install -r requirements.txt
-
-# Install external dependencies (macOS)
-brew tap caryll/tap
-brew install otfcc-mac64
-brew install jq
-```
-
-### Pattern Table Generation
-
-```bash
-# Generate polyphone pattern table
-cd res/phonics/duo_yin_zi/scripts
-python3 make_pattern_table.py
-```
-
-### Python
-
-```bash
-pyenv global 3.11.2
-pip install -r requirements.txt
-```
-
-## Development Environment Setup
-
-### Install Development Dependencies
-
-```bash
-# Install development and testing tools
-$ pip install -r requirements-dev.txt
 ```
 
 ### Development Support Tools Used
@@ -173,6 +344,19 @@ $ pip install -r requirements-dev.txt
 #### Security
 
 - **bandit** (>=1.7.0) - Security vulnerability detection
+
+#### Documentation & Markdown
+
+- **markdownlint-cli** - Markdown linting and auto-fixing
+- **cspell** - Spell checking
+
+```bash
+# Install via npm
+npm install -g markdownlint-cli cspell
+
+# Or via yarn
+yarn global add markdownlint-cli cspell
+```
 
 #### Testing
 
@@ -241,6 +425,9 @@ For development quality management, Lefthook can be used to set up Git hooks:
 # Install Lefthook (macOS)
 $ brew install lefthook
 
+# Install additional tools (markdownlint and cspell required)
+$ npm install -g markdownlint-cli cspell
+
 # Enable Git hooks
 $ lefthook install
 
@@ -250,7 +437,7 @@ $ lefthook version
 
 Configured hooks:
 
-- **pre-commit**: Code formatting (Black + isort), linting (flake8), security checks
+- **pre-commit**: Code formatting (Black + isort), linting (flake8), security checks, markdownlint (auto-fixing), spell checking
 - **pre-push**: Core functionality tests (unit + security)
 
 ### Development Workflow
@@ -261,6 +448,8 @@ Configured hooks:
 # - Python syntax checking
 # - Python linting (flake8)
 # - Security checks (shell=True detection, etc.)
+# - Markdown linting and auto-fixing (markdownlint)
+# - Spell checking (cspell)
 
 # Automatically executed before push:
 # - Core functionality tests (unit + security)
@@ -276,138 +465,6 @@ flake8 src/ tests/
 lefthook run pre-commit
 lefthook run pre-push
 ```
-
-### otfcc
-
-[otfcc](https://github.com/caryll/otfcc) is lightweight and support IVS
-
-### jq
-
-[jq](https://stedolan.github.io/jq/) can mangle the data format that you have into the one that you want with very little effort
-
-### mac only
-
-```shell
-# Install Xcode by mas-cli
-$ mas install 497799835
-# Note: Xcode initially gets an error because the [Command line Tools:] list box is blank.
-# The following solutions will fix this problem.
-# Refer to [エラー：xcode-select: error: tool 'xcodebuild' requires Xcode, but active developer directory '/Library/Developer/CommandLineTools' is a command line tools instance](https://qiita.com/eytyet/items/59c5bad1c167d5addc68)
-
-# Install otfcc
-$ brew tap caryll/tap
-$ brew install otfcc-mac64
-```
-
-## Generation procedure
-
-1. Making a homograph dictionary (optional)
-
-   [Details](../res/phonics/duo_yin_zi/README_EN.md)
-
-   ```bash
-   cd <PROJECT-ROOT>/res/phonics/duo_yin_zi/scripts/
-   python make_pattern_table.py
-   ```
-
-2. Make a Unicode table of the target Chinese characters (optional)
-
-   [Details](../res/phonics/unicode_mapping_table/README_EN.md)
-
-   ```bash
-   cd <PROJECT-ROOT>/res/phonics/unicode_mapping_table/
-   python make_unicode_pinyin_map_table.py
-   ```
-
-3. Dump the base font to an editable file (json)
-
-   The glyf table is too large and inconvenient to browse, so it should be separated from the other tables.
-
-   ### Font Dump (Legacy Version)
-
-   ```bash
-   $ cd <PROJECT-ROOT>
-   $ python src/make_template_jsons.py <BASE-FONT-NAME>
-   # e.g.:
-   # python src/make_template_jsons.py ./res/fonts/han-serif/SourceHanSerifCN-Regular.ttf
-   ```
-
-   ### Font Dump (Refactored Version)
-
-   ```bash
-   $ cd <PROJECT-ROOT>
-   # han-serif
-   $ PYTHONPATH=src python -m refactored.scripts.make_template_jsons --style han_serif
-   # handwritten
-   $ PYTHONPATH=src python -m refactored.scripts.make_template_jsons --style handwritten
-   ```
-
-4. Extraction of Latin characters for pinyin display
-
-   **Note: Fixed-width Latin alphabet fonts only**
-
-   ### Character Extraction (Legacy Version)
-
-   ```bash
-   $ cd <PROJECT-ROOT>
-   $ python src/retrieve_latin_alphabet.py <FONT-NAME-FOR-PINYIN>
-   # e.g.:
-   # python src/retrieve_latin_alphabet.py ./res/fonts/han-serif/mplus-1m-medium.ttf
-   ```
-
-   ### Character Extraction (Refactored Version)
-
-   ```bash
-   $ cd <PROJECT-ROOT>
-   # han-serif
-   $ PYTHONPATH=src python -m refactored.scripts.retrieve_latin_alphabet --style han_serif
-   # handwritten
-   $ PYTHONPATH=src python -m refactored.scripts.retrieve_latin_alphabet --style handwritten
-   ```
-
-5. Build the font
-
-   ```bash
-   cd <PROJECT ROOT>
-   ```
-
-   ### Build (Legacy Version)
-
-   ```bash
-   time python src/main.py --style han_serif
-   ```
-
-   or
-
-   ```bash
-   time python src/main.py --style handwritten
-   ```
-
-   ### Build (Refactored Version)
-
-   ```bash
-   time PYTHONPATH=src python -m refactored.cli.main -t han_serif
-   ```
-
-   or
-
-   ```bash
-   time PYTHONPATH=src python -m refactored.cli.main -t handwritten
-   ```
-
-   ### Docker Version (Complete Pipeline)
-
-   ```bash
-   $ cd <PROJECT ROOT>
-   # Generate han_serif font only
-   $ docker-compose -f docker/docker-compose.yml up pipeline-han-serif
-
-   # Generate handwritten font only
-   $ docker-compose -f docker/docker-compose.yml up pipeline-handwritten
-
-   # Generate both fonts
-   $ docker-compose -f docker/docker-compose.yml up pipeline-all
-   ```
 
 ## Technical Notes
 
