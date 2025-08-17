@@ -125,7 +125,7 @@ jobs:
         
       - name: Run spell check
         run: |
-          cspell "src/refactored/**/*.py" "tests/**/*.py" "*.md" "doc/*.md" --config cspell.json
+          cspell "src/refactored/**/*.py" "tests/**/*.py" "*.md" "docs/*.md" --config cspell.json
 
   markdown-lint:
     name: Markdown Lint
@@ -147,4 +147,4 @@ jobs:
         
       - name: Lint Markdown files
         run: |
-          markdownlint "*.md" "doc/*.md" --config .markdownlint.json --ignore node_modules
+          markdownlint "*.md" "docs/*.md" --config .markdownlint.json --ignore node_modules
