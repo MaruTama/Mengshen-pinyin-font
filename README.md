@@ -71,6 +71,13 @@ You can also use Unicode IVS (ideographic variant selector) to switch other diff
 ![using_contextual_replacing](./imgs/using_contextual_replacing.gif)
 ![using_ideographic_variant_selector](./imgs/using_ideographic_variant_selector.gif)
 
+
+||Windows|Mac|
+|:-:|:-:|:-:|
+|rclt|<video src="https://github.logica.io/storage/user/444/files/012345">|<video src="https://github.com/user-attachments/assets/9d791b54-76f4-43ba-bd1b-dd5db270bf5b">|
+|IVS|<video src="https://github.logica.io/storage/user/444/files/012345">|<video src="https://github.com/user-attachments/assets/b6d62550-63b4-4bfb-8462-610013e1d0fc">|
+
+
 ----
 
 ## 対応している多音字の一覧 / List of Supported Homographs
