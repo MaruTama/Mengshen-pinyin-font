@@ -67,16 +67,13 @@ Please turn on any of the features under Font - Advanced - OpenType Features (su
 また、Unicode IVS（表意文字バリアントセレクター）を使用して、異なる拼音に切り替えることもできます。/
 Implemented contextual replacing to support homograph (多音字).
 You can also use Unicode IVS (ideographic variant selector) to switch other different pinyin.
-<!-- ![](./imgs/2020-10-25-19.17.04.gif) -->
 ![using_contextual_replacing](./imgs/using_contextual_replacing.gif)
 ![using_ideographic_variant_selector](./imgs/using_ideographic_variant_selector.gif)
 
-
 ||Windows|Mac|
 |:-:|:-:|:-:|
-|rclt|<video src="https://github.logica.io/storage/user/444/files/012345">|<video src="https://github.com/user-attachments/assets/9d791b54-76f4-43ba-bd1b-dd5db270bf5b">|
-|IVS|<video src="https://github.logica.io/storage/user/444/files/012345">|<video src="https://github.com/user-attachments/assets/b6d62550-63b4-4bfb-8462-610013e1d0fc">|
-
+|contextual replacing using rclt|<video src="https://github.logica.io/storage/user/444/files/012345">|<video src="https://github.com/user-attachments/assets/9d791b54-76f4-43ba-bd1b-dd5db270bf5b">|
+|ideographic variant selector(IVS)|<video src="https://github.logica.io/storage/user/444/files/012345">|<video src="https://github.com/user-attachments/assets/b6d62550-63b4-4bfb-8462-610013e1d0fc">|
 
 ----
 
