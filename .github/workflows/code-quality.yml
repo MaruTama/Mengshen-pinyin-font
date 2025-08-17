@@ -3,8 +3,30 @@ name: Code Quality and Linting
 on:
   push:
     branches: [ master ]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'docs/**'
+      - 'pyproject.toml'
+      - '.github/workflows/**'
+      - 'bandit.yaml'
+      - '.flake8'
+      - '.markdownlint.json'
+      - 'cspell.json'
+      - '*.md'
   pull_request:
     branches: [ master ]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'docs/**'
+      - 'pyproject.toml'
+      - '.github/workflows/**'
+      - 'bandit.yaml'
+      - '.flake8'
+      - '.markdownlint.json'
+      - 'cspell.json'
+      - '*.md'
 
 jobs:
   lint:
@@ -14,6 +36,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
         
       - name: Set up Python 3.12
         uses: actions/setup-python@v4
@@ -88,6 +112,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
         
       - name: Set up Node.js for cspell
         uses: actions/setup-node@v3
@@ -108,6 +134,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
         
       - name: Set up Node.js for markdownlint
         uses: actions/setup-node@v3

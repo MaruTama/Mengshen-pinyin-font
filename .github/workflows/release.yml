@@ -3,6 +3,16 @@ name: Release Fonts
 on:
   push:
     branches: [master]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'pyproject.toml'
+      - 'Dockerfile'
+      - 'docker/**'
+      - 'res/phonics/unicode_mapping_table/overwrite.txt'
+      - 'res/phonics/duo_yin_zi/phrase_of_pattern_one.txt'
+      - 'res/phonics/duo_yin_zi/phrase_of_pattern_two.txt'
+      - 'res/phonics/duo_yin_zi/phrase_of_exceptional_pattern.txt'
   workflow_dispatch:
 
 env:
@@ -23,6 +33,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          submodules: recursive
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -100,7 +111,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: "v${{ steps.release_info.outputs.date }}"
-          name: "Mengshen Pinyin Fonts v${{ steps.release_info.outputs.project_version }}"
+          name: "Mengshen Pinyin Fonts v${{ steps.release_info.outputs.project_version }} (${{ steps.release_info.outputs.date }})"
           body: |
             ## Mengshen Pinyin Fonts Release
 
