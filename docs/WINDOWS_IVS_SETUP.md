@@ -64,7 +64,7 @@ For the character 行 (háng/xíng):
 
 ### Demo Video
 
-<video src="../imgs/using-ideographic-variant-selector-on-win.mp4" controls width="600">
+<video src="https://github.com/user-attachments/assets/19b9a839-2504-4f44-96ea-ec28b3836865">
 Your browser does not support the video tag.
 </video>
 
