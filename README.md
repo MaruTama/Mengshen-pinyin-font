@@ -53,11 +53,7 @@ Subtitles are shown Chinese characters and pinyin.
 [Language Learning with Netflix](https://chrome.google.com/webstore/detail/language-learning-with-ne/hoombieeljmmljlkjmnheibnpciblicm?hl=en)
 ![An-example-of-how-to-use](./imgs/An-example-of-how-to-use.png)
 
-<details><summary>Enable homograph features in Microsoft Word</summary><div>
-
-Please turn on any of the features under Font - Advanced - OpenType Features (suggest to choose Ligatures: Standard Only or tick Use Contextual Alternates, but other options are OK too) to display the correct pinyin in Microsoft Word. By default, Word will not use any OpenType features (including automatically changing the pinyin) if none of the options are used. Microsoft Excel turns on the feature by default, and is not affected.
-![word-setting](./imgs/word_setting.png)
-</div></details>
+- [Microsoft Word Setup for Homograph Features](./docs/MICROSOFT_WORD_SETUP.md)
 
 ----
 
@@ -67,22 +63,14 @@ Please turn on any of the features under Font - Advanced - OpenType Features (su
 また、Unicode IVS（表意文字バリアントセレクター）を使用して、異なる拼音に切り替えることもできます。/
 Implemented contextual replacing to support homograph (多音字).
 You can also use Unicode IVS (ideographic variant selector) to switch other different pinyin.
-![using_contextual_replacing](./imgs/using_contextual_replacing.gif)
-![using_ideographic_variant_selector](./imgs/using_ideographic_variant_selector.gif)
+<!-- ![using_contextual_replacing](./imgs/using_contextual_replacing.gif)
+![using_ideographic_variant_selector](./imgs/using_ideographic_variant_selector.gif) -->
 
-||contextual replacing using rclt|ideographic variant selector(IVS)|
-|:-:|:-:|:-:|
-|Windows|<video src="https://github.com/user-attachments/assets/7478707f-091b-43e5-ab6f-117281ba67ee">|<video src="https://github.com/user-attachments/assets/19b9a839-2504-4f44-96ea-ec28b3836865">|
-|Mac|<video src="https://github.com/user-attachments/assets/9d791b54-76f4-43ba-bd1b-dd5db270bf5b">|<video src="https://github.com/user-attachments/assets/62c5567e-5ba0-48b0-b196-fd3db5322dae">|
-|Android||-|
-
-
-
-
-
-
-
-
+|Platform|Automatic pinyin switching (using Contextual Replacement)|Manual pinyin switching (using IVS)|Notes|
+|:-:|:-:|:-:|:-:|
+|Windows|<video src="https://github.com/user-attachments/assets/7478707f-091b-43e5-ab6f-117281ba67ee">|<video src="https://github.com/user-attachments/assets/19b9a839-2504-4f44-96ea-ec28b3836865">|Use [IME Pad for IVS](./docs/WINDOWS_IVS_SETUP.md)|
+|Mac|<video src="https://github.com/user-attachments/assets/9d791b54-76f4-43ba-bd1b-dd5db270bf5b">|<video src="https://github.com/user-attachments/assets/62c5567e-5ba0-48b0-b196-fd3db5322dae">|Use [Character Viewer](https://support.apple.com/en-us/102650#:~:text=Control%E2%80%93Command%E2%80%93Space%20bar) for IVS|
+|Android|![android-chrome-rclt](imgs/android-chrome-rclt.png)|-|Chrome のみ切り替え動作することを確認 - [zFont Setup Guide](./docs/HOW_TO_APPLY_FONT_ON_ANDROOID.md) / [Magisk module](https://github.com/MaruTama/magisk-module-mengshen-font) for root users|
 
 ----
 
