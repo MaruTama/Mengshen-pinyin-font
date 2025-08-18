@@ -382,7 +382,8 @@
     "gānr",
     "jiànr",
     "bǐng",
-    "BUILDKIT"
+    "BUILDKIT",
+    "numpad",
   ],
   "ignorePaths": [
     ".git/**",
