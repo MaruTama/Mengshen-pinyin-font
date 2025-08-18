@@ -70,10 +70,19 @@ You can also use Unicode IVS (ideographic variant selector) to switch other diff
 ![using_contextual_replacing](./imgs/using_contextual_replacing.gif)
 ![using_ideographic_variant_selector](./imgs/using_ideographic_variant_selector.gif)
 
-||Windows|Mac|
+||contextual replacing using rclt|ideographic variant selector(IVS)|
 |:-:|:-:|:-:|
-|contextual replacing using rclt|<video src="https://github.logica.io/storage/user/444/files/012345">|<video src="https://github.com/user-attachments/assets/9d791b54-76f4-43ba-bd1b-dd5db270bf5b">|
-|ideographic variant selector(IVS)|<video src="https://github.logica.io/storage/user/444/files/012345">|<video src="https://github.com/user-attachments/assets/62c5567e-5ba0-48b0-b196-fd3db5322dae">|
+|Windows|<video src="https://github.com/user-attachments/assets/7478707f-091b-43e5-ab6f-117281ba67ee">|<video src="https://github.com/user-attachments/assets/19b9a839-2504-4f44-96ea-ec28b3836865">|
+|Mac|<video src="https://github.com/user-attachments/assets/9d791b54-76f4-43ba-bd1b-dd5db270bf5b">|<video src="https://github.com/user-attachments/assets/62c5567e-5ba0-48b0-b196-fd3db5322dae">|
+|Android||-|
+
+
+
+
+
+
+
+
 
 ----
 
