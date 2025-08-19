@@ -68,9 +68,9 @@ You can also use Unicode IVS (ideographic variant selector) to switch other diff
 
 |Platform|Automatic pinyin switching (using Contextual Replacement)|Manual pinyin switching (using IVS)|Notes|
 |:-:|:-:|:-:|:-:|
-|Windows|<video src="https://github.com/user-attachments/assets/7478707f-091b-43e5-ab6f-117281ba67ee">|<video src="https://github.com/user-attachments/assets/19b9a839-2504-4f44-96ea-ec28b3836865">|Use [IME Pad for IVS](./docs/WINDOWS_IVS_SETUP.md)|
-|Mac|<video src="https://github.com/user-attachments/assets/9d791b54-76f4-43ba-bd1b-dd5db270bf5b">|<video src="https://github.com/user-attachments/assets/62c5567e-5ba0-48b0-b196-fd3db5322dae">|Use [Character Viewer](https://support.apple.com/en-us/102650#:~:text=Control%E2%80%93Command%E2%80%93Space%20bar) for IVS|
-|Android|![android-chrome-rclt](imgs/android-chrome-rclt.png)|-|Chrome のみ切り替え動作することを確認 - [zFont Setup Guide](./docs/HOW_TO_APPLY_FONT_ON_ANDROOID.md) / [Magisk module](https://github.com/MaruTama/magisk-module-mengshen-font) for root users|
+|Windows|<video src="https://github.com/user-attachments/assets/7478707f-091b-43e5-ab6f-117281ba67ee">|<video src="https://github.com/user-attachments/assets/19b9a839-2504-4f44-96ea-ec28b3836865">|Use [IME Pad for IVS](./docs/IVS_SETUP_GUIDE.md)|
+|Mac|<video src="https://github.com/user-attachments/assets/9d791b54-76f4-43ba-bd1b-dd5db270bf5b">|<video src="https://github.com/user-attachments/assets/62c5567e-5ba0-48b0-b196-fd3db5322dae">|Use [Character Viewer for IVS](./docs/IVS_SETUP_GUIDE.md)|
+|Android|![android-chrome-rclt](imgs/android-chrome-rclt.png)|-|・[zFont Setup Guide](./docs/HOW_TO_APPLY_FONT_ON_ANDROOID.md) </br>・[Magisk module](https://github.com/MaruTama/magisk-module-mengshen-font) (root required, IVS works in Chrome only)|
 
 ----
 
