@@ -188,20 +188,6 @@
     "source.organizeImports": "explicit",
     "source.fixAll.markdownlint": "explicit"
   },
-  // Markdownlint specific settings
-  "markdownlint.config": {
-    "MD033": {
-      "allowed_elements": [
-        "img"
-      ]
-    },
-    "MD045": false,
-    "MD025": false,
-    "MD029": {
-      "style": "ordered"
-    },
-    "MD059": false
-  },
   // Python-specific settings
   "[python]": {
     "editor.formatOnSave": true,

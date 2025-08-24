@@ -12,6 +12,7 @@
   "MD033": {
     "allowed_elements": [
       "img",
+      "video",
       "div",
       "details",
       "summary"
