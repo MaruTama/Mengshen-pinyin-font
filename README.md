@@ -62,9 +62,9 @@ Subtitles are shown Chinese characters and pinyin.
 多音字をサポートするためにコンテキスト置換(feature tag of "rclt" at GSUB)を実装しました。
 また、Unicode IVS（表意文字バリアントセレクター）を使用して、異なる拼音に切り替えることもできます。/
 Implemented contextual replacing to support homograph (多音字).
-You can also use Unicode IVS (ideographic variant selector) to switch other different pinyin.
-<!-- ![using_contextual_replacing](./imgs/using_contextual_replacing.gif)
-![using_ideographic_variant_selector](./imgs/using_ideographic_variant_selector.gif) -->
+You can also use Unicode IVS (ideographic variant selector) to switch other different pinyin.  
+![using_contextual_replacing](./imgs/using_contextual_replacing.gif)
+![using_ideographic_variant_selector](./imgs/using_ideographic_variant_selector.gif)
 
 |Platform|Automatic pinyin switching (using Contextual Replacement)|Manual pinyin switching (using IVS)|Notes|
 |:-:|:-:|:-:|:-:|
