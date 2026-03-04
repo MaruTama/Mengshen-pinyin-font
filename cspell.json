@@ -384,6 +384,9 @@
     "bǐng",
     "BUILDKIT",
     "numpad",
+    "Sawarabi",
+    "Mincho",
+    "rsvg"
   ],
   "ignorePaths": [
     ".git/**",
