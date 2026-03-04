@@ -88,18 +88,18 @@ pre-commit:
 
     # スペルチェック（変更されたファイルのみ）
     spell-check:
-      glob: "*.{py,md}"
-      run: cspell {staged_files} --config cspell.json
+      glob: "**/*.{py,md}"
+      run: cspell {staged_files} --config cspell.json --no-must-find-files
       fail_text: "スペルチェックエラーが見つかりました。辞書への追加または修正が必要です。"
 
     # Markdownリンティングと自動修正（変更されたファイルのみ）
     markdown-lint:
-      glob: "*.md"
+      glob: "**/*.md"
       run: |
         # Auto-fix markdownlint issues
-        markdownlint --fix {staged_files} --config .markdownlint.json 2>/dev/null || echo "markdownlint未インストール、手動修正が必要です"
+        markdownlint --fix {staged_files} --config .markdownlint.json
         # Check for remaining issues
-        markdownlint {staged_files} --config .markdownlint.json 2>/dev/null || echo "残りのMarkdownエラーは手動修正が必要です"
+        markdownlint {staged_files} --config .markdownlint.json
       stage_fixed: true
       fail_text: "Markdownが自動修正されました。変更を確認してコミットしてください。"
 
