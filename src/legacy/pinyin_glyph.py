@@ -63,7 +63,7 @@ class PinyinGlyph:
 
     # pinyin の発音をマージ先の大きさを取得して調整、追加する
     def add_references_of_pronunciation(self):
-        (target_advance_width_of_hanzi, target_advance_height_of_hanzi) = (
+        target_advance_width_of_hanzi, target_advance_height_of_hanzi = (
             self.__get_advance_size_of_hanzi()
         )
         pronunciations = self.__get_pronunciations()
@@ -222,7 +222,7 @@ class PinyinGlyph:
                 }
             )
 
-        (_, target_advance_height_of_hanzi) = self.__get_advance_size_of_hanzi()
+        _, target_advance_height_of_hanzi = self.__get_advance_size_of_hanzi()
         simpled_pronunciation = utility.simplification_pronunciation(pronunciation)
         advanceHeight = round(
             target_advance_height_of_hanzi + target_pinyin_canvas_height, 2

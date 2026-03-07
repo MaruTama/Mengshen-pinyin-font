@@ -210,8 +210,8 @@ class Font:
         # print(self.marged_font["glyph_order"])
 
     def generate_hanzi_glyf_with_normal_pinyin(self, cid):
-        (advance_width, _) = self.get_advance_size_of_hanzi()
-        (_, added_pinyin_height, added_pinyin_vertical_origin) = (
+        advance_width, _ = self.get_advance_size_of_hanzi()
+        _, added_pinyin_height, added_pinyin_vertical_origin = (
             self.get_advance_size_of_pinyin_glyf()
         )
         hanzi_glyf = {
@@ -233,8 +233,8 @@ class Font:
         return hanzi_glyf
 
     def generate_hanzi_glyf_with_pinyin(self, cid, pronunciation):
-        (advance_width, _) = self.get_advance_size_of_hanzi()
-        (_, added_pinyin_height, added_pinyin_vertical_origin) = (
+        advance_width, _ = self.get_advance_size_of_hanzi()
+        _, added_pinyin_height, added_pinyin_vertical_origin = (
             self.get_advance_size_of_pinyin_glyf()
         )
         simpled_pronunciation = utility.simplification_pronunciation(pronunciation)
@@ -378,7 +378,7 @@ class Font:
         self.marged_font["GSUB"] = GSUB.get_GSUB_table()
 
     def set_about_size(self):
-        (_, advanceAddedPinyinHeight, _) = self.get_advance_size_of_pinyin_glyf()
+        _, advanceAddedPinyinHeight, _ = self.get_advance_size_of_pinyin_glyf()
         if advanceAddedPinyinHeight > self.marged_font["head"]["yMax"]:
             # すべてのグリフの輪郭を含む範囲
             self.marged_font["head"]["yMax"] = advanceAddedPinyinHeight
