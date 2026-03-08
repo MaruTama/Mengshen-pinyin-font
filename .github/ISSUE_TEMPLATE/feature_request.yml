@@ -1,0 +1,24 @@
+name: Feature request / 功能请求
+description: Suggest a new feature or improvement. / 提出新功能或改进建议。
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary / 概述
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation / 动机
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context / 补充信息
+      description: Screenshots, reference links, etc. / 截图、参考链接等。

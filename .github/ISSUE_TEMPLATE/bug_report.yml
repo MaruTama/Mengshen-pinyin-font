@@ -1,0 +1,106 @@
+name: Bug report / 缺陷报告
+description: Report glyph missing, pinyin display issues, etc. / 报告字形缺失、拼音显示异常等问题
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting a bug. Please fill in the information below to help us reproduce and investigate the issue.
+        感谢您提交缺陷报告。请填写以下信息以帮助我们复现和调查问题。
+
+  - type: input
+    id: font-version
+    attributes:
+      label: Font version / 字体版本
+      placeholder: "e.g. / 例: v2.0.0, 1.03"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: font-style
+    attributes:
+      label: Font style / 字体风格
+      options:
+        - HanSerif
+        - Handwritten
+        - Both / 两者
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: OS / 操作系统
+      options:
+        - Windows
+        - macOS
+        - Android
+        - iOS
+        - Linux
+        - Other / 其他
+    validations:
+      required: true
+
+  - type: input
+    id: app
+    attributes:
+      label: Application / 应用程序
+      description: Application name and version where the issue occurs / 发生问题的应用程序名称和版本
+      placeholder: "e.g. / 例: Microsoft Word 2021, Chrome 120, Adobe Reader"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install-method
+    attributes:
+      label: How the font is applied / 字体应用方式
+      options:
+        - Installed as system font / 安装为系统字体
+        - Embedded in application / 嵌入应用程序
+        - Other / 其他
+    validations:
+      required: false
+
+  - type: textarea
+    id: affected-chars
+    attributes:
+      label: Affected characters / 受影响的汉字和拼音
+      description: The character(s) and pinyin that are not displaying correctly / 未正确显示的汉字及其应有的拼音
+      placeholder: |
+        e.g. / 例:
+        - "丈" → zhàng, the "z" is missing / "z" 不显示
+        - "行" → xíng / háng switching does not work / 多音字切换无效
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce / 复现步骤
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior / 预期行为
+      placeholder: Describe what should happen correctly. / 描述正确情况下应该如何显示。
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots / 截图
+      description: Attach screenshots showing the issue (drag & drop supported). / 请附上能说明问题的截图（支持拖放）。
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context / 补充信息
+      description: Any other information that may be helpful. / 其他可能有帮助的信息。
