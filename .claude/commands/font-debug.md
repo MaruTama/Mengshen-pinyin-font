@@ -22,7 +22,7 @@ description: Mengshen 拼音フォントプロジェクト固有のデバッグ�
 
 **症状（エラーメッセージ）**
 
-```
+```text
 otfccbuild: Circular glyph reference found in gid X to gid Y. The reference will be dropped.
 ```
 
@@ -32,7 +32,7 @@ otfccbuild: Circular glyph reference found in gid X to gid Y. The reference will
 代表的な重複ケース：
 
 | Unicode | グリフ名 |
-|---|---|
+| --- | --- |
 | ⺎ (U+2E8E), 兀 (U+5140), 兀 (U+FA0C) | cid10849 |
 | 嗀 (U+55C0), 嗀 (U+FA0D) | cid12670 |
 
@@ -66,7 +66,7 @@ python find_circular_reference_gid.py
 **feature タグ別の動作（調査済み）**
 
 | タグ | Mac | 用途 | 採用 |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `salt` | ⚠️ 検証時に不可 | スタイル代替 | 非推奨（`rclt` を優先） |
 | `aalt` | ✅ | ユーザー向け代替文字表示 | 目的が違う |
 | `calt` | ✅ | 文脈依存置換（Chaining contextual substitution） | 使用可 |
@@ -81,7 +81,7 @@ python find_circular_reference_gid.py
 **GSUB lookup の命名規則**
 
 | lookup 名 | 対応パターン |
-|---|---|
+| --- | --- |
 | `lookup_pattern_0N` | pattern one（1文字だけ変化） |
 | `lookup_pattern_1N` | pattern two（2文字以上変化） |
 | `lookup_pattern_2N` | exception pattern（例外） |
@@ -133,7 +133,7 @@ otfccbuild の仕様（または OpenType の仕様）で、アフィン変換�
 
 **仕様（調査済み）**
 
-```
+```text
 inputBegins = min(at)
 inputEnds   = max(at) + 1
 ```
@@ -144,7 +144,7 @@ inputEnds   = max(at) + 1
 
 **具体例**
 
-```
+```text
 sub [uni4E0D uni9280] uni884C' lookup lookup_0;
   → at: 1, inputBegins: 1, inputEnds: 2
 
@@ -385,6 +385,95 @@ curl -s -X POST localhost:8000/api/projects/<id>/gsub/simulate \
 
 ---
 
+### パターン7: `python -m src.refactored.cli.main -t <style>` が `Missing required files: template_glyf_*.json` で失敗する
+
+**症状**
+
+```text
+ERROR: Error: Missing required files: ['template_glyf: /path/to/tmp/json/template_glyf_han_serif.json']
+```
+
+新しいクローン・新しいブランチ・新しい worktree でビルドしようとすると必ず起きる。
+`tmp/json/template_main_<style>.json`（glyf を除いたメタデータ）は git 管理されているが、
+`tmp/json/template_glyf_<style>.json`（glyf テーブル本体、数百MB）は git 管理されておらず、
+手元で `res/fonts/` のベースフォントから再生成する必要がある。
+
+**診断手順**
+
+```bash
+# 1. どのベースフォントから template_main_<style>.json が作られたか確認する
+#    (han_serif -> res/fonts/han-serif/SourceHanSerifCN-Regular.ttf、
+#     handwritten -> 対応するベースフォント)
+
+# 2. 同じフォントを otfccdump で展開する
+otfccdump -o /tmp/dump.json --pretty res/fonts/han-serif/SourceHanSerifCN-Regular.ttf
+
+# 3. 既存の template_main_<style>.json と head/cmap/glyph_order が一致するか確認する
+#    （一致しなければ別バージョンのフォントを掴んでいるので template_main 側を疑う）
+python3 -c "
+import json
+with open('/tmp/dump.json', encoding='utf-8', errors='replace') as f:
+    d = json.load(f)
+with open('tmp/json/template_main_han_serif.json', encoding='utf-8', errors='replace') as f:
+    m = json.load(f)
+print('head:', d['head']==m['head'])
+print('cmap:', d['cmap']==m['cmap'])
+print('glyph_order:', d['glyph_order']==m['glyph_order'])
+"
+
+# 4. 一致したら glyf だけ抽出して不足ファイルを作る
+jq '.glyf' /tmp/dump.json > tmp/json/template_glyf_han_serif.json
+```
+
+handwritten スタイルも同様（`res/fonts/` 配下の対応するベースフォント + `template_glyf_handwritten.json`）。
+
+**注意**: `otfccdump` の出力は UTF-8 として厳密でないバイトを含むことがある
+（copyright の `©` 等）。Python で読む際は `encoding='utf-8', errors='replace'` を付ける。
+
+---
+
+### パターン8: otfccbuild の修正が「本当に効いたか」を確認する
+
+**背景**
+
+`otfccbuild` は壊れた GSUB テーブルでも**警告なくビルドを成功させる**ことがある
+（パターン2・issue #29/#31/otfcc#1 の GSUB 破損バグが典型例）。
+「ビルドが通った」「unit test が通った」だけでは、実際にシェーピングエンジンが
+正しく解釈できる状態かどうかの証明にならない。
+
+**3段階の検証手順（このプロジェクトで実際に使った方法）**
+
+```bash
+# 1. otfccdump で自己往復させる
+#    otfccbuild が壊れたテーブルを吐いた場合、otfccdump 自身が
+#    「subtable が空」「lookup を削除した」等の警告を出すことがある
+otfccdump -o /tmp/check.json --pretty outputs/Mengshen-HanSerif.ttf 2>&1
+# 例: "[WARNING] [Consolidate] Lookup lookup_aalt_1 is empty and will be removed."
+#     → ビルド時に投入したデータが失われている証拠
+
+# 2. fontTools の厳格なパーサで読み込めるか確認する
+#    otfcc の甘い実装と違い、仕様違反があると例外を出す
+python3 -c "
+from fontTools.ttLib import TTFont
+f = TTFont('outputs/Mengshen-HanSerif.ttf')
+gsub = f['GSUB'].table
+print('lookup types:', [lk.LookupType for lk in gsub.LookupList.Lookup])
+"
+# AssertionError や 'Unknown Coverage format: NNNNN' が出たら破損確定
+
+# 3. 実際の HarfBuzz シェーピングで期待通りに動くか確認する
+LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 \
+  hb-shape --font-file=outputs/Mengshen-HanSerif.ttf --text="道行" --show-text --output-format=json
+# 期待: 2文字目が héng 用の .ssNN グリフになっている
+# (hb-shape はロケール未設定だと日本語環境で
+#  "変換する入力に無効なバイトの並びがあります" と失敗するので LC_ALL/LANG が必須)
+```
+
+**この3段階すべてが揃って初めて「直った」と言える**。1・2だけでは自動置換が
+実際に発火するかまでは分からない。
+
+---
+
 ## 使用例
 
 ```text
@@ -395,4 +484,6 @@ curl -s -X POST localhost:8000/api/projects/<id>/gsub/simulate \
 /font-debug json dump
 /font-debug グリフを SVG で確認したい
 /font-debug 着手の拼音が期待と違う
+/font-debug Missing required files template_glyf
+/font-debug GSUB の修正が本当に効いたか確認したい
 ```

@@ -405,7 +405,8 @@
     "TGSCC",
     "shinjitai",
     "tgscc",
-    "zong"
+    "zong",
+    "worktree"
   ],
   "ignorePaths": [
     ".git/**",
