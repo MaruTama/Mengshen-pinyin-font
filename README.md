@@ -4,8 +4,8 @@
 
 OpenSource Pinyin font and creation tool that supports homographs (多音字).
 
-[![version](https://img.shields.io/badge/Version-v2.0.0-brightgreen.svg)](https://github.com/MaruTama/Mengshen-pinyin-font/releases/tag/v20260712-013306)
-![updated](https://img.shields.io/badge/Updated-Jul_12,_2026-green.svg)
+[![version](https://img.shields.io/badge/Version-v2.0.0-brightgreen.svg)](https://github.com/MaruTama/Mengshen-pinyin-font/releases/tag/v20260721-150022)
+![updated](https://img.shields.io/badge/Updated-Jul_21,_2026-green.svg)
 
 > 日本語版: [README_ja.md](./README_ja.md)
 
