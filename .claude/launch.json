@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "font-studio",
+      "runtimeExecutable": ".venv/bin/uvicorn",
+      "runtimeArgs": ["webapp.backend.main:app", "--port", "8000"],
+      "port": 8000
+    },
+    {
+      "name": "font-studio-frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "webapp/frontend", "run", "dev"],
+      "port": 5173
+    }
+  ]
+}

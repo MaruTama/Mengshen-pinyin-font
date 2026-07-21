@@ -5,9 +5,21 @@
 # ============================================================================
 # SETUP INSTRUCTIONS
 # ============================================================================
-# Required tools installation:
-#   pip install black isort flake8 mypy bandit safety
+# Required tools installation (requires Python 3.11+; check with `python --version`):
+#   python -m venv .venv && .venv/bin/pip install -e ".[dev]"
 #   npm install -g cspell markdownlint-cli
+#
+# Every Python-based command below runs as `{py}` (lefthook's `templates:`
+# feature, see https://lefthook.dev/configuration/templates.html), which
+# expands to `python -m`. Each of those commands also prepends `.venv/bin`
+# to PATH via `env:` (the pattern documented at
+# https://lefthook.dev/configuration/env.html#extending-path), so a bare
+# `python` resolves to this project's own .venv when it exists and falls
+# back to whatever `python` is on PATH otherwise — hooks work the same
+# regardless of whether a developer manages Python with pyenv, conda,
+# asdf, a plain system install, or nothing in particular, and don't
+# inherit breakage from whichever python3 happens to resolve first on a
+# given machine.
 #
 # Enable hooks:
 #   lefthook install
@@ -42,6 +54,9 @@ skip_output:
   - summary
   - execution_info
 
+templates:
+  py: python -m
+
 # Gitフック設定
 pre-commit:
   commands:
@@ -49,11 +64,13 @@ pre-commit:
     format-python:
       glob: "*.py"
       exclude: "src/legacy/"
+      env:
+        PATH: ".venv/bin:$PATH"
       run: |
         # Import sorting with isort
-        isort {staged_files}
-        # Code formatting with black  
-        black {staged_files}
+        {py} isort {staged_files}
+        # Code formatting with black
+        {py} black {staged_files}
       stage_fixed: true
       fail_text: "Pythonコードフォーマットが完了しました。変更を確認してコミットしてください。"
 
@@ -61,7 +78,9 @@ pre-commit:
     python-syntax:
       glob: "*.py"
       exclude: "src/legacy/"
-      run: python -m py_compile {staged_files}
+      env:
+        PATH: ".venv/bin:$PATH"
+      run: "{py} py_compile {staged_files}"
       stage_fixed: true
       fail_text: "Python構文エラーが見つかりました。"
 
@@ -69,21 +88,27 @@ pre-commit:
     python-lint-basic:
       glob: "*.py"
       exclude: "src/legacy/"
-      run: flake8 {staged_files} --count --select=E9,F63,F7,F82 --show-source --statistics
+      env:
+        PATH: ".venv/bin:$PATH"
+      run: "{py} flake8 {staged_files} --count --select=E9,F63,F7,F82 --show-source --statistics"
       fail_text: "Flake8重要エラーが見つかりました。修正してください。"
 
     # Import順序チェック（CI同様） - legacyコード除外
     import-check:
       glob: "*.py"
       exclude: "src/legacy/"
-      run: isort --check-only --diff {staged_files}
+      env:
+        PATH: ".venv/bin:$PATH"
+      run: "{py} isort --check-only --diff {staged_files}"
       fail_text: "Import順序が正しくありません。`isort {staged_files}` で修正してください。"
 
     # コードフォーマットチェック（CI同様） - legacyコード除外
     format-check:
       glob: "*.py"
       exclude: "src/legacy/"
-      run: black --check --diff {staged_files}
+      env:
+        PATH: ".venv/bin:$PATH"
+      run: "{py} black --check --diff {staged_files}"
       fail_text: "コードフォーマットが正しくありません。`black {staged_files}` で修正してください。"
 
     # スペルチェック（変更されたファイルのみ）
@@ -107,6 +132,8 @@ pre-commit:
     security-check-staged:
       glob: "*.py"
       exclude: "src/legacy/"
+      env:
+        PATH: ".venv/bin:$PATH"
       run: |
         # Create temporary directory for staged files
         tmpdir=$(mktemp -d)
@@ -114,7 +141,7 @@ pre-commit:
           cp "$file" "$tmpdir/"
         done
         # Run bandit on staged files
-        bandit -r "$tmpdir" --severity-level medium -c bandit.yaml || echo "セキュリティ警告: banditで問題が検出されました"
+        {py} bandit -r "$tmpdir" --severity-level medium -c bandit.yaml || echo "セキュリティ警告: banditで問題が検出されました"
         # Cleanup
         rm -rf "$tmpdir"
       fail_text: "セキュリティチェックで問題が見つかりました。修正してください。"
@@ -123,23 +150,31 @@ pre-push:
   commands:
     # コア機能テスト実行
     core-tests:
-      run: python -m pytest tests/unit/ tests/security/ -x --tb=short
+      env:
+        PATH: ".venv/bin:$PATH"
+      run: "{py} pytest tests/unit/ tests/security/ -x --tb=short"
       fail_text: "コア機能テストが失敗しました。修正してからpushしてください。"
 
     # 基本品質チェック
     quality-basic:
-      run: black --check src/refactored/ tests/ && isort --check src/refactored/ tests/ && flake8 src/refactored/ tests/ --select=E9,F63,F7,F82
+      env:
+        PATH: ".venv/bin:$PATH"
+      run: "{py} black --check src/refactored/ tests/ && {py} isort --check src/refactored/ tests/ && {py} flake8 src/refactored/ tests/ --select=E9,F63,F7,F82"
       fail_text: "基本品質チェック失敗"
 
     # セキュリティチェック（基本）
     security:
-      run: bandit -r src/refactored/ -c bandit.yaml -f txt --exit-zero
+      env:
+        PATH: ".venv/bin:$PATH"
+      run: "{py} bandit -r src/refactored/ -c bandit.yaml -f txt --exit-zero"
       fail_text: "セキュリティチェック失敗"
 
     # 軽量セキュリティチェック（スキップ可能）
     security-scan-light:
+      env:
+        PATH: ".venv/bin:$PATH"
       run: |
         echo "🔒 軽量セキュリティスキャン..."
-        bandit -r src/refactored/ -f json -o bandit-report.json -c bandit.yaml --exit-zero
+        {py} bandit -r src/refactored/ -f json -o bandit-report.json -c bandit.yaml --exit-zero
         echo "セキュリティレポートが bandit-report.json に生成されました"
       fail_text: "セキュリティスキャンでエラーが発生しました。"

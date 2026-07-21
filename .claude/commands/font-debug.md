@@ -339,6 +339,52 @@ pip install fonttools
 
 ---
 
+### パターン6: 多音字の拼音が期待と違う（webapp の GSUB 検証タブを使う）
+
+**症状**
+
+- 特定の熟語で拼音が期待と違う読みになる（例: 着手 が zhuó ではなく別の読みになる）
+- `scripts/validate_phrase.py` は通るのに、実際にビルドしたフォントで読みがおかしい
+
+**原因（典型例）**
+
+`outputs/duoyinzi_pattern_one.txt` や手書きの `duoyinzi_exceptional_pattern.json` に書かれた
+読みの ss 番号（`ss01`, `ss02`, ...）が、現在の `outputs/merged-mapping-table.txt` の読み順と
+ずれている。`validate_phrase.py` はパターン表の**内部整合性**（重複・干渉・異読数）しか検証せず、
+「生成された GSUB が実際に期待どおりの拼音を出すか」までは検証しない。
+
+**診断ツール**: webapp の 多音字/GSUB → 検証 タブ（`webapp/backend/services/gsub_checker.py`）
+
+このタブは OpenType シェーパーと同じ手順で rclt チェイニングルールをシミュレートし、
+`res/phonics/duo_yin_zi/` のフレーズ表（期待読み）と突き合わせて次の3状態に分類する:
+
+| ステータス | 意味 | 対応要否 |
+|---|---|---|
+| **一致** | 表示される読みが期待どおり | 対応不要 |
+| **GSUB未設定** | この熟語・文字にはまだ GSUB に置換ルールが無い（ごく一部は「置換しない」例外ルールによる意図的な抑止。例: 背着手 の 着）。標準の読み（readings[0]）のまま表示される。バグではなく未対応（カバレッジ不足） | 任意（パターン表への追加でカバレッジ拡張可） |
+| **誤置換** | ルールは発火したが、期待と異なる読みに置換された | **要修正**。パターン表の ss 番号が現在の読み順とずれている可能性が高い |
+
+**診断手順**
+
+```bash
+# API で直接確認する場合
+curl -s localhost:8000/api/projects/<id>/gsub/verify | jq '.counts'
+curl -s localhost:8000/api/projects/<id>/gsub/verify | jq '.results[] | select(.status=="wrong")'
+
+# 特定フレーズを個別にシミュレートする（フレーズシミュレータと同じ処理）
+curl -s -X POST localhost:8000/api/projects/<id>/gsub/simulate \
+  -H 'Content-Type: application/json' -d '{"text":"背着手"}' | jq
+```
+
+「誤置換」が出た場合は、対象文字の `outputs/merged-mapping-table.txt` の読み順を確認し、
+`res/phonics/duo_yin_zi/scripts/make_pattern_table.py` を再実行してパターン表を再生成する
+（`res/phonics/duo_yin_zi/phrase_of_exceptional_pattern.txt` は手書きなので ss 番号を手動修正）。
+
+**GSUB タブの「グラフ」表示**でも同じ文字を対象に、コンテキスト → lookup → 読みの関係を
+視覚的に確認できる（ignore ルールは赤で表示）。
+
+---
+
 ## 使用例
 
 ```text
@@ -348,4 +394,5 @@ pip install fonttools
 /font-debug inputBegins の値がおかしい
 /font-debug json dump
 /font-debug グリフを SVG で確認したい
+/font-debug 着手の拼音が期待と違う
 ```

@@ -16,6 +16,9 @@ class FontType(Enum):
 
     HAN_SERIF = "han_serif"
     HANDWRITTEN = "handwritten"
+    # Webapp-defined font profile; requires explicit FontMetadata/name table
+    # injection (FontConfig has no entry for it and will raise)
+    CUSTOM = "custom"
 
 
 @dataclass(frozen=True)

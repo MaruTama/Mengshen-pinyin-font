@@ -81,6 +81,15 @@ class PinyinGlyphGenerator:
         self.logger = get_logger("mengshen.glyph_manager")
         self._pronunciation_glyphs: Optional[PinyinGlyphDict] = None
 
+    def set_alphabet_glyphs(self, alphabet_glyphs: FontGlyphDict) -> None:
+        """Inject alphabet glyphs directly (keys are py_alphabet_* names).
+
+        Alternative to load_alphabet_glyphs() for in-memory callers such as
+        the webapp preview, which only needs the placement math.
+        """
+        self._pinyin_alphabets = dict(alphabet_glyphs)
+        self._pronunciation_glyphs = {}
+
     def load_alphabet_glyphs(self, alphabet_path: Path) -> None:
         """Load pinyin alphabet glyphs from template."""
         with open(alphabet_path, "rb") as f:

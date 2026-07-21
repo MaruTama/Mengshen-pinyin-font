@@ -24,6 +24,7 @@ OpenSource Pinyin font and creation tool that supports homographs (多音字).
 - [指南 / Guides](#指南--guides)
 - [支持的多音字列表 / Homograph List](#支持的多音字列表--homograph-list)
 - [构建字体 / Building the Fonts](#构建字体--building-the-fonts)
+- [网页应用 / Web App](#网页应用--web-app)
 - [关于项目 / About](#关于项目--about)
 - [致谢 / Acknowledgments](#致谢--acknowledgments)
 - [打赏 / Donate](#打赏--donate)
@@ -149,6 +150,32 @@ docker-compose -f docker/docker-compose.yml up pipeline-handwritten
 ```
 
 详情请参阅 [构建指南（日语）](./docs/HOW_TO_MAKE_JP.md) / [Build Guide (English)](./docs/HOW_TO_MAKE_EN.md)。
+
+----
+
+## 网页应用 / Web App
+
+除了命令行构建方式，本仓库还提供本地网页应用 **Mengshen Font Studio**：
+可在浏览器中选择字体、确认许可、调整拼音位置（附实时预览）、浏览字形、
+查看/验证多音字与 GSUB 表、编辑各字读音，并生成 TTF 文件下载，全程无需使用命令行。
+
+As an alternative to the CLI build, this repo also ships a local web app,
+**Mengshen Font Studio**: select fonts, review the license, adjust pinyin
+position with a live preview, browse glyphs, inspect/verify homographs and
+the GSUB table, edit per-character readings, and export a TTF — all from
+the browser, no command line required.
+
+![webapp_font_studio_outline_detail](./imgs/webapp_font_studio_outline_detail.png)
+![webapp_font_studio_duoyinzi](./imgs/webapp_font_studio_duoyinzi.png)
+
+```bash
+pip install -e ".[webapp]"
+./scripts/webapp.sh
+```
+
+浏览器打开 <http://localhost:8000>。详情请参阅 [webapp/README.md](./webapp/README.md)。
+
+Open <http://localhost:8000> in your browser. See [webapp/README.md](./webapp/README.md) for details.
 
 ----
 

@@ -176,11 +176,15 @@ class TestFontConfig:
         """Test that FontType enum has expected values."""
         assert FontType.HAN_SERIF.value == "han_serif"
         assert FontType.HANDWRITTEN.value == "handwritten"
+        assert FontType.CUSTOM.value == "custom"
 
-        # Test that all enum values are supported
-        for font_type in FontType:
+        # Preset types have configs; CUSTOM requires explicit injection
+        for font_type in [FontType.HAN_SERIF, FontType.HANDWRITTEN]:
             config = FontConfig.get_config(font_type)
             assert isinstance(config, FontMetadata)
+
+        with pytest.raises(ValueError):
+            FontConfig.get_config(FontType.CUSTOM)
 
 
 class TestPinyinCanvas:
