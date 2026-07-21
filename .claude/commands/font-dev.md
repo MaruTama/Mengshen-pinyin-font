@@ -201,13 +201,13 @@ python -m pytest tests/integration/test_complete_pipeline.py -v
 
 ```bash
 # インポート整理
-isort src/ tests/
+python -m isort src/ tests/
 
 # コードフォーマット（88文字幅）
-black src/ tests/
+python -m black src/ tests/
 
 # リント
-flake8 src/ tests/
+python -m flake8 src/ tests/
 
 # Git フックで一括実行（コミット前と同等）
 lefthook run pre-commit

@@ -57,17 +57,17 @@ jobs:
       - name: Run security checks
         run: |
           # Security vulnerability scan using bandit.yaml config
-          bandit -r src/ -f json -o bandit-report.json -c bandit.yaml || echo "Security issues found"
+          python -m bandit -r src/ -f json -o bandit-report.json -c bandit.yaml || echo "Security issues found"
           # Dependency security check
           safety check --output json > safety-report.json || echo "Dependency vulnerabilities found"
-          
+
       - name: Run unit tests with coverage
         run: |
-          PYTHONPATH=src pytest tests/unit/ --cov=src --cov-report=xml --cov-report=html -v
-          
+          PYTHONPATH=src python -m pytest tests/unit/ --cov=src --cov-report=xml --cov-report=html -v
+
       - name: Run security tests
         run: |
-          PYTHONPATH=src pytest tests/security/ -v
+          PYTHONPATH=src python -m pytest tests/security/ -v
           
       - name: Upload coverage reports
         uses: codecov/codecov-action@v5
@@ -175,7 +175,7 @@ jobs:
           
       - name: Run performance benchmarks
         run: |
-          PYTHONPATH=src pytest tests/performance/ --benchmark-only --benchmark-json=benchmark.json -v
+          PYTHONPATH=src python -m pytest tests/performance/ --benchmark-only --benchmark-json=benchmark.json -v
           
       - name: Upload benchmark results
         uses: actions/upload-artifact@v6

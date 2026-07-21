@@ -451,9 +451,9 @@ $ lefthook version
 # スペルチェックはVS Codeで統合されているため、リアルタイムで確認可能
 
 # 手動でフォーマット実行
-black src/ tests/
-isort src/ tests/
-flake8 src/ tests/
+python -m black src/ tests/
+python -m isort src/ tests/
+python -m flake8 src/ tests/
 
 # 手動でフックをテスト
 lefthook run pre-commit
@@ -588,8 +588,8 @@ Matrix can calculate the scale, rotation, and shift at one time by raising the d
 | :--- | :--- |
 | hanzi_glyf | 標準の読みの拼音 |
 | hanzi_glyf.ss00 | 拼音の無い漢字グリフ。設定を変更するだけで拼音を変更できる |
-| hanzi_glyf.ss01 | （異読の拼音があるとき）標準の読みの拼音（hanzi_glyf と重複するが GSUB の置換（多音字のパターン）を無効にして強制的に置き換えるため）|
-| hanzi_glyf.ss02 |（異読の拼音があるとき）以降、異読な拼音 |
+| hanzi_glyf.ss01 | （異読の拼音があるとき）標準の読みの拼音（hanzi_glyf と重複するが GSUB の置換（多音字のパターン）を無効にして強制的に置き換えるため） |
+| hanzi_glyf.ss02 | （異読の拼音があるとき）以降、異読な拼音 |
 
 - lookup table の名前は自由だけど、どこから参照しているか分かりやすくするために名前を以下のようにする
 
