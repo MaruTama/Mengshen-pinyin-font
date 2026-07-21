@@ -457,9 +457,9 @@ Configured hooks:
 # Spell checking is integrated with VS Code for real-time checking
 
 # Manual formatting execution
-black src/ tests/
-isort src/ tests/
-flake8 src/ tests/
+python -m black src/ tests/
+python -m isort src/ tests/
+python -m flake8 src/ tests/
 
 # Manual hook testing
 lefthook run pre-commit
