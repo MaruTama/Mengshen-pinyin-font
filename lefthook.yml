@@ -5,8 +5,8 @@
 # ============================================================================
 # SETUP INSTRUCTIONS
 # ============================================================================
-# Required tools installation:
-#   python3.11 -m venv .venv && .venv/bin/pip install -e ".[dev]"
+# Required tools installation (requires Python 3.11+; check with `python --version`):
+#   python -m venv .venv && .venv/bin/pip install -e ".[dev]"
 #   npm install -g cspell markdownlint-cli
 #
 # Every Python-based command below runs as `{py}` (lefthook's `templates:`
