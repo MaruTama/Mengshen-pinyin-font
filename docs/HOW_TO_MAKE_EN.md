@@ -28,8 +28,17 @@ And remove Hangul characters(a960 #ꥠ ~ d7fb #ퟻ) from this font to reduce gly
 
 ### Python Environment
 
+The Python version is managed by [uv](https://docs.astral.sh/uv/), following `.python-version` (and `pyproject.toml`'s `requires-python`).
+
 ```bash
-pyenv global 3.11.2
+uv python install
+uv venv
+```
+
+Non-Python tool versions (Node.js, the Docker CLI used for the otfcc build, etc.) are managed by [mise](https://mise.jdx.dev/) (`.mise.toml`).
+
+```bash
+mise install
 ```
 
 ### External Tool Installation

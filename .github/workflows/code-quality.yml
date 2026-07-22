@@ -118,7 +118,7 @@ jobs:
       - name: Set up Node.js for cspell
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '24'
           
       - name: Install cspell
         run: npm install -g cspell
@@ -140,10 +140,10 @@ jobs:
       - name: Set up Node.js for markdownlint
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '24'
           
       - name: Install markdownlint-cli
-        run: npm install -g markdownlint-cli
+        run: npm install -g markdownlint-cli@0.49.1
         
       - name: Lint Markdown files
         run: |

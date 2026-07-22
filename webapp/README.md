@@ -9,8 +9,8 @@
 
 ## 必要環境
 
-- Python 3.11+（venv 推奨）と `pip install -e ".[webapp]"`
-- Node.js 18+（フロントエンドのビルド用）
+- Python 3.11+（[uv](https://docs.astral.sh/uv/) 推奨: `uv venv && uv pip install -e ".[webapp]"`）
+- Node.js 24+（[mise](https://mise.jdx.dev/) で管理。frontendの `vite ^8.1.1` が `node ^20.19.0 || >=22.12.0` を要求するため、Node 18 ではビルドできない）
 - `otfccdump` / `otfccbuild` / `jq`（フォント変換。`brew tap caryll/tap && brew install otfcc-mac64 jq`）
 
 ## 起動

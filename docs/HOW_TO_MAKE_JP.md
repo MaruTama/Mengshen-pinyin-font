@@ -26,8 +26,17 @@
 
 ### Python環境
 
+Pythonのバージョンは [uv](https://docs.astral.sh/uv/) が `.python-version`（および `pyproject.toml` の `requires-python`）に従って管理する。
+
 ```bash
-pyenv global 3.11.2
+uv python install
+uv venv
+```
+
+Node.js や otfcc ビルドに使う Docker CLI など、Python 以外のツールバージョンは [mise](https://mise.jdx.dev/)（`.mise.toml`）で管理する。
+
+```bash
+mise install
 ```
 
 ### 外部ツールインストール

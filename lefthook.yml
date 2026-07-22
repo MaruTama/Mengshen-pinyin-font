@@ -6,7 +6,7 @@
 # SETUP INSTRUCTIONS
 # ============================================================================
 # Required tools installation (requires Python 3.11+; check with `python --version`):
-#   python -m venv .venv && .venv/bin/pip install -e ".[dev]"
+#   uv venv && uv pip install -e ".[dev]"
 #   npm install -g cspell markdownlint-cli
 #
 # Every Python-based command below runs as `{py}` (lefthook's `templates:`
@@ -16,7 +16,7 @@
 # https://lefthook.dev/configuration/env.html#extending-path), so a bare
 # `python` resolves to this project's own .venv when it exists and falls
 # back to whatever `python` is on PATH otherwise — hooks work the same
-# regardless of whether a developer manages Python with pyenv, conda,
+# regardless of whether a developer manages Python with uv, pyenv, conda,
 # asdf, a plain system install, or nothing in particular, and don't
 # inherit breakage from whichever python3 happens to resolve first on a
 # given machine.
