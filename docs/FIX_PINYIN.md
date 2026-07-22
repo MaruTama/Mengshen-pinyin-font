@@ -83,14 +83,14 @@ Following table is the collection of Chinese characters that are found in [Word 
 |U+2CE2A|𬸪|鷭|fán|[GlyphWiki](http://glyphwiki.org/wiki/u2ce2a)|
 |U+2CE88|𬺈|齮|yǐ|[GlyphWiki](http://glyphwiki.org/wiki/u2ce88)|
 ||||||
-|U+5159|兙| |shíkè|[GlyphWiki](http://glyphwiki.org/wiki/u5159)|
-|U+5161|兡| |bǎikè|[GlyphWiki](http://glyphwiki.org/wiki/u5161)|
+|U+5159|兙||shíkè|[GlyphWiki](http://glyphwiki.org/wiki/u5159)|
+|U+5161|兡||bǎikè|[GlyphWiki](http://glyphwiki.org/wiki/u5161)|
 
 [Word dictionary](https://www.mdbg.net/chinese/dictionary)で検索してピンインが見つからなかったものの一覧
 
 |unicode|汉字|旧字/異体字|拼音|link|
 |:---:|:--:|:-----:|:--:|:---------:|
-|U+2BB5F|𫭟| |ōu, qū|[現代字典](https://sou-yun.cn/MQR.aspx?ct=K&c=%F0%AB%AD%9F)|
+|U+2BB5F|𫭟||ōu, qū|[現代字典](https://sou-yun.cn/MQR.aspx?ct=K&c=%F0%AB%AD%9F)|
 |U+2BB62|𫭢|埨|lǔn|[Wiktionary](https://en.wiktionary.org/wiki/%E5%9F%A8),[中國哲學書電子化計劃](https://ctext.org/dictionary.pl?if=gb&char=%E4%BB%91)|
 |U+2BB7C|𫭼|𡑍|láo|[GlyphWiki](http://glyphwiki.org/wiki/u2bb7c),[Wiktionary zh](https://zh.wiktionary.org/wiki/%F0%A1%91%8D)|
 |U+2BC1B|𫰛|娙|xíng|[GlyphWiki](http://glyphwiki.org/wiki/u2bc1b),[Baidu百科](https://baike.baidu.com/item/%E5%A8%99)|
@@ -99,10 +99,10 @@ Following table is the collection of Chinese characters that are found in [Word 
 |U+2C0CA|𬃊|櫍|zhì|[GlyphWiki](http://glyphwiki.org/wiki/u2c0ca),[Wiktionary zh](https://zh.wiktionary.org/wiki/%E6%AB%8D)|
 |U+2C1D9|𬇙|浿|pèi|[GlyphWiki](http://glyphwiki.org/wiki/u2c1d9),[Wiktionary zh](https://zh.wiktionary.org/wiki/%E6%B5%BF)|
 |U+2C1F9|𬇹|漍|guó|[GlyphWiki](http://glyphwiki.org/wiki/u2c1f9),[Wiktionary zh](https://zh.wiktionary.org/wiki/%E6%BC%8D)|
-|U+2C317|𬌗| |hé|[Wiktionary zh](https://zh.wiktionary.org/wiki/%F0%AC%8C%97)|
+|U+2C317|𬌗||hé|[Wiktionary zh](https://zh.wiktionary.org/wiki/%F0%AC%8C%97)|
 |U+2C361|𬍡|璗|dàng|[GlyphWiki](http://glyphwiki.org/wiki/u2c361),[Wiktionary zh](https://zh.wiktionary.org/wiki/%E7%92%97)|
 |U+2C364|𬍤|璕|xún|[GlyphWiki](http://glyphwiki.org/wiki/u2c364),[Wiktionary zh](https://zh.wiktionary.org/wiki/%E7%92%95)|
-|U+2C494|𬒔| |gěng|[Wiktionary](https://en.wiktionary.org/wiki/%F0%AC%92%94)|
+|U+2C494|𬒔||gěng|[Wiktionary](https://en.wiktionary.org/wiki/%F0%AC%92%94)|
 |U+2C497|𬒗|𥗽|lán|[GlyphWiki](http://glyphwiki.org/wiki/u2c497),[Wiktionary zh](https://zh.wiktionary.org/wiki/%F0%A5%97%BD)|
 |U+2C629|𬘩|綎|tīng|[GlyphWiki](http://glyphwiki.org/wiki/u2c629),[Wiktionary zh](https://zh.wiktionary.org/wiki/%E7%B6%8E)|
 |U+2C62B|𬘫|綄|huán, huàn, wàn|[GlyphWiki](http://glyphwiki.org/wiki/u2c62b),[Wiktionary zh](https://zh.wiktionary.org/wiki/%E7%B6%84)|
@@ -133,4 +133,4 @@ Following table is the collection of Chinese characters that are found in [Word 
 |U+2CE7C|𬹼|齘|xiè|[GlyphWiki](http://glyphwiki.org/wiki/u2ce7c),[Wiktionary zh](https://zh.wiktionary.org/wiki/%E9%BD%98)|
 |U+2CE93|𬺓|齼|chǔ|[GlyphWiki](http://glyphwiki.org/wiki/u2ce93),[Wiktionary zh](https://zh.wiktionary.org/wiki/%E9%BD%BC)|
 ||||||
-|U+55E7|嗧| |jiālún|[Wiktionary](https://en.wiktionary.org/wiki/%E5%97%A7)|
+|U+55E7|嗧||jiālún|[Wiktionary](https://en.wiktionary.org/wiki/%E5%97%A7)|
