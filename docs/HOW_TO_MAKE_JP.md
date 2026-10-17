@@ -537,6 +537,8 @@ Matrix can calculate the scale, rotation, and shift at one time by raising the d
 > [!CAUTION]
 > otfccbuild の仕様なのか opentype の仕様なのか分からないが a と d が同じ値だと、グリフが消失する。 少しでもサイズが違えば反映されるので、90% にするなら、a=0.9, d=0.91 とかにする。**
 > refer to [pinyin_glyph.py](https://github.com/MaruTama/Mengshen-pinyin-font/blob/e5d6e9e1770d849d6c17016683faf7c04d028473/src/pinyin_glyph.py#L148-L154)
+>
+> **検証 (2026-10):** otfcc v0.9.6 / v0.10.4 では再現しなかった。`DELTA_4_REFLECTION = 0`（a と d が同じ値）で `han_serif` を丸ごとビルドしても、グリフ数は同じで、空になるグリフはなく、FreeType での描画でも拼音はすべて表示された。CoreText / DirectWrite / Android では未確認のため、念のため `DELTA_4_REFLECTION` は残している（縦方向のスケールが約 0.1% 変わるだけ）。
 
 ### feature tag
 
@@ -588,8 +590,8 @@ Matrix can calculate the scale, rotation, and shift at one time by raising the d
 | :--- | :--- |
 | hanzi_glyf | 標準の読みの拼音 |
 | hanzi_glyf.ss00 | 拼音の無い漢字グリフ。設定を変更するだけで拼音を変更できる |
-| hanzi_glyf.ss01 | （異読の拼音があるとき）標準の読みの拼音（hanzi_glyf と重複するが GSUB の置換（多音字のパターン）を無効にして強制的に置き換えるため）|
-| hanzi_glyf.ss02 |（異読の拼音があるとき）以降、異読な拼音 |
+| hanzi_glyf.ss01 | （異読の拼音があるとき）標準の読みの拼音（hanzi_glyf と重複するが GSUB の置換（多音字のパターン）を無効にして強制的に置き換えるため） |
+| hanzi_glyf.ss02 | （異読の拼音があるとき）以降、異読な拼音 |
 
 - lookup table の名前は自由だけど、どこから参照しているか分かりやすくするために名前を以下のようにする
 

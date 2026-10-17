@@ -544,6 +544,8 @@ Matrix can calculate the scale, rotation, and shift at one time by raising the d
 > For unknown reasons, otfccbuild or OpenType specification causes glyphs to disappear if `a` and `d` have the same value. As long as the sizes are slightly different, it will be reflected, so for 90% scaling, set `a=0.9, d=0.91`.
 >
 > Refer to [pinyin_glyph.py](https://github.com/MaruTama/Mengshen-pinyin-font/blob/e5d6e9e1770d849d6c17016683faf7c04d028473/src/pinyin_glyph.py#L148-L154)
+>
+> **Verification (2026-10):** This could not be reproduced with otfcc v0.9.6 or v0.10.4. A full `han_serif` build with `DELTA_4_REFLECTION = 0` (so `a == d`) succeeded with the same glyph count, no emptied glyphs, and all pinyin rendered correctly with FreeType. It has not been checked with CoreText, DirectWrite or Android, so `DELTA_4_REFLECTION` is kept as a precaution (the cost is a ~0.1% vertical scale difference).
 
 ### feature tag
 
