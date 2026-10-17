@@ -534,11 +534,8 @@ refer to [pinyin_glyph.py](https://github.com/MaruTama/Mengshen-pinyin-font/blob
 <!-- Ref.[extract rotation, scale values from 2d transformation matrix](https://stackoverflow.com/questions/4361242/extract-rotation-scale-values-from-2d-transformation-matrix)
 Matrix can calculate the scale, rotation, and shift at one time by raising the dimension.   -->
 
-> [!CAUTION]
-> otfccbuild の仕様なのか opentype の仕様なのか分からないが a と d が同じ値だと、グリフが消失する。 少しでもサイズが違えば反映されるので、90% にするなら、a=0.9, d=0.91 とかにする。**
-> refer to [pinyin_glyph.py](https://github.com/MaruTama/Mengshen-pinyin-font/blob/e5d6e9e1770d849d6c17016683faf7c04d028473/src/pinyin_glyph.py#L148-L154)
->
-> **検証 (2026-10):** otfcc v0.9.6 / v0.10.4 では再現しなかった。`DELTA_4_REFLECTION = 0`（a と d が同じ値）で `han_serif` を丸ごとビルドしても、グリフ数は同じで、空になるグリフはなく、FreeType での描画でも拼音はすべて表示された。CoreText / DirectWrite / Android では未確認のため、念のため `DELTA_4_REFLECTION` は残している（縦方向のスケールが約 0.1% 変わるだけ）。
+> [!NOTE]
+> 以前は「otfccbuild の仕様か OpenType の仕様か不明だが、a と d が同じ値だとグリフが消失する」とされ、d にオフセット（`DELTA_4_REFLECTION = 0.001`）を加えていた。otfcc v0.9.6 / v0.10.4 では再現せず、`a == d` で `han_serif` を丸ごとビルドしても、グリフ数は同じで、空になるグリフはなく、FreeType での描画でも拼音はすべて表示された。そのためオフセットは削除し、拼音の文字は等倍率で拡縮している。CoreText / DirectWrite / Android では未確認なので、グリフが消える場合は issue で知らせてほしい。
 
 ### feature tag
 
