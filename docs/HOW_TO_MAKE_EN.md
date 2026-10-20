@@ -549,10 +549,8 @@ In this tool, using a,d (scale) and x,y (move).
 <!-- Ref.[extract rotation, scale values from 2d transformation matrix](https://stackoverflow.com/questions/4361242/extract-rotation-scale-values-from-2d-transformation-matrix)
 Matrix can calculate the scale, rotation, and shift at one time by raising the dimension.   -->
 
-> [!CAUTION]
-> For unknown reasons, otfccbuild or OpenType specification causes glyphs to disappear if `a` and `d` have the same value. As long as the sizes are slightly different, it will be reflected, so for 90% scaling, set `a=0.9, d=0.91`.
->
-> Refer to [pinyin_glyph.py](https://github.com/MaruTama/Mengshen-pinyin-font/blob/e5d6e9e1770d849d6c17016683faf7c04d028473/src/pinyin_glyph.py#L148-L154)
+> [!NOTE]
+> Older notes claimed that otfccbuild or the OpenType specification makes glyphs disappear when `a` and `d` have the same value, which led to an offset (`DELTA_4_REFLECTION = 0.001`) being added to `d`. This could not be reproduced with otfcc v0.9.6 or v0.10.4: a full `han_serif` build with `a == d` kept the same glyph count, emptied no glyphs, and rendered all pinyin correctly with FreeType. The offset has therefore been removed and pinyin letters are scaled uniformly. It has not been checked with CoreText, DirectWrite or Android; if glyphs disappear there, please open an issue.
 
 ### feature tag
 

@@ -30,10 +30,6 @@ VERTICAL_ORIGIN_PER_HEIGHT = 0.88
 # レガシーコードコメント:
 # > ピンインの advanceHeight が無いときは決め打ちで advanceWidth の 1.4 倍にする
 HEIGHT_RATE_OF_MONOSPACE = 1.4
-# レガシーコードコメント:
-# > otfccbuild の仕様なのか opentype の仕様なのか分からないが a と d が同じ値だと、グリフが消失する。
-# > 少しでもサイズが違えば反映されるので、反映のためのマジックナンバー
-DELTA_4_REFLECTION = 0.001
 
 
 @dataclass(frozen=True)
@@ -240,7 +236,7 @@ class PinyinGlyphGenerator:
                                 0.1,
                             )
 
-                        y_scale = round(pinyin_scale + DELTA_4_REFLECTION, 3)
+                        y_scale = round(pinyin_scale, 3)
 
                         # レガシーコードコメント:
                         # > a-d ってなんだ？
