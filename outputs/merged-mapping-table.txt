@@ -11971,6 +11971,7 @@ U+8BF2: huì,huǐ  #诲
 U+8BF3: kuáng  #诳
 U+8BF4: shuō,shuì,yuè,shuò,shuo  #说
 U+8BF5: sòng,song  #诵
+U+8BF6: éi,ēi,ěi,èi  #诶
 U+8BF7: qǐng  #请
 U+8BF8: zhū,chú  #诸
 U+8BF9: zōu,zhōu  #诹

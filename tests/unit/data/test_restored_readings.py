@@ -29,6 +29,8 @@ EXPECTED = {
     "嘸": ["fǔ", "wǔ", "m̄", "ḿ"],
     "欸": ["āi", "ǎi", "ê̄", "ế", "ê̌", "ề", "ěi", "èi"],
     "誒": ["éi", "xī", "ê̄", "ế", "ê̌", "ěi", "ề", "èi", "ēi", "ê"],
+    # Issue #30 (only éi is in pinyin-data; the rest are overwrite-only)
+    "诶": ["éi", "ēi", "ěi", "èi"],
 }
 
 
