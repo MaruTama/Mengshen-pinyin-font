@@ -60,7 +60,7 @@ Through Microsoft IME, you can access the IME Pad to insert IVS characters. Foll
 ### 4. Alternative Method: Direct Unicode Input
 
 1. Type the Chinese character
-2. Type the IVS code (e.g., E0100)
+2. Type the IVS code (e.g., E01E1)
 3. Press `Alt + X` to convert the hex code to the IVS character
 
 ## macOS Instructions
@@ -96,20 +96,20 @@ Through Microsoft IME, you can access the IME Pad to insert IVS characters. Foll
 
 1. Enable Unicode Hex Input in System Preferences → Keyboard → Input Sources
 2. Type the Chinese character
-3. Hold `Option` and type the IVS hex code (e.g., E0100)
+3. Hold `Option` and type the IVS hex code (e.g., E01E1)
 4. Release `Option` to insert the IVS character
 
 ## IVS Code Information
 
 > [!IMPORTANT]
-> IVS codes start from E0100 and follow this order. These codes are selected from the end of the IVS range (E0100+) to avoid conflicts with existing standardized IVS implementations.
+> IVS codes start from E01E0 and follow this order. These codes are selected from the end of the IVS range (U+E0100–U+E01EF) to avoid conflicts with existing standardized IVS implementations.
 
 | IVS Code | Glyph Type | Description |
 | -------- | ---------- | ----------- |
-| E0100 | hanzi_glyf.ss00 | Chinese character glyf without Pinyin. Pinyin can be changed by simply changing the IVS code. |
-| E0101 | hanzi_glyf.ss01 | (When Chinese character has the variational pronunciation) Chinese character glyf with the standard pronunciation (duplicates with hanzi_glyf, but replaces it by overriding GSUB replacements) |
-| E0102 | hanzi_glyf.ss02 | (When Chinese character has the variational pronunciation) After that, Chinese character glyf with the variational pronunciation |
-| E0103+ | hanzi_glyf.ss03+ | Additional variational pronunciations |
+| E01E0 | hanzi_glyf.ss00 | Chinese character glyf without Pinyin. Pinyin can be changed by simply changing the IVS code. |
+| E01E1 | hanzi_glyf.ss01 | (When Chinese character has the variational pronunciation) Chinese character glyf with the standard pronunciation (duplicates with hanzi_glyf, but replaces it by overriding GSUB replacements) |
+| E01E2 | hanzi_glyf.ss02 | (When Chinese character has the variational pronunciation) After that, Chinese character glyf with the variational pronunciation |
+| E01E3+ | hanzi_glyf.ss03+ | Additional variational pronunciations |
 
 For detailed information about IVS codes and their specifications, see the [Specifications (Constraints)](./HOW_TO_MAKE_EN.md#specifications-constraints) section in the font generation guide.
 
