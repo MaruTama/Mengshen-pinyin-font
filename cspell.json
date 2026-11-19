@@ -2,6 +2,7 @@
   "version": "0.2",
   "language": "en,ja",
   "words": [
+    "Hiragino",
     "AALT",
     "AFDKO",
     "BPMF",
@@ -406,6 +407,11 @@
     "shinjitai",
     "tgscc",
     "zong",
+    "precomposed",
+    "joyokanjihyo",
+    "amacron",
+    "caplog",
+    "autouse",
     "worktree"
   ],
   "ignorePaths": [

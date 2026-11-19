@@ -3,6 +3,10 @@ import type {
   Canvas,
   GlyphDetail,
   GlyphPage,
+  LetterPreview,
+  LetterRecipe,
+  PinyinLetter,
+  PinyinLetters,
   PreviewDetail,
   PreviewResponse,
   Project,
@@ -87,6 +91,23 @@ export const api = {
   },
   glyphDetail: (id: string, name: string) =>
     request<GlyphDetail>(`/api/projects/${id}/glyphs/${encodeURIComponent(name)}`),
+
+  pinyinLetters: (id: string) =>
+    request<PinyinLetters>(`/api/projects/${id}/pinyin-letters`),
+  previewLetter: (id: string, name: string, recipe: LetterRecipe, signal?: AbortSignal) =>
+    request<LetterPreview>(
+      `/api/projects/${id}/pinyin-letters/${encodeURIComponent(name)}/preview`,
+      { method: 'POST', body: JSON.stringify(recipe), signal },
+    ),
+  saveLetter: (id: string, name: string, recipe: LetterRecipe) =>
+    request<PinyinLetter>(`/api/projects/${id}/pinyin-letters/${encodeURIComponent(name)}`, {
+      method: 'PUT',
+      body: JSON.stringify(recipe),
+    }),
+  deleteLetter: (id: string, name: string) =>
+    request<PinyinLetter>(`/api/projects/${id}/pinyin-letters/${encodeURIComponent(name)}`, {
+      method: 'DELETE',
+    }),
 
   startPrepare: (id: string) =>
     request<TaskState>(`/api/projects/${id}/prepare`, { method: 'POST' }),

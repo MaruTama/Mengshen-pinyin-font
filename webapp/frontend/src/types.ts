@@ -63,6 +63,8 @@ export interface Project {
   glyph_overrides: {
     readings: Record<string, ReadingOverride>
     excluded_characters: string[]
+    // Keyed by the letter's ASCII name (e.g. "eh1" for ê̄)
+    custom_glyphs?: Record<string, CustomGlyph>
   }
   output: { family_name: string; style_name: string; version: string }
   artifacts: Record<string, string>
@@ -109,7 +111,7 @@ export interface PreviewDetail {
 
 export interface GlyphEntry {
   name: string
-  font: 'base' | 'pinyin' | 'output'
+  font: 'base' | 'pinyin' | 'output' | 'custom' | 'bundled'
   char: string | null
   codepoints: string[]
   advance_width: number
@@ -240,4 +242,64 @@ export interface VerifyReport {
   total: number
   counts: { ok: number; fallback: number; wrong: number }
   results: VerifyRow[]
+}
+
+// otfcc-format glyph outline (TrueType quadratic contours)
+export interface OtfGlyph {
+  advanceWidth: number
+  contours: { x: number; y: number; on: boolean }[][]
+}
+
+/** How a missing pinyin letter is composed: base letter + a tone mark. */
+export interface LetterRecipe {
+  base: string
+  mark_source: string
+  mark_contours: number[] | null
+  dx: number
+  dy: number
+  scale: number
+  flip_y: boolean
+}
+
+export interface CustomGlyph {
+  letter: string
+  recipe: LetterRecipe
+  font_sha256: string
+  glyph: OtfGlyph
+}
+
+// bundled: composed glyph shipped with a builtin pinyin font (not editable)
+export type LetterStatus = 'font' | 'bundled' | 'custom' | 'missing'
+
+export interface PinyinLetter {
+  letter: string
+  name: string
+  status: LetterStatus
+  // A saved custom glyph composed from a different pinyin font
+  stale: boolean
+  default_recipe: LetterRecipe | null
+  recipe: LetterRecipe | null
+}
+
+export interface PinyinLetters {
+  upem: number
+  ascent: number
+  descent: number
+  letters: PinyinLetter[]
+}
+
+export interface LetterPreview {
+  letter: string
+  name: string
+  glyph: OtfGlyph
+  advance_width: number
+  base_path: string
+  mark_path: string
+  mark_contours: number[]
+  source_contour_count: number
+  auto_dx: number
+  auto_dy: number
+  upem: number
+  ascent: number
+  descent: number
 }

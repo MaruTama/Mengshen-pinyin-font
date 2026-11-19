@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -65,9 +65,34 @@ class ReadingOverride(BaseModel):
     pronunciations: List[str]
 
 
+class CustomGlyphRecipe(BaseModel):
+    """How a missing pinyin letter is composed from existing glyphs."""
+
+    base: str  # base letter, e.g. "ê" or "m" (font glyph or custom glyph)
+    mark_source: str  # accented letter whose tone mark is reused, e.g. "ē"
+    # Contour indices of mark_source forming the mark; None = auto-detect
+    mark_contours: Optional[List[int]] = None
+    dx: float = 0.0
+    dy: float = 0.0
+    scale: float = Field(1.0, gt=0.0, le=4.0)
+    flip_y: bool = False  # vertical mirror (e.g. caron -> circumflex)
+
+
+class CustomGlyph(BaseModel):
+    letter: str  # NFC pinyin letter, e.g. "ê̄"
+    recipe: CustomGlyphRecipe
+    # Pinyin font the outlines were taken from; a different font makes
+    # the glyph stale (not used for build/preview)
+    font_sha256: str
+    # otfcc-format glyph: {"advanceWidth": n, "contours": [[{x, y, on}]]}
+    glyph: Dict[str, Any]
+
+
 class GlyphOverrides(BaseModel):
     readings: Dict[str, ReadingOverride] = Field(default_factory=dict)
     excluded_characters: List[str] = Field(default_factory=list)
+    # Keyed by the letter's ASCII simplified name (e.g. "eh1" for ê̄)
+    custom_glyphs: Dict[str, CustomGlyph] = Field(default_factory=dict)
 
 
 class OutputSettings(BaseModel):

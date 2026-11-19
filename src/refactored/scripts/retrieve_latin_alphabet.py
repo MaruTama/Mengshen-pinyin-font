@@ -11,71 +11,27 @@ from typing import Dict, List, Optional
 from ..config.font_config import FontConfig, FontType
 from ..config.paths import DIR_TEMP
 from ..font_types import GlyphData
+from ..utils import bundled_glyphs
 from ..utils.logging_config import get_logger, setup_logging
+from ..utils.pinyin_utils import PINYIN_TONE_TO_NUMERIC
 from ..utils.shell_utils import ShellExecutor
 
 # Font glyph data types - using font_types.py definitions
 FontTable = Dict[str, GlyphData]
 
 
-# 呣 m̀, 嘸 m̄ を使うが、これは unicode ではないので除外する。グリフが収録されていない事が多い。
-ALPHABET = [
-    "a",
-    "ā",
-    "á",
-    "ǎ",
-    "à",
-    "b",
-    "c",
-    "d",
-    "e",
-    "ē",
-    "é",
-    "ě",
-    "è",
-    "f",
-    "g",
-    "h",
-    "i",
-    "ī",
-    "í",
-    "ǐ",
-    "ì",
-    "j",
-    "k",
-    "l",
-    "m",
-    "ḿ",
-    "n",
-    "ń",
-    "ň",
-    "ǹ",
-    "o",
-    "ō",
-    "ó",
-    "ǒ",
-    "ò",
-    "p",
-    "q",
-    "r",
-    "s",
-    "t",
-    "u",
-    "ū",
-    "ú",
-    "ǔ",
-    "ù",
-    "ü",
-    "ǖ",
-    "ǘ",
-    "ǚ",
-    "ǜ",
-    "v",
-    "w",
-    "x",
-    "y",
-    "z",
-]
+# Single-code-point pinyin letters, derived from the pinyin letter table
+# (single source of truth). Letters without a precomposed code point
+# (m̄ m̀ ê̄ ê̌) cannot be looked up via cmap; they only come from custom
+# (composed) glyphs.
+ALPHABET = [letter for letter in PINYIN_TONE_TO_NUMERIC if len(letter) == 1]
+
+# ê-family letters with precomposed code points: used when the font has
+# them, but not required (many latin subsets lack them).
+OPTIONAL_ALPHABET = ("\u00ea", "\u1ebf", "\u1ec1")  # ê ế ề
+
+# Letters a pinyin font must provide.
+REQUIRED_ALPHABET = [c for c in ALPHABET if c not in OPTIONAL_ALPHABET]
 
 UNICODE_ALPHABET = [ord(c) for c in ALPHABET]
 
@@ -177,6 +133,13 @@ class LatinAlphabetRetriever:
 
         return result
 
+    def add_bundled_glyphs(
+        self, alphabet_glyphs: FontTable, source_font_name: str
+    ) -> FontTable:
+        """Fill letters the font lacks from its bundled composed glyphs."""
+        bundled = bundled_glyphs.bundled_glyphs_for_font(source_font_name)
+        return bundled_glyphs.merge_bundled_glyphs(alphabet_glyphs, bundled)
+
     def save_alphabet_json(self, alphabet_glyphs: FontTable, output_path: str) -> None:
         """Save filtered alphabet glyphs to JSON file."""
         try:
@@ -203,6 +166,7 @@ class LatinAlphabetRetriever:
 
             # Filter alphabet glyphs
             alphabet_glyphs = self.filter_alphabet_glyphs(cmap_table, glyf_table)
+            alphabet_glyphs = self.add_bundled_glyphs(alphabet_glyphs, source_font_name)
 
             # Save result
             self.save_alphabet_json(alphabet_glyphs, output_json_path)

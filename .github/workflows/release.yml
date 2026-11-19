@@ -13,6 +13,7 @@ on:
       - 'res/phonics/duo_yin_zi/phrase_of_pattern_one.txt'
       - 'res/phonics/duo_yin_zi/phrase_of_pattern_two.txt'
       - 'res/phonics/duo_yin_zi/phrase_of_exceptional_pattern.txt'
+      - 'res/fonts/custom_pinyin_glyphs/**'
   workflow_dispatch:
 
 env:

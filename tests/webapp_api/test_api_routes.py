@@ -205,3 +205,18 @@ class TestDuoyinziRoutes:
         project_id = client.post("/api/projects", json={"name": "T"}).json()["id"]
         result = client.get(f"/api/projects/{project_id}/gsub")
         assert result.status_code == 409
+
+
+class TestPinyinFontUpload:
+    def test_font_without_optional_eh_letters_accepted(self, client):
+        from src.refactored.config.font_config import FontConstants
+
+        project_id = client.post("/api/projects", json={"name": "T"}).json()["id"]
+        # The Seto subset has no ê/ế/ề; they are optional pinyin letters
+        path = FontConstants.HANDWRITTEN_ALPHABET_FONT_PATH
+        with open(path, "rb") as f:
+            result = client.post(
+                f"/api/projects/{project_id}/fonts/pinyin",
+                files={"file": ("seto.ttf", f, "font/ttf")},
+            )
+        assert result.status_code == 200, result.json()

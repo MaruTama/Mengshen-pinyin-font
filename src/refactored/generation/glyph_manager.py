@@ -6,7 +6,7 @@ from __future__ import annotations
 import copy
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Union, cast
+from typing import Dict, List, Optional, Sequence, Set, Union, cast
 
 import orjson
 
@@ -17,7 +17,7 @@ from ..font_types import (
     GlyphInstruction,
 )
 from ..utils.logging_config import get_logger
-from ..utils.pinyin_utils import simplification_pronunciation
+from ..utils.pinyin_utils import simplification_pronunciation, split_pinyin_letters
 
 # Font data types using font_types.py definitions
 FontGlyphDict = Dict[str, GlyphData]
@@ -76,6 +76,7 @@ class PinyinGlyphGenerator:
         self._pinyin_alphabets: Optional[FontGlyphDict] = None
         self.logger = get_logger("mengshen.glyph_manager")
         self._pronunciation_glyphs: Optional[PinyinGlyphDict] = None
+        self._warned_missing_letters: Set[str] = set()
 
     def set_alphabet_glyphs(self, alphabet_glyphs: FontGlyphDict) -> None:
         """Inject alphabet glyphs directly (keys are py_alphabet_* names).
@@ -94,37 +95,10 @@ class PinyinGlyphGenerator:
         # Convert alphabet glyphs to py_alphabet_{} naming convention
         self._pinyin_alphabets = {}
 
-        # Convert alphabet characters to simplified names with py_alphabet_{} prefix
+        # Keys are pinyin letters (one grapheme, possibly multi-code-point
+        # like m̄); the letter table gives their ASCII glyph-name part
         for char, glyph_data in alphabet_data.items():
-            if char in ["ā", "á", "ǎ", "à"]:
-                tone_map = {"ā": "a1", "á": "a2", "ǎ": "a3", "à": "a4"}
-                alphabet_glyph_name = f"py_alphabet_{tone_map[char]}"
-            elif char in ["ē", "é", "ě", "è"]:
-                tone_map = {"ē": "e1", "é": "e2", "ě": "e3", "è": "e4"}
-                alphabet_glyph_name = f"py_alphabet_{tone_map[char]}"
-            elif char in ["ī", "í", "ǐ", "ì"]:
-                tone_map = {"ī": "i1", "í": "i2", "ǐ": "i3", "ì": "i4"}
-                alphabet_glyph_name = f"py_alphabet_{tone_map[char]}"
-            elif char in ["ō", "ó", "ǒ", "ò"]:
-                tone_map = {"ō": "o1", "ó": "o2", "ǒ": "o3", "ò": "o4"}
-                alphabet_glyph_name = f"py_alphabet_{tone_map[char]}"
-            elif char in ["ū", "ú", "ǔ", "ù"]:
-                tone_map = {"ū": "u1", "ú": "u2", "ǔ": "u3", "ù": "u4"}
-                alphabet_glyph_name = f"py_alphabet_{tone_map[char]}"
-            elif char in ["ǖ", "ǘ", "ǚ", "ǜ"]:
-                tone_map = {"ǖ": "v1", "ǘ": "v2", "ǚ": "v3", "ǜ": "v4"}
-                alphabet_glyph_name = f"py_alphabet_{tone_map[char]}"
-            elif char == "ü":
-                alphabet_glyph_name = "py_alphabet_v"
-            elif char in ["ń", "ň", "ǹ"]:
-                tone_map = {"ń": "n2", "ň": "n3", "ǹ": "n4"}
-                alphabet_glyph_name = f"py_alphabet_{tone_map[char]}"
-            elif char == "ḿ":
-                alphabet_glyph_name = "py_alphabet_m2"
-            else:
-                # For basic alphabet characters (a-z)
-                alphabet_glyph_name = f"py_alphabet_{char}"
-
+            alphabet_glyph_name = f"py_alphabet_{simplification_pronunciation(char)}"
             self._pinyin_alphabets[alphabet_glyph_name] = glyph_data
 
         # Initialize empty pronunciation glyphs dictionary
@@ -193,8 +167,9 @@ class PinyinGlyphGenerator:
             # Calculate character positions and references
             references = []
 
-            # Character spacing calculation
-            char_count = len(pronunciation)
+            # Character spacing calculation (per letter, not per code point)
+            letters = split_pinyin_letters(pronunciation)
+            char_count = len(letters)
             if char_count > 0:
                 # Get pinyin character width
                 if self._pinyin_alphabets is None:
@@ -208,14 +183,14 @@ class PinyinGlyphGenerator:
                 # レガシーコードコメント:
                 # > ピンイン表示部(target_pinyin_canvas_width)に収まるように等間隔に配置する
                 width_positions = self._get_pinyin_position_on_canvas(
-                    pronunciation,
+                    letters,
                     pinyin_width,
                     target_pinyin_canvas_width,
                     self.font_config.pinyin_canvas.tracking * hanzi_canvas_width_scale,
                     hanzi_advance_width,
                 )
 
-                for i, char in enumerate(pronunciation):
+                for i, char in enumerate(letters):
                     # Map each character individually
                     simplified_char = self._simplify_pronunciation(char)
                     alphabet_glyph_name = f"py_alphabet_{simplified_char}"
@@ -258,6 +233,16 @@ class PinyinGlyphGenerator:
                             "d": y_scale,
                         }
                         references.append(reference)
+                    elif alphabet_glyph_name not in self._warned_missing_letters:
+                        # The letter would silently vanish from the pinyin
+                        self._warned_missing_letters.add(alphabet_glyph_name)
+                        self.logger.warning(
+                            "No glyph %s for pinyin letter '%s' (e.g. in '%s'); "
+                            "the letter is left out of the pinyin",
+                            alphabet_glyph_name,
+                            char,
+                            pronunciation,
+                        )
 
             # Create pronunciation glyph
             pronunciation_glyph: GlyphData = {
@@ -279,7 +264,7 @@ class PinyinGlyphGenerator:
 
     def _get_pinyin_position_on_canvas(
         self,
-        pronunciation: str,
+        pronunciation: Sequence[str],
         pinyin_width: float,
         canvas_width: float,
         canvas_tracking: float,
