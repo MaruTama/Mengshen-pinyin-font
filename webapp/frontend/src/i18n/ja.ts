@@ -248,6 +248,31 @@ export const ja = {
     default: '★ デフォルト',
     lastCannotDelete: '最後の読みは削除できません',
     deleteThis: 'この読みを削除',
+    createGlyph: 'グリフ画面で「{{letter}}」を作成',
+  },
+  letters: {
+    missingTitle: '拼音フォントに無い拼音文字',
+    missingHint:
+      '読みに必要な文字のうち、選択中の拼音フォントに無いものです。クリックすると既存グリフ（基底文字＋声調記号）から合成して作成できます。',
+    statusMissing: '未作成',
+    statusCustom: '作成済み',
+    stale: '別の拼音フォントから作成されています。作り直してください',
+    staleShort: '別フォント由来',
+    composerTitle: '「{{letter}}」を作成',
+    base: '基底文字',
+    markSource: '声調記号の取得元',
+    dx: '記号の位置 X',
+    dy: '記号の位置 Y',
+    scale: '記号の拡大率',
+    flipY: '記号を上下反転（ˇ ↔ ˆ）',
+    markContours: '記号の輪郭番号',
+    markContoursHint:
+      '取得元グリフの輪郭番号（0〜{{count}} 未満）をカンマ区切りで指定。空欄で自動検出',
+    dragHint: '青い記号をドラッグして位置を調整できます',
+    save: '保存',
+    reset: '既定値に戻す',
+    delete: '削除',
+    saved: '保存しました。次回のビルドで反映されます',
   },
   build: {
     title: 'フォント出力',
@@ -311,6 +336,16 @@ export const ja = {
       '拼音の音節が不正です: {{value}} — zhōng のように声調記号付きで入力してください',
     one_char_required: '文字を1つだけ指定してください',
     no_override: '変更がありません: {{char}}',
+    missing_glyph:
+      '拼音フォントに「{{letter}}」のグリフがありません（{{value}}）。グリフ画面で作成してください',
+    glyph_unavailable: '基底文字または声調記号の取得元のグリフがありません（先に作成してください）',
+    mark_not_found:
+      '取得元グリフに声調記号が見つかりません。別の取得元を選ぶか輪郭番号を指定してください',
+    invalid_mark_contours: '記号の輪郭番号が範囲外です',
+    invalid_scale: '拡大率は正の値にしてください',
+    letter_in_font: '拼音フォントに「{{letter}}」は既にあります',
+    unknown_letter: '不明な拼音文字です: {{name}}',
+    no_custom_glyph: 'この文字の作成済みグリフはありません',
     role: {
       base: 'ベース',
       pinyin: '拼音',

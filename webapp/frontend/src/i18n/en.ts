@@ -252,6 +252,31 @@ export const en: Resources = {
     default: '★ Default',
     lastCannotDelete: 'The last reading cannot be deleted',
     deleteThis: 'Delete this reading',
+    createGlyph: 'Create “{{letter}}” in the Glyphs step',
+  },
+  letters: {
+    missingTitle: 'Pinyin letters missing from the pinyin font',
+    missingHint:
+      'Letters readings need that the selected pinyin font lacks. Click one to compose it from existing glyphs (a base letter plus a tone mark).',
+    statusMissing: 'Missing',
+    statusCustom: 'Custom',
+    stale: 'Composed from a different pinyin font — please recreate it',
+    staleShort: 'Other font',
+    composerTitle: 'Create “{{letter}}”',
+    base: 'Base letter',
+    markSource: 'Tone mark from',
+    dx: 'Mark offset X',
+    dy: 'Mark offset Y',
+    scale: 'Mark scale',
+    flipY: 'Flip mark vertically (ˇ ↔ ˆ)',
+    markContours: 'Mark contour indices',
+    markContoursHint:
+      'Contour indices of the source glyph (0 to below {{count}}), comma-separated. Leave blank to detect automatically',
+    dragHint: 'Drag the blue mark to adjust its position',
+    save: 'Save',
+    reset: 'Reset to defaults',
+    delete: 'Delete',
+    saved: 'Saved — takes effect on the next build',
   },
   build: {
     title: 'Export font',
@@ -314,6 +339,17 @@ export const en: Resources = {
       'Invalid pinyin syllable: {{value}} — use tone-marked letters like zhōng',
     one_char_required: 'Specify exactly one character',
     no_override: 'No override for: {{char}}',
+    missing_glyph:
+      'The pinyin font has no glyph for “{{letter}}” (in {{value}}) — create it in the Glyphs step',
+    glyph_unavailable:
+      'The base letter or tone-mark source has no glyph (create it first)',
+    mark_not_found:
+      'No tone mark found in the source glyph — pick another source or set the contour indices',
+    invalid_mark_contours: 'Mark contour indices are out of range',
+    invalid_scale: 'Scale must be positive',
+    letter_in_font: 'The pinyin font already has “{{letter}}”',
+    unknown_letter: 'Unknown pinyin letter: {{name}}',
+    no_custom_glyph: 'No custom glyph for this letter',
     role: {
       base: 'base',
       pinyin: 'pinyin',

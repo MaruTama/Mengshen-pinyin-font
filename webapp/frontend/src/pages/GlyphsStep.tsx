@@ -1,15 +1,18 @@
 import { useQuery } from '@tanstack/react-query'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { Pencil, Search, X } from 'lucide-react'
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { api } from '../api'
 import { Badge, Button, Input, Spinner } from '../components/ui'
 import { useDebouncedPagedSearch } from '../useDebouncedPagedSearch'
 
 import type { GlyphEntry, Project } from '../types'
+import { MissingLettersStrip, PinyinLetterComposer } from './glyphs/PinyinLetterComposer'
 import { useProject } from './ProjectLayout'
+
+const CUSTOM_GLYPH_PREFIX = 'py_alphabet_'
 
 // The thumbnail URL has no font identity in its path, so the browser would
 // keep serving a cached SVG (from a previously selected font) for the same
@@ -20,7 +23,9 @@ function glyphSvgUrl(projectId: string, glyph: GlyphEntry, project?: Project): s
       ? project?.base_font?.sha256
       : glyph.font === 'pinyin'
         ? project?.pinyin_font?.sha256
-        : project?.tasks.build.finished_at
+        : glyph.font === 'custom'
+          ? project?.updated_at.replace(/\D/g, '')
+          : project?.tasks.build.finished_at
   const base = `/api/projects/${projectId}/glyphs/${encodeURIComponent(glyph.name)}/svg`
   return token ? `${base}?v=${token.slice(0, 12)}` : base
 }
@@ -47,8 +52,28 @@ export default function GlyphsStep() {
   const { project, projectId } = useProject()
   const { t } = useTranslation()
   const { query, setQuery, debounced: debouncedQuery, page, setPage } = useDebouncedPagedSearch()
-  const [category, setCategory] = useState('')
+  const [searchParams] = useSearchParams()
+  const letterParam = searchParams.get('letter')
+  const [category, setCategory] = useState(letterParam ? 'pinyin_alphabet' : '')
   const [selected, setSelected] = useState<GlyphEntry | null>(null)
+  // ASCII name (e.g. "eh1") of the pinyin letter open in the composer
+  const [composing, setComposing] = useState<string | null>(letterParam)
+
+  // Deep link from the Readings step (?letter=eh1)
+  useEffect(() => {
+    if (letterParam) {
+      setCategory('pinyin_alphabet')
+      setComposing(letterParam)
+      setSelected(null)
+    }
+  }, [letterParam])
+
+  const letters = useQuery({
+    queryKey: ['pinyin-letters', projectId, project?.pinyin_font?.sha256],
+    queryFn: () => api.pinyinLetters(projectId),
+    enabled: Boolean(project?.pinyin_font),
+  })
+  const composingLetter = letters.data?.letters.find((l) => l.name === composing) ?? null
 
   const glyphs = useQuery({
     queryKey: ['glyphs', projectId, debouncedQuery, category, page],
@@ -120,6 +145,17 @@ export default function GlyphsStep() {
           </div>
         </div>
 
+        {category === 'pinyin_alphabet' && letters.data && (
+          <MissingLettersStrip
+            letters={letters.data.letters}
+            selectedName={composing}
+            onSelect={(letter) => {
+              setSelected(null)
+              setComposing(letter.name)
+            }}
+          />
+        )}
+
         {category === 'pronunciation' && glyphs.data?.total === 0 && (
           <div className="mx-6 mt-4 rounded-lg border border-line bg-surface px-4 py-3 text-sm text-slate-400">
             {t('glyphs.pronunciationEmpty')}
@@ -142,8 +178,21 @@ export default function GlyphsStep() {
                     glyph={glyph}
                     projectId={projectId}
                     project={project}
-                    selected={selected?.name === glyph.name}
-                    onClick={() => setSelected(glyph)}
+                    selected={
+                      glyph.font === 'custom'
+                        ? composing === glyph.name.slice(CUSTOM_GLYPH_PREFIX.length)
+                        : selected?.name === glyph.name
+                    }
+                    onClick={() => {
+                      // Custom letters open in the composer for editing
+                      if (glyph.font === 'custom') {
+                        setSelected(null)
+                        setComposing(glyph.name.slice(CUSTOM_GLYPH_PREFIX.length))
+                      } else {
+                        setComposing(null)
+                        setSelected(glyph)
+                      }
+                    }}
                   />
                 ))}
               </div>
@@ -170,7 +219,17 @@ export default function GlyphsStep() {
         )}
       </div>
 
-      {selected && (
+      {composingLetter && letters.data && (
+        <PinyinLetterComposer
+          key={composingLetter.name}
+          projectId={projectId}
+          letter={composingLetter}
+          letters={letters.data.letters}
+          onClose={() => setComposing(null)}
+        />
+      )}
+
+      {selected && !composingLetter && (
         <GlyphDetailPanel
           projectId={projectId}
           project={project}

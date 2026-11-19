@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { GripVertical, Plus, RotateCcw, Trash2, X } from 'lucide-react'
+import { GripVertical, PenTool, Plus, RotateCcw, Trash2, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Badge, Button, Card, Input, Spinner } from '../components/ui'
 import { ApiError, displayError } from '../i18n/apiError'
 import type { PreviewResponse, ReadingOverride } from '../types'
@@ -189,7 +189,10 @@ export default function ReadingsStep() {
                 )}
               </div>
               {error != null && (
-                <p className="text-sm text-rose-400">{displayError(error)}</p>
+                <div className="space-y-2">
+                  <p className="text-sm text-rose-400">{displayError(error)}</p>
+                  <MissingGlyphLink error={error} projectId={projectId} />
+                </div>
               )}
             </div>
           </div>
@@ -235,6 +238,28 @@ export default function ReadingsStep() {
         </Card>
       )}
     </div>
+  )
+}
+
+/** For a `missing_glyph` error: jump to the Glyphs step to create the letter. */
+function MissingGlyphLink({ error, projectId }: { error: unknown; projectId: string }) {
+  const navigate = useNavigate()
+  const { t } = useTranslation()
+  if (!(error instanceof ApiError)) return null
+  const detail = error.detail
+  if (typeof detail !== 'object' || detail?.code !== 'missing_glyph') return null
+  const letter = String(detail.params?.letter ?? '')
+  const name = String(detail.params?.name ?? '')
+  if (!name) return null
+  return (
+    <Button
+      variant="ghost"
+      onClick={() => navigate(`/projects/${projectId}/glyphs?letter=${encodeURIComponent(name)}`)}
+    >
+      <span className="flex items-center gap-1.5">
+        <PenTool className="h-4 w-4" /> {t('readings.createGlyph', { letter })}
+      </span>
+    </Button>
   )
 }
 
