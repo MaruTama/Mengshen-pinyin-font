@@ -309,20 +309,6 @@ class TestGSUBTableGeneratorAALTFeature:
             single_char_info
         ]
 
-        # Mock multiple pronunciation characters
-        multi_char_info_1 = Mock()
-        multi_char_info_1.character = "中"
-        multi_char_info_1.pronunciations = ["zhōng", "zhòng"]
-
-        multi_char_info_2 = Mock()
-        multi_char_info_2.character = "國"
-        multi_char_info_2.pronunciations = ["guó"]
-
-        character_manager.get_multiple_pronunciation_characters.return_value = [
-            multi_char_info_1,
-            multi_char_info_2,
-        ]
-
         return GSUBTableGenerator(
             pattern_one_path=Path("/mock/pattern_one.txt"),
             pattern_two_path=Path("/mock/pattern_two.json"),
@@ -381,7 +367,6 @@ class TestGSUBTableGeneratorAALTFeature:
         character_manager.get_single_pronunciation_characters.return_value = [
             single_char_info
         ]
-        character_manager.get_multiple_pronunciation_characters.return_value = []
 
         generator = GSUBTableGenerator(
             pattern_one_path=Path("/mock/pattern_one.txt"),
@@ -576,6 +561,38 @@ class TestGSUBTableGeneratorRCLT0Feature:
             "inputEnds": 4,
         }
         assert expected_rule in rclt_0_subtables
+
+    @pytest.mark.unit
+    def test_make_rclt0_feature_multi_char_context_missing_cid_drops_rule(self):
+        """文脈の1文字でも cmap に無ければ、そのルールごと破棄される（部分的な match は作らない）。
+
+        藏 の "~红花" で 花 が cmap に無いケース: 红 だけの不完全な match を
+        生成せず、ルール自体を捨てる。
+        """
+        character_manager = Mock(spec=CharacterDataManager)
+        mapping_manager = Mock(spec=MappingDataManager)
+        mapping_manager.has_glyph_for_character.return_value = True
+        cmap_table = {
+            "34255": "uni85CF",  # 藏
+            "32418": "uni7EA2",  # 红
+            # 花 (33457) is intentionally missing from cmap
+        }
+        generator = GSUBTableGenerator(
+            pattern_one_path=Path("/mock/pattern_one.txt"),
+            pattern_two_path=Path("/mock/pattern_two.json"),
+            exception_pattern_path=Path("/mock/exception.json"),
+            character_manager=character_manager,
+            mapping_manager=mapping_manager,
+            cmap_table=cmap_table,
+        )
+        generator.pattern_one = [
+            {"藏": {"variational_pronunciation": "zàng", "patterns": "[~红花]"}}
+        ]
+
+        generator._make_rclt0_feature()
+
+        rclt_0_subtables = generator.gsub_data["lookups"]["lookup_rclt_0"]["subtables"]
+        assert rclt_0_subtables == []
 
     @pytest.mark.unit
     def test_make_rclt0_feature_max_patterns_limit(self):
@@ -1004,7 +1021,6 @@ class TestGSUBTableGeneratorIntegration:
         character_manager.get_single_pronunciation_characters.return_value = [
             single_char_info
         ]
-        character_manager.get_multiple_pronunciation_characters.return_value = []
 
         # Mock mapping
         mapping_manager.has_glyph_for_character.return_value = True
@@ -1053,13 +1069,6 @@ class TestGSUBTableGeneratorIntegration:
 
         # Mock character data
         character_manager.get_single_pronunciation_characters.return_value = []
-
-        multi_char_info = Mock()
-        multi_char_info.character = "中"
-        multi_char_info.pronunciations = ["zhōng", "zhòng"]
-        character_manager.get_multiple_pronunciation_characters.return_value = [
-            multi_char_info
-        ]
 
         mapping_manager.has_glyph_for_character.return_value = True
 
@@ -1181,7 +1190,6 @@ class TestGSUBTableGeneratorErrorHandling:
         character_manager.get_single_pronunciation_characters.return_value = [
             single_char_info
         ]
-        character_manager.get_multiple_pronunciation_characters.return_value = []
 
         generator = GSUBTableGenerator(
             pattern_one_path=Mock(spec=Path),

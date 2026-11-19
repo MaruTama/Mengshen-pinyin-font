@@ -107,12 +107,6 @@ class CharacterDataManager:
         # ピンインが一つだけの漢字をすべて取得する
         return list(self.iter_single_pronunciation_characters())
 
-    @lru_cache(maxsize=1)
-    def get_multiple_pronunciation_characters(self) -> List[CharacterInfo]:
-        """Get all characters with multiple pronunciations (cached)."""
-        # ピンインが2つ以上の漢字をすべて取得する
-        return list(self.iter_multiple_pronunciation_characters())
-
     def get_statistics(self) -> StatsDict:
         """Get character statistics."""
         total = 0

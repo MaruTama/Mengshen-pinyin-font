@@ -21,7 +21,6 @@ ModuleAttribute = Union[type, object, Callable]
 def __getattr__(name: str) -> Any:
     """Lazy import for circular dependency resolution."""
     if name in [
-        "get_multiple_pronunciation_characters",
         "get_single_pronunciation_characters",
         "iter_multiple_pronunciation_characters",
         "iter_single_pronunciation_characters",

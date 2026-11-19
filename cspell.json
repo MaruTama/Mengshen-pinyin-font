@@ -411,7 +411,8 @@
     "joyokanjihyo",
     "amacron",
     "caplog",
-    "autouse"
+    "autouse",
+    "worktree"
   ],
   "ignorePaths": [
     ".git/**",

@@ -26,8 +26,17 @@
 
 ### Python環境
 
+Pythonのバージョンは [uv](https://docs.astral.sh/uv/) が `.python-version`（および `pyproject.toml` の `requires-python`）に従って管理する。
+
 ```bash
-pyenv global 3.11.2
+uv python install
+uv venv
+```
+
+Node.js や otfcc ビルドに使う Docker CLI など、Python 以外のツールバージョンは [mise](https://mise.jdx.dev/)（`.mise.toml`）で管理する。
+
+```bash
+mise install
 ```
 
 ### 外部ツールインストール
@@ -451,9 +460,9 @@ $ lefthook version
 # スペルチェックはVS Codeで統合されているため、リアルタイムで確認可能
 
 # 手動でフォーマット実行
-black src/ tests/
-isort src/ tests/
-flake8 src/ tests/
+python -m black src/ tests/
+python -m isort src/ tests/
+python -m flake8 src/ tests/
 
 # 手動でフックをテスト
 lefthook run pre-commit
@@ -534,9 +543,8 @@ refer to [pinyin_glyph.py](https://github.com/MaruTama/Mengshen-pinyin-font/blob
 <!-- Ref.[extract rotation, scale values from 2d transformation matrix](https://stackoverflow.com/questions/4361242/extract-rotation-scale-values-from-2d-transformation-matrix)
 Matrix can calculate the scale, rotation, and shift at one time by raising the dimension.   -->
 
-> [!CAUTION]
-> otfccbuild の仕様なのか opentype の仕様なのか分からないが a と d が同じ値だと、グリフが消失する。 少しでもサイズが違えば反映されるので、90% にするなら、a=0.9, d=0.91 とかにする。**
-> refer to [pinyin_glyph.py](https://github.com/MaruTama/Mengshen-pinyin-font/blob/e5d6e9e1770d849d6c17016683faf7c04d028473/src/pinyin_glyph.py#L148-L154)
+> [!NOTE]
+> 以前は「otfccbuild の仕様か OpenType の仕様か不明だが、a と d が同じ値だとグリフが消失する」とされ、d にオフセット（`DELTA_4_REFLECTION = 0.001`）を加えていた。otfcc v0.9.6 / v0.10.4 では再現せず、`a == d` で `han_serif` を丸ごとビルドしても、グリフ数は同じで、空になるグリフはなく、FreeType での描画でも拼音はすべて表示された。そのためオフセットは削除し、拼音の文字は等倍率で拡縮している。CoreText / DirectWrite / Android では未確認なので、グリフが消える場合は issue で知らせてほしい。
 
 ### feature tag
 

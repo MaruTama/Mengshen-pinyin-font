@@ -11,9 +11,6 @@ import utility
 VERTICAL_ORIGIN_PER_HEIGHT = 0.88
 # ピンインの advanceHeight が無いときは決め打ちで advanceWidth の 1.4 倍にする
 HEIGHT_RATE_OF_MONOSPACE = 1.4
-# otfccbuild の仕様なのか opentype の仕様なのか分からないが a と d が同じ値だと、グリフが消失する。
-# 少しでもサイズが違えば反映されるので、反映のためのマジックナンバー
-DELTA_4_REFLECTION = 0.001
 
 
 class PinyinGlyph:
@@ -76,11 +73,6 @@ class PinyinGlyph:
 
         [The 'glyf' table](https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6glyf.html)
         [FontConfigの​matrix​フォント​プロパティを​利用して​字体を​変化させる​方法](http://ie.pcgw.pgw.jp/2015/10/17/fontconfig-matrix.html)
-
-
-        otfccbuild の仕様なのか opentype の仕様なのか分からないが
-        a と d が同じ値だと、グリフが消失する。 少しでもサイズが違えば反映される。
-        なので、90% にするなら、a=0.9, d=0.91 とかにする。
         """
         # 追加したいフォントのサイズに合わせるために scale を求める
         hanzi_canvas_width_scale = (
@@ -209,7 +201,7 @@ class PinyinGlyph:
             if is_avoid_overlapping_mode and len(pronunciation) >= 5:
                 x_scale -= x_scale_reduction_for_avoid_overlapping
 
-            y_scale = round(pinyin_scale + DELTA_4_REFLECTION, 3)
+            y_scale = round(pinyin_scale, 3)
             references.append(
                 {
                     "glyph": "py_alphablet_{}".format(simpled_alphabet),

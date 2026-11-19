@@ -1,0 +1,7 @@
+[tools]
+# Python is managed by uv (see .python-version / pyproject.toml `requires-python`), not mise.
+# Matches webapp/frontend's vite ^8.1.1 requirement (node ^20.19.0 || >=22.12.0); pinned to current Active LTS
+node = "24"
+# CLI binary only (not the Docker Engine/Desktop runtime) — https://mise.jdx.dev
+"aqua:docker/cli" = "latest"
+"github:docker/compose" = "latest"

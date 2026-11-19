@@ -28,9 +28,6 @@ safety-report.json
 benchmark.json
 coverage.xml
 
-# Python version management
-.python-version
-
 # Act (local GitHub Actions testing)
 .actrc
 act-commands.md

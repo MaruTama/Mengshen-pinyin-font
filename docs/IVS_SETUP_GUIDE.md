@@ -105,7 +105,7 @@ Through Microsoft IME, you can access the IME Pad to insert IVS characters. Foll
 > IVS codes start from E0100 and follow this order. These codes are selected from the end of the IVS range (E0100+) to avoid conflicts with existing standardized IVS implementations.
 
 | IVS Code | Glyph Type | Description |
-|----------|------------|-------------|
+| -------- | ---------- | ----------- |
 | E0100 | hanzi_glyf.ss00 | Chinese character glyf without Pinyin. Pinyin can be changed by simply changing the IVS code. |
 | E0101 | hanzi_glyf.ss01 | (When Chinese character has the variational pronunciation) Chinese character glyf with the standard pronunciation (duplicates with hanzi_glyf, but replaces it by overriding GSUB replacements) |
 | E0102 | hanzi_glyf.ss02 | (When Chinese character has the variational pronunciation) After that, Chinese character glyf with the variational pronunciation |
