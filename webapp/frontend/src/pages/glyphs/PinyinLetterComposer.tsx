@@ -343,9 +343,12 @@ function ComposerCanvas({
   const pendingX = recipe.dx - preview.recipe.dx
   const pendingY = recipe.dy - preview.recipe.dy
 
+  // viewBox is letterboxed (xMidYMid meet): the larger ratio applies
   const unitsPerPixel = () => {
     const rect = svgRef.current?.getBoundingClientRect()
-    return rect && rect.width > 0 ? width / rect.width : 1
+    return rect && rect.width > 0 && rect.height > 0
+      ? Math.max(width / rect.width, height / rect.height)
+      : 1
   }
 
   return (
@@ -358,7 +361,12 @@ function ComposerCanvas({
       <svg
         ref={svgRef}
         viewBox={`${-margin} 0 ${width} ${height}`}
-        className="h-64 w-full touch-none select-none"
+        className="h-64 w-full cursor-move touch-none select-none"
+        // Drag anywhere on the canvas: thin marks are hard to hit exactly
+        onPointerDown={(e) => {
+          e.currentTarget.setPointerCapture(e.pointerId)
+          drag.current = { x: e.clientX, y: e.clientY, dx: recipe.dx, dy: recipe.dy }
+        }}
         onPointerMove={(e) => {
           if (!drag.current) return
           const scale = unitsPerPixel()
@@ -399,11 +407,6 @@ function ComposerCanvas({
             d={data.mark_path}
             fill="#818cf8"
             transform={`translate(${pendingX} ${pendingY})`}
-            className="cursor-move"
-            onPointerDown={(e) => {
-              e.currentTarget.ownerSVGElement?.setPointerCapture(e.pointerId)
-              drag.current = { x: e.clientX, y: e.clientY, dx: recipe.dx, dy: recipe.dy }
-            }}
           />
         </g>
       </svg>

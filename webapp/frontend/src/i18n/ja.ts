@@ -268,7 +268,7 @@ export const ja = {
     markContours: '記号の輪郭番号',
     markContoursHint:
       '取得元グリフの輪郭番号（0〜{{count}} 未満）をカンマ区切りで指定。空欄で自動検出',
-    dragHint: '青い記号をドラッグして位置を調整できます',
+    dragHint: 'プレビュー上をドラッグすると青い記号を移動できます',
     save: '保存',
     reset: '既定値に戻す',
     delete: '削除',

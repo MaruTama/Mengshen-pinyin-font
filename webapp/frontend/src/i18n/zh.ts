@@ -266,7 +266,7 @@ export const zh: Resources = {
     flipY: '上下翻转符号（ˇ ↔ ˆ）',
     markContours: '符号轮廓编号',
     markContoursHint: '来源字形的轮廓编号（0 至 {{count}} 以下），用逗号分隔；留空则自动检测',
-    dragHint: '拖动蓝色符号即可调整位置',
+    dragHint: '在预览上拖动即可移动蓝色符号',
     save: '保存',
     reset: '恢复默认',
     delete: '删除',

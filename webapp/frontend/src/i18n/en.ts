@@ -272,7 +272,7 @@ export const en: Resources = {
     markContours: 'Mark contour indices',
     markContoursHint:
       'Contour indices of the source glyph (0 to below {{count}}), comma-separated. Leave blank to detect automatically',
-    dragHint: 'Drag the blue mark to adjust its position',
+    dragHint: 'Drag on the preview to move the blue mark',
     save: 'Save',
     reset: 'Reset to defaults',
     delete: 'Delete',
