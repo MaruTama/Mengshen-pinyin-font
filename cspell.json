@@ -406,7 +406,9 @@
     "shinjitai",
     "tgscc",
     "zong",
-    "precomposed"
+    "precomposed",
+    "joyokanjihyo",
+    "amacron"
   ],
   "ignorePaths": [
     ".git/**",

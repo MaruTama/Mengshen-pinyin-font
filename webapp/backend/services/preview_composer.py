@@ -30,6 +30,8 @@ from ..schemas import (
     PreviewResponse,
     Project,
 )
+from .custom_glyphs import custom_glyphs_in_use
+from .glyph_composer import contours_to_svg_path
 from .pipeline import font_metadata_from_project
 
 _font_lock = threading.Lock()
@@ -70,12 +72,20 @@ class _FontOutlines:
         return float(self.hmtx[glyph_name][0])
 
 
-def _alphabet_metric_glyphs(outlines: _FontOutlines) -> Dict[str, dict]:
+def _alphabet_metric_glyphs(
+    outlines: _FontOutlines, project: Optional[Project] = None
+) -> Dict[str, dict]:
     """Metric-only glyph dicts keyed by py_alphabet_* names.
 
     Only advanceWidth/advanceHeight are consumed by the placement math.
+    Custom (composed) letters fill in letters the font lacks.
     """
     glyphs: Dict[str, dict] = {}
+    for name, custom in custom_glyphs_in_use(project, outlines).items():
+        glyphs[f"py_alphabet_{name}"] = {
+            "advanceWidth": float(custom.glyph.get("advanceWidth", outlines.upem)),
+            "advanceHeight": float(outlines.upem),
+        }
     for char in ALPHABET:
         glyph_name = outlines.glyph_name(char)
         if glyph_name is None:
@@ -124,6 +134,35 @@ def _alphabet_target_by_glyph_key() -> Dict[str, str]:
     return {f"py_alphabet_{simplification_pronunciation(c)}": c for c in ALPHABET}
 
 
+def _pinyin_letter_outline(
+    pinyin: _FontOutlines, project: Project, glyph_key: str
+) -> Optional[Tuple[str, str, float, str]]:
+    """(glyph name, SVG path, advance width, letter) for a py_alphabet_* key.
+
+    The pinyin font's own glyph wins; custom glyphs fill missing letters.
+    """
+    target = _alphabet_target_by_glyph_key().get(glyph_key)
+    if target is not None:
+        glyph_name = pinyin.glyph_name(target)
+        if glyph_name is not None:
+            return (
+                glyph_name,
+                pinyin.svg_path(glyph_name),
+                pinyin.advance_width(glyph_name),
+                target,
+            )
+    name = glyph_key[len("py_alphabet_") :]
+    custom = custom_glyphs_in_use(project, pinyin).get(name)
+    if custom is None:
+        return None
+    return (
+        glyph_key,
+        contours_to_svg_path(custom.glyph.get("contours", [])),
+        float(custom.glyph.get("advanceWidth", pinyin.upem)),
+        custom.letter,
+    )
+
+
 _pinyin_data = PinyinDataManager()
 
 
@@ -158,7 +197,7 @@ def compose_preview(
     with _font_lock:
         base = _FontOutlines(project.base_font.path, project.base_font.sha256)
         pinyin = _FontOutlines(project.pinyin_font.path, project.pinyin_font.sha256)
-        alphabet_glyphs = _alphabet_metric_glyphs(pinyin)
+        alphabet_glyphs = _alphabet_metric_glyphs(pinyin, project)
 
         if "py_alphabet_v3" not in alphabet_glyphs:
             warnings.append(
@@ -206,16 +245,10 @@ def compose_preview(
                 for ref in references:
                     glyph_key = str(ref["glyph"])
                     if glyph_key not in pinyin_paths:
-                        target = _alphabet_target_by_glyph_key().get(glyph_key)
-                        if target is None:
+                        outline = _pinyin_letter_outline(pinyin, project, glyph_key)
+                        if outline is None:
                             continue
-                        glyph_name = pinyin.glyph_name(target)
-                        if glyph_name is None:
-                            continue
-                        pinyin_paths[glyph_key] = (
-                            pinyin.svg_path(glyph_name),
-                            0.0,
-                        )
+                        pinyin_paths[glyph_key] = (outline[1], 0.0)
                     path_d = pinyin_paths[glyph_key][0]
                     svg_parts.append(
                         f'<path d="{path_d}" fill="currentColor" '
@@ -247,7 +280,7 @@ def compose_detail(project: Project, char: str, canvas: CanvasModel) -> PreviewD
     with _font_lock:
         base = _FontOutlines(project.base_font.path, project.base_font.sha256)
         pinyin = _FontOutlines(project.pinyin_font.path, project.pinyin_font.sha256)
-        alphabet_glyphs = _alphabet_metric_glyphs(pinyin)
+        alphabet_glyphs = _alphabet_metric_glyphs(pinyin, project)
 
         base_glyph_name = base.glyph_name(char)
         if base_glyph_name is None:
@@ -280,23 +313,20 @@ def compose_detail(project: Project, char: str, canvas: CanvasModel) -> PreviewD
                 alphabet_glyphs,
             )
             for ref in references:
-                glyph_key = str(ref["glyph"])
-                target = _alphabet_target_by_glyph_key().get(glyph_key)
-                if target is None:
+                outline = _pinyin_letter_outline(pinyin, project, str(ref["glyph"]))
+                if outline is None:
                     continue
-                glyph_name = pinyin.glyph_name(target)
-                if glyph_name is None:
-                    continue
+                glyph_name, path, advance_width, letter = outline
                 pinyin_outlines.append(
                     OutlineGlyph(
                         glyph=glyph_name,
-                        path=pinyin.svg_path(glyph_name),
-                        advance_width=pinyin.advance_width(glyph_name),
+                        path=path,
+                        advance_width=advance_width,
                         a=float(ref["a"]),
                         d=float(ref["d"]),
                         x=float(ref["x"]),
                         y=float(ref["y"]),
-                        label=target,
+                        label=letter,
                     )
                 )
 

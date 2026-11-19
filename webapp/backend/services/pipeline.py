@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 import re
 import shutil
@@ -26,6 +27,9 @@ from .. import settings
 from ..schemas import Project
 
 ProgressCallback = Callable[[str, float], None]
+
+# Font-only alphabet extraction (before custom letters are merged in)
+FONT_ALPHABET_FILENAME = "alphabet_for_pinyin_font.json"
 
 BUILTIN_FONTS = {
     "han_serif": {
@@ -156,6 +160,36 @@ class _ProgressLogHandler(logging.Handler):
                 return
 
 
+def write_merged_alphabet(project: Project) -> None:
+    """Write alphabet_for_pinyin.json = font letters + custom letters.
+
+    The font-only extraction is kept as alphabet_for_pinyin_font.json
+    (created on first merge), so deleting a custom glyph removes it from
+    the next merge. Custom glyphs only fill letters the font lacks and
+    must come from the currently selected pinyin font.
+    """
+    from .custom_glyphs import active_custom_glyphs
+
+    json_dir = project_json_dir(project)
+    current = template_paths_for(project)["alphabet_pinyin"]
+    pristine = json_dir / FONT_ALPHABET_FILENAME
+    if not pristine.exists():
+        if not current.exists():
+            return  # not prepared yet
+        json_dir.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(current, pristine)
+
+    alphabet = json.loads(pristine.read_text(encoding="utf-8"))
+    for custom in active_custom_glyphs(project).values():
+        if custom.letter not in alphabet:
+            alphabet[custom.letter] = custom.glyph
+
+    target = json_dir / "alphabet_for_pinyin.json"
+    target.write_text(
+        json.dumps(alphabet, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+
+
 def run_prepare(project: Project, on_progress: ProgressCallback) -> dict[str, str]:
     """Extract alphabet glyphs and build template JSONs for the project.
 
@@ -190,6 +224,11 @@ def run_prepare(project: Project, on_progress: ProgressCallback) -> dict[str, st
         if source.exists():
             shutil.move(str(source), str(targets[name]))
 
+    # Fresh extraction: snapshot it as the font-only alphabet, then add
+    # the project's custom (composed) letters
+    (json_dir / FONT_ALPHABET_FILENAME).unlink(missing_ok=True)
+    write_merged_alphabet(project)
+
     on_progress("done", 1.0)
     root = settings.PATHS.project_root
     return {name: str(path.relative_to(root)) for name, path in targets.items()}
@@ -203,6 +242,8 @@ def run_build(
     """Run the full font build for the project. Returns the output TTF path."""
     font_type = font_type_for(project)
     font_config = font_metadata_from_project(project)
+    # Custom letters may have changed since prepare
+    write_merged_alphabet(project)
     templates = template_paths_for(project)
 
     missing = [str(p) for p in templates.values() if not p.exists()]

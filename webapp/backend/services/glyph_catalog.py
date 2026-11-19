@@ -8,6 +8,7 @@ demand with the same outline mechanism as the preview.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import threading
 from pathlib import Path
@@ -17,14 +18,16 @@ from src.refactored.scripts.retrieve_latin_alphabet import ALPHABET
 
 from .. import settings
 from ..schemas import Project
+from .custom_glyphs import custom_glyphs_in_use
+from .glyph_composer import contours_to_svg_path
 from .preview_composer import _FontOutlines
 from .project_store import ProjectStore
 
 INDEX_FILENAME = "glyph_index.json"
 # Bump when index build logic changes so cached glyph_index.json regenerates
-_INDEX_VERSION = "v5"
+_INDEX_VERSION = "v6"
 
-# The 55 latin letters (plain + tone-marked) actually used to compose
+# The latin letters (plain + tone-marked) actually used to compose
 # pinyin. The pinyin category must stay within these — a full latin font
 # carries hundreds of other letters that are not pinyin.
 _PINYIN_ALPHABET = frozenset(ALPHABET)
@@ -200,6 +203,28 @@ def _pronunciation_entries(project: Project) -> List[dict]:
     return entries
 
 
+def custom_entries(project: Project) -> List[dict]:
+    """Custom (composed) pinyin letters filling gaps in the pinyin font.
+
+    Named like the glyphs they become in the built font (py_alphabet_*).
+    """
+    if project.pinyin_font is None:
+        return []
+    outlines = _FontOutlines(project.pinyin_font.path, project.pinyin_font.sha256)
+    return [
+        {
+            "name": f"py_alphabet_{name}",
+            "font": "custom",
+            "char": custom.letter,
+            "codepoints": [f"U+{ord(c):04X}" for c in custom.letter],
+            "advance_width": float(custom.glyph.get("advanceWidth", 0)),
+            "category": "pinyin_alphabet",
+            "overridden": False,
+        }
+        for name, custom in custom_glyphs_in_use(project, outlines).items()
+    ]
+
+
 def _build_index(project: Project) -> List[dict]:
     # Keyed by glyph name. Base and pinyin fonts often share latin glyph
     # names ("a", "amacron", ...); the pinyin font must own the pinyin
@@ -251,6 +276,7 @@ def _build_index(project: Project) -> List[dict]:
             }
 
     entries = list(by_name.values())
+    entries.extend(custom_entries(project))
     entries.extend(_pronunciation_entries(project))
     return entries
 
@@ -263,9 +289,18 @@ def _fonts_key(project: Project) -> str:
     base = project.base_font.sha256 if project.base_font else "-"
     pinyin = project.pinyin_font.sha256 if project.pinyin_font else "-"
     overrides = ",".join(sorted(project.glyph_overrides.readings))
+    customs = hashlib.sha256(
+        json.dumps(
+            {
+                name: [custom.font_sha256, custom.glyph]
+                for name, custom in project.glyph_overrides.custom_glyphs.items()
+            },
+            sort_keys=True,
+        ).encode("utf-8")
+    ).hexdigest()[:16]
     output_path = _built_output_path(project)
     output = f"{output_path.stat().st_mtime}" if output_path else "-"
-    return f"{_INDEX_VERSION}:{base}:{pinyin}:{overrides}:{output}"
+    return f"{_INDEX_VERSION}:{base}:{pinyin}:{overrides}:{customs}:{output}"
 
 
 def get_index(store: ProjectStore, project: Project) -> List[dict]:
@@ -417,7 +452,29 @@ def search_ivs(
     }
 
 
+def _custom_thumbnail_svg(project: Project, entry: dict) -> Optional[str]:
+    if project.pinyin_font is None:
+        return None
+    custom = project.glyph_overrides.custom_glyphs.get(
+        entry["name"][len("py_alphabet_") :]
+    )
+    if custom is None:
+        return None
+    outlines = _FontOutlines(project.pinyin_font.path, project.pinyin_font.sha256)
+    path_d = contours_to_svg_path(custom.glyph.get("contours", []))
+    top = float(outlines.upem)
+    height = top + abs(float(outlines.font["hhea"].descender))
+    return (
+        f'<svg xmlns="http://www.w3.org/2000/svg" '
+        f'viewBox="0 0 {entry["advance_width"]:.0f} {height:.0f}">'
+        f'<g transform="translate(0 {top}) scale(1 -1)">'
+        f'<path d="{path_d}" fill="#cbd5e1"/></g></svg>'
+    )
+
+
 def thumbnail_svg(project: Project, entry: dict) -> Optional[str]:
+    if entry["font"] == "custom":
+        return _custom_thumbnail_svg(project, entry)
     if entry["font"] == "output":
         output_path = _built_output_path(project)
         if output_path is None:
