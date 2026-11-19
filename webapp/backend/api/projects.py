@@ -9,7 +9,7 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 
-from src.refactored.scripts.retrieve_latin_alphabet import ALPHABET
+from src.refactored.scripts.retrieve_latin_alphabet import ALPHABET, REQUIRED_ALPHABET
 
 from ..errors import FontValidationError, problem
 from ..schemas import (
@@ -170,7 +170,7 @@ async def upload_font(project_id: str, role: FontRole, file: UploadFile) -> Proj
     try:
         font_inspector.validate_font_file(target)
         if role == "pinyin":
-            missing = font_inspector.pinyin_coverage(target, ALPHABET)
+            missing = font_inspector.pinyin_coverage(target, REQUIRED_ALPHABET)
             if missing:
                 glyphs = " ".join(missing[:20]) + (" …" if len(missing) > 20 else "")
                 raise FontValidationError(
