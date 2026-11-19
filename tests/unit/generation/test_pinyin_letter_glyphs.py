@@ -147,3 +147,34 @@ class TestGraphemeLayout:
         ]
         # Characterization: captured from the pre-grapheme implementation
         assert [r["x"] for r in refs] == [101.58, 265.38, 429.18, 592.97, 756.76]
+
+
+class TestMissingLetterWarning:
+    def test_letter_without_glyph_is_warned_once(self, caplog):
+        generator = _generator()
+        generator.set_alphabet_glyphs(
+            {
+                name: {"advanceWidth": 500.0, "advanceHeight": 1000.0}
+                for name in ["py_alphabet_v3", "py_alphabet_n"]
+            }
+        )
+        with caplog.at_level("WARNING", logger="mengshen.glyph_manager"):
+            glyphs = _generate(generator, {"ê̄", "nê̄"})
+        warnings = [r.getMessage() for r in caplog.records if r.levelname == "WARNING"]
+        assert len(warnings) == 1
+        assert "py_alphabet_eh1" in warnings[0]
+        assert "ê̄" in warnings[0]
+        # The letter is still skipped (the glyph cannot be referenced)
+        assert glyphs["eh1"]["references"] == []
+
+    def test_no_warning_when_all_letters_exist(self, caplog):
+        generator = _generator()
+        generator.set_alphabet_glyphs(
+            {
+                name: {"advanceWidth": 500.0, "advanceHeight": 1000.0}
+                for name in ["py_alphabet_v3", "py_alphabet_n"]
+            }
+        )
+        with caplog.at_level("WARNING", logger="mengshen.glyph_manager"):
+            _generate(generator, {"n"})
+        assert not [r for r in caplog.records if r.levelname == "WARNING"]

@@ -80,6 +80,7 @@ class PinyinGlyphGenerator:
         self._pinyin_alphabets: Optional[FontGlyphDict] = None
         self.logger = get_logger("mengshen.glyph_manager")
         self._pronunciation_glyphs: Optional[PinyinGlyphDict] = None
+        self._warned_missing_letters: Set[str] = set()
 
     def set_alphabet_glyphs(self, alphabet_glyphs: FontGlyphDict) -> None:
         """Inject alphabet glyphs directly (keys are py_alphabet_* names).
@@ -236,6 +237,16 @@ class PinyinGlyphGenerator:
                             "d": y_scale,
                         }
                         references.append(reference)
+                    elif alphabet_glyph_name not in self._warned_missing_letters:
+                        # The letter would silently vanish from the pinyin
+                        self._warned_missing_letters.add(alphabet_glyph_name)
+                        self.logger.warning(
+                            "No glyph %s for pinyin letter '%s' (e.g. in '%s'); "
+                            "the letter is left out of the pinyin",
+                            alphabet_glyph_name,
+                            char,
+                            pronunciation,
+                        )
 
             # Create pronunciation glyph
             pronunciation_glyph: GlyphData = {

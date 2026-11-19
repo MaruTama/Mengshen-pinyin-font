@@ -408,7 +408,8 @@
     "zong",
     "precomposed",
     "joyokanjihyo",
-    "amacron"
+    "amacron",
+    "caplog"
   ],
   "ignorePaths": [
     ".git/**",
