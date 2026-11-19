@@ -36,7 +36,7 @@ export function MissingLettersStrip({
   onSelect: (letter: PinyinLetter) => void
 }) {
   const { t } = useTranslation()
-  const shown = letters.filter((l) => l.status !== 'font')
+  const shown = letters.filter((l) => l.status === 'missing' || l.status === 'custom')
   if (shown.length === 0) return null
   return (
     <div className="mx-6 mt-4 rounded-lg border border-amber-500/30 bg-amber-500/5 px-4 py-3">

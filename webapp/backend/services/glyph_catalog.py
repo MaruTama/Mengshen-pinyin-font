@@ -18,14 +18,14 @@ from src.refactored.scripts.retrieve_latin_alphabet import ALPHABET
 
 from .. import settings
 from ..schemas import Project
-from .custom_glyphs import custom_glyphs_in_use
+from .custom_glyphs import extra_letter_glyphs
 from .glyph_composer import contours_to_svg_path
 from .preview_composer import _FontOutlines
 from .project_store import ProjectStore
 
 INDEX_FILENAME = "glyph_index.json"
 # Bump when index build logic changes so cached glyph_index.json regenerates
-_INDEX_VERSION = "v6"
+_INDEX_VERSION = "v7"
 
 # The latin letters (plain + tone-marked) actually used to compose
 # pinyin. The pinyin category must stay within these — a full latin font
@@ -204,7 +204,7 @@ def _pronunciation_entries(project: Project) -> List[dict]:
 
 
 def custom_entries(project: Project) -> List[dict]:
-    """Custom (composed) pinyin letters filling gaps in the pinyin font.
+    """Bundled / custom (composed) pinyin letters filling gaps in the font.
 
     Named like the glyphs they become in the built font (py_alphabet_*).
     """
@@ -214,14 +214,16 @@ def custom_entries(project: Project) -> List[dict]:
     return [
         {
             "name": f"py_alphabet_{name}",
-            "font": "custom",
-            "char": custom.letter,
-            "codepoints": [f"U+{ord(c):04X}" for c in custom.letter],
-            "advance_width": float(custom.glyph.get("advanceWidth", 0)),
+            "font": source,
+            "char": letter,
+            "codepoints": [f"U+{ord(c):04X}" for c in letter],
+            "advance_width": float(glyph.get("advanceWidth", 0)),
             "category": "pinyin_alphabet",
             "overridden": False,
         }
-        for name, custom in custom_glyphs_in_use(project, outlines).items()
+        for name, (letter, glyph, source) in extra_letter_glyphs(
+            project, outlines
+        ).items()
     ]
 
 
@@ -455,13 +457,13 @@ def search_ivs(
 def _custom_thumbnail_svg(project: Project, entry: dict) -> Optional[str]:
     if project.pinyin_font is None:
         return None
-    custom = project.glyph_overrides.custom_glyphs.get(
+    outlines = _FontOutlines(project.pinyin_font.path, project.pinyin_font.sha256)
+    extra = extra_letter_glyphs(project, outlines).get(
         entry["name"][len("py_alphabet_") :]
     )
-    if custom is None:
+    if extra is None:
         return None
-    outlines = _FontOutlines(project.pinyin_font.path, project.pinyin_font.sha256)
-    path_d = contours_to_svg_path(custom.glyph.get("contours", []))
+    path_d = contours_to_svg_path(extra[1].get("contours", []))
     top = float(outlines.upem)
     height = top + abs(float(outlines.font["hhea"].descender))
     return (
@@ -473,7 +475,7 @@ def _custom_thumbnail_svg(project: Project, entry: dict) -> Optional[str]:
 
 
 def thumbnail_svg(project: Project, entry: dict) -> Optional[str]:
-    if entry["font"] == "custom":
+    if entry["font"] in ("custom", "bundled"):
         return _custom_thumbnail_svg(project, entry)
     if entry["font"] == "output":
         output_path = _built_output_path(project)

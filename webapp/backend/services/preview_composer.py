@@ -30,7 +30,7 @@ from ..schemas import (
     PreviewResponse,
     Project,
 )
-from .custom_glyphs import custom_glyphs_in_use
+from .custom_glyphs import extra_letter_glyphs
 from .glyph_composer import contours_to_svg_path
 from .pipeline import font_metadata_from_project
 
@@ -81,9 +81,9 @@ def _alphabet_metric_glyphs(
     Custom (composed) letters fill in letters the font lacks.
     """
     glyphs: Dict[str, dict] = {}
-    for name, custom in custom_glyphs_in_use(project, outlines).items():
+    for name, (_, glyph, _) in extra_letter_glyphs(project, outlines).items():
         glyphs[f"py_alphabet_{name}"] = {
-            "advanceWidth": float(custom.glyph.get("advanceWidth", outlines.upem)),
+            "advanceWidth": float(glyph.get("advanceWidth", outlines.upem)),
             "advanceHeight": float(outlines.upem),
         }
     for char in ALPHABET:
@@ -139,7 +139,8 @@ def _pinyin_letter_outline(
 ) -> Optional[Tuple[str, str, float, str]]:
     """(glyph name, SVG path, advance width, letter) for a py_alphabet_* key.
 
-    The pinyin font's own glyph wins; custom glyphs fill missing letters.
+    The pinyin font's own glyph wins; bundled/custom glyphs fill missing
+    letters.
     """
     target = _alphabet_target_by_glyph_key().get(glyph_key)
     if target is not None:
@@ -152,14 +153,15 @@ def _pinyin_letter_outline(
                 target,
             )
     name = glyph_key[len("py_alphabet_") :]
-    custom = custom_glyphs_in_use(project, pinyin).get(name)
-    if custom is None:
+    extra = extra_letter_glyphs(project, pinyin).get(name)
+    if extra is None:
         return None
+    letter, glyph, _ = extra
     return (
         glyph_key,
-        contours_to_svg_path(custom.glyph.get("contours", [])),
-        float(custom.glyph.get("advanceWidth", pinyin.upem)),
-        custom.letter,
+        contours_to_svg_path(glyph.get("contours", [])),
+        float(glyph.get("advanceWidth", pinyin.upem)),
+        letter,
     )
 
 

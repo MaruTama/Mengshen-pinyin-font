@@ -409,7 +409,8 @@
     "precomposed",
     "joyokanjihyo",
     "amacron",
-    "caplog"
+    "caplog",
+    "autouse"
   ],
   "ignorePaths": [
     ".git/**",

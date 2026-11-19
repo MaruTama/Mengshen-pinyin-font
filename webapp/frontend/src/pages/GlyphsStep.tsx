@@ -21,7 +21,7 @@ function glyphSvgUrl(projectId: string, glyph: GlyphEntry, project?: Project): s
   const token =
     glyph.font === 'base'
       ? project?.base_font?.sha256
-      : glyph.font === 'pinyin'
+      : glyph.font === 'pinyin' || glyph.font === 'bundled'
         ? project?.pinyin_font?.sha256
         : glyph.font === 'custom'
           ? project?.updated_at.replace(/\D/g, '')

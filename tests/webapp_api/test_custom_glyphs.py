@@ -17,6 +17,16 @@ E_CIRCUMFLEX = "ê"  # ê
 M_MACRON = "m̄"  # m̄
 
 
+@pytest.fixture(autouse=True)
+def no_bundles(tmp_path, monkeypatch):
+    """Most tests need builtin fonts to *lack* letters: hide the bundles."""
+    from src.refactored.utils import bundled_glyphs
+
+    empty = tmp_path / "no_bundles"
+    empty.mkdir()
+    monkeypatch.setattr(bundled_glyphs, "BUNDLED_GLYPHS_DIR", empty)
+
+
 @pytest.fixture
 def client(store, monkeypatch):
     from webapp.backend.api import deps
@@ -337,3 +347,65 @@ class TestMergeIntoAlphabet:
         assert len(detail.pinyin_glyphs) == 1
         assert detail.pinyin_glyphs[0].label == M_MACRON
         assert detail.pinyin_glyphs[0].path.startswith("M")
+
+
+class TestBundledGlyphs:
+    """Builtin pinyin fonts ship composed letters (res/fonts/custom_pinyin_glyphs)."""
+
+    @pytest.fixture
+    def no_bundles(self):
+        """Override the module-level fixture: use the real bundles."""
+
+    def test_bundled_letters_count_as_available(self, client):
+        project_id = _project(client, "handwritten")
+        letters = _letters(client, project_id)
+        for letter in [E_CIRCUMFLEX, E_MACRON_CIRCUMFLEX, "ế", M_MACRON, "m̀"]:
+            assert letters[letter]["status"] == "bundled", letter
+        assert letters["ē"]["status"] == "font"
+        assert not [r for r in letters.values() if r["status"] == "missing"]
+
+    def test_bundled_letter_cannot_be_overridden(self, client):
+        project_id = _project(client, "handwritten")
+        result = client.put(
+            f"/api/projects/{project_id}/pinyin-letters/m1",
+            json={"base": "m", "mark_source": "ē"},
+        )
+        assert result.status_code == 409
+        assert result.json()["detail"]["code"] == "letter_in_font"
+
+    def test_bundled_letters_usable_as_base(self, client):
+        project_id = _project(client, "handwritten")
+        result = client.post(
+            f"/api/projects/{project_id}/pinyin-letters/eh1/preview",
+            json={"base": E_CIRCUMFLEX, "mark_source": "ē"},
+        )
+        assert result.status_code == 200, result.json()
+
+    def test_reading_with_bundled_letter_accepted(self, client):
+        project_id = _project(client, "handwritten")
+        result = client.put(
+            f"/api/projects/{project_id}/readings/欸",
+            json={"mode": "replace", "pronunciations": [E_MACRON_CIRCUMFLEX]},
+        )
+        assert result.status_code == 200, result.json()
+
+    def test_preview_and_catalog_render_bundled(self, client, store):
+        from webapp.backend.services import glyph_catalog, preview_composer
+
+        project_id = _project(client, "handwritten")
+        client.put(
+            f"/api/projects/{project_id}/fonts/base/builtin",
+            json={"style": "handwritten"},
+        )
+        project = store.get(project_id)
+        project.glyph_overrides.readings["呣"] = ReadingOverride(
+            pronunciations=[M_MACRON]
+        )
+        detail = preview_composer.compose_detail(project, "呣", project.canvas)
+        assert [g.label for g in detail.pinyin_glyphs] == [M_MACRON]
+
+        entries = {e["name"]: e for e in glyph_catalog.custom_entries(project)}
+        assert entries["py_alphabet_m1"]["font"] == "bundled"
+        assert "<path" in glyph_catalog.thumbnail_svg(
+            project, entries["py_alphabet_m1"]
+        )

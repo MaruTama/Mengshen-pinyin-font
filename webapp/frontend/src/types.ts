@@ -111,7 +111,7 @@ export interface PreviewDetail {
 
 export interface GlyphEntry {
   name: string
-  font: 'base' | 'pinyin' | 'output' | 'custom'
+  font: 'base' | 'pinyin' | 'output' | 'custom' | 'bundled'
   char: string | null
   codepoints: string[]
   advance_width: number
@@ -268,7 +268,8 @@ export interface CustomGlyph {
   glyph: OtfGlyph
 }
 
-export type LetterStatus = 'font' | 'custom' | 'missing'
+// bundled: composed glyph shipped with a builtin pinyin font (not editable)
+export type LetterStatus = 'font' | 'bundled' | 'custom' | 'missing'
 
 export interface PinyinLetter {
   letter: string

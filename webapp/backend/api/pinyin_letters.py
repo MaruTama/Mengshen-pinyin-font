@@ -87,7 +87,7 @@ def save_letter(project_id: str, name: str, body: CustomGlyphRecipe) -> dict:
     letter = _letter_for(name)
     with _font_lock:
         outlines = _outlines(project)
-        if custom_glyphs.font_has(outlines, letter):
+        if custom_glyphs.font_provides(project, outlines, letter):
             raise problem(
                 409,
                 "letter_in_font",

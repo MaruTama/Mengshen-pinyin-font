@@ -11,8 +11,11 @@ from (``font_sha256``) and only fill letters that font lacks.
 from __future__ import annotations
 
 import unicodedata
+from functools import lru_cache
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Protocol, Tuple
 
+from src.refactored.utils import bundled_glyphs
 from src.refactored.utils.pinyin_utils import PINYIN_TONE_TO_NUMERIC
 
 from ..schemas import CustomGlyph, CustomGlyphRecipe, Project
@@ -116,25 +119,70 @@ def active_custom_glyphs(project: Optional[Project]) -> Dict[str, CustomGlyph]:
     }
 
 
+@lru_cache(maxsize=16)
+def _bundled_for(path: str, sha256: str, bundle_dir: str) -> Dict[str, Glyph]:
+    del sha256  # cache key only: a replaced file at the same path reloads
+    return bundled_glyphs.bundled_glyphs_for_font(path, Path(bundle_dir))
+
+
+def bundled_letter_glyphs(project: Optional[Project]) -> Dict[str, Glyph]:
+    """Letter -> glyph shipped for the selected pinyin font (builtin fonts).
+
+    See src/refactored/utils/bundled_glyphs.py; the core pipeline merges
+    the same glyphs during alphabet extraction.
+    """
+    if project is None or project.pinyin_font is None:
+        return {}
+    return _bundled_for(
+        project.pinyin_font.path,
+        project.pinyin_font.sha256,
+        str(bundled_glyphs.BUNDLED_GLYPHS_DIR),
+    )
+
+
+def font_provides(
+    project: Optional[Project], outlines: Optional[FontOutlines], letter: str
+) -> bool:
+    """The pinyin font as shipped has the letter (own glyph or bundled)."""
+    return font_has(outlines, letter) or letter in bundled_letter_glyphs(project)
+
+
 def custom_glyphs_in_use(
     project: Optional[Project], outlines: Optional[FontOutlines]
 ) -> Dict[str, CustomGlyph]:
-    """Active custom glyphs for letters the pinyin font itself lacks."""
+    """Active custom glyphs for letters the pinyin font (+ bundle) lacks."""
     return {
         name: custom
         for name, custom in active_custom_glyphs(project).items()
-        if not font_has(outlines, custom.letter)
+        if not font_provides(project, outlines, custom.letter)
     }
+
+
+def extra_letter_glyphs(
+    project: Optional[Project], outlines: Optional[FontOutlines]
+) -> Dict[str, Tuple[str, Glyph, str]]:
+    """ASCII name -> (letter, glyph, "bundled"|"custom") for letters not in
+    the font's cmap: what build and preview add on top of the font."""
+    extra: Dict[str, Tuple[str, Glyph, str]] = {}
+    for letter, glyph in bundled_letter_glyphs(project).items():
+        if not font_has(outlines, letter):
+            extra[PINYIN_TONE_TO_NUMERIC[letter]] = (letter, glyph, "bundled")
+    for name, custom in custom_glyphs_in_use(project, outlines).items():
+        extra[name] = (custom.letter, custom.glyph, "custom")
+    return extra
 
 
 def lookup_glyph(
     project: Optional[Project], outlines: FontOutlines, letter: str
 ) -> Optional[Glyph]:
-    """Font glyph for the letter, else an active custom glyph."""
+    """Font glyph for the letter, else a bundled one, else an active custom one."""
     letter = unicodedata.normalize("NFC", letter)
     glyph = font_glyph(outlines, letter)
     if glyph is not None:
         return glyph
+    bundled = bundled_letter_glyphs(project).get(letter)
+    if bundled is not None:
+        return bundled
     for custom in active_custom_glyphs(project).values():
         if custom.letter == letter:
             return custom.glyph
@@ -144,10 +192,11 @@ def lookup_glyph(
 def available_letters(
     project: Optional[Project], outlines: Optional[FontOutlines]
 ) -> set[str]:
-    """Pinyin letters that have a glyph (in the font or custom)."""
+    """Pinyin letters that have a glyph (in the font, bundled or custom)."""
     letters = {
         letter for letter in PINYIN_TONE_TO_NUMERIC if font_has(outlines, letter)
     }
+    letters.update(bundled_letter_glyphs(project))
     letters.update(c.letter for c in active_custom_glyphs(project).values())
     return letters
 
@@ -197,12 +246,14 @@ def default_recipe(letter: str) -> Optional[CustomGlyphRecipe]:
 def letter_row(
     project: Project, outlines: Optional[FontOutlines], letter: str
 ) -> Dict[str, Any]:
-    """Status of one pinyin letter: in font / custom / missing."""
+    """Status of one pinyin letter: in font / bundled / custom / missing."""
     name = PINYIN_TONE_TO_NUMERIC[letter]
     stored = project.glyph_overrides.custom_glyphs.get(name)
     active = active_custom_glyphs(project).get(name)
     if font_has(outlines, letter):
         status = "font"
+    elif letter in bundled_letter_glyphs(project):
+        status = "bundled"
     elif active is not None:
         status = "custom"
     else:
