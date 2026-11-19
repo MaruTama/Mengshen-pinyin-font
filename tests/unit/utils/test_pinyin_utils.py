@@ -51,6 +51,11 @@ def _all_syllables() -> set[str]:
     return syllables
 
 
+def _legacy_syllables() -> set[str]:
+    """Syllables made only of letters the legacy single-code-point table knew."""
+    return {s for s in _all_syllables() if all(c in LEGACY_SINGLE_CODEPOINT for c in s)}
+
+
 class TestCharacterization:
     @pytest.mark.parametrize("letter,expected", LEGACY_SINGLE_CODEPOINT.items())
     def test_existing_letters_unchanged(self, letter, expected):
@@ -63,7 +68,7 @@ class TestCharacterization:
 
     @pytest.mark.skipif(not MERGED_TABLE.exists(), reason="merged table missing")
     def test_every_real_syllable_byte_identical(self):
-        syllables = _all_syllables()
+        syllables = _legacy_syllables()
         assert len(syllables) > 1000
         for syllable in syllables:
             assert simplification_pronunciation(syllable) == _legacy_simplify(
@@ -115,7 +120,9 @@ class TestEhFamily:
 
     @pytest.mark.skipif(not MERGED_TABLE.exists(), reason="merged table missing")
     def test_eh_names_cannot_collide_with_real_syllables(self):
-        simplified = {simplification_pronunciation(s) for s in _all_syllables()}
+        # Only syllables without ê-family letters: "eh" must never arise
+        # from ordinary letters
+        simplified = {simplification_pronunciation(s) for s in _legacy_syllables()}
         assert not any("eh" in name for name in simplified)
 
 

@@ -574,14 +574,13 @@ This feature is used for chaining contextual substitution
 - ssNN range from ss00 - 20
     Refer to [Tag: 'ss01' - 'ss20'](https://docs.microsoft.com/en-us/typography/opentype/spec/features_pt#-tag-ss01---ss20)
 - Chinese Pinyin is simplified in the glyf table (yī -> yi1)
-- Exclude the specific pronunciations(e.g: 呣 m̀, 嘸 m̄) as that is not included in unicode
+- Pinyin letters without a precomposed Unicode code point (e.g. 呣 m̀, 嘸 m̄, 欸 ê̄) are included in the readings. Letters the pinyin font lacks come from the bundled composed glyphs in [res/fonts/custom_pinyin_glyphs/](/res/fonts/custom_pinyin_glyphs) (regenerate with `python tools/make_bundled_pinyin_glyphs.py`)
 
 - [overwrite.txt](/res/phonics/unicode_mapping_table/overwrite.txt) has been added phrase for various purposes
     1. Register Pinyin that can not be acquired by pypinyin
     2. Adjust the priority of pronunciation
     3. Add the pronunciation of the "儿" as "r"
     4. Add light tone(轻声), Integrate pronounce of the duplicate Chinese characters
-    5. Exclude the specific pronunciations(e.g: 呣 m̀, 嘸 m̄)
 
 - IVS responds as follows:
 

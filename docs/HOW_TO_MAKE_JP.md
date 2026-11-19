@@ -565,13 +565,12 @@ Matrix can calculate the scale, rotation, and shift at one time by raising the d
     [Tag: 'ss01' - 'ss20'](https://docs.microsoft.com/en-us/typography/opentype/spec/features_pt#-tag-ss01---ss20)
 - glyf table 内の 拼音 は簡易表記(yī -> yi1) にする
 
-- 呣 m̀, 嘸 m̄　は unicode に含まれていないので除外
+- 呣 m̀, 嘸 m̄, 欸 ê̄ のように合成済みコードポイントが無い拼音文字も読みに含める。拼音フォントに無い文字は [res/fonts/custom_pinyin_glyphs/](/res/fonts/custom_pinyin_glyphs) の合成グリフで補う（再生成: `python tools/make_bundled_pinyin_glyphs.py`）
 - [overwrite.txt](/res/phonics/unicode_mapping_table/overwrite.txt) は色々な目的のために追加している
     pypinyin で取得できない漢字
     発音の優先度の調整
     儿 の r の追加
     軽声の追加、重複する漢字は同じ発音にする
-    呣 m̀, 嘸 m̄　を除外するため（追加してもいいが拼音グリフを作るのが面倒になる）
 
 - IVS は
 
@@ -588,8 +587,8 @@ Matrix can calculate the scale, rotation, and shift at one time by raising the d
 | :--- | :--- |
 | hanzi_glyf | 標準の読みの拼音 |
 | hanzi_glyf.ss00 | 拼音の無い漢字グリフ。設定を変更するだけで拼音を変更できる |
-| hanzi_glyf.ss01 | （異読の拼音があるとき）標準の読みの拼音（hanzi_glyf と重複するが GSUB の置換（多音字のパターン）を無効にして強制的に置き換えるため）|
-| hanzi_glyf.ss02 |（異読の拼音があるとき）以降、異読な拼音 |
+| hanzi_glyf.ss01 | （異読の拼音があるとき）標準の読みの拼音（hanzi_glyf と重複するが GSUB の置換（多音字のパターン）を無効にして強制的に置き換えるため） |
+| hanzi_glyf.ss02 | （異読の拼音があるとき）以降、異読な拼音 |
 
 - lookup table の名前は自由だけど、どこから参照しているか分かりやすくするために名前を以下のようにする
 
