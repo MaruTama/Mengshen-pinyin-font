@@ -33,7 +33,7 @@ uv python install
 uv venv
 ```
 
-Node.js や otfcc ビルドに使う Docker CLI など、Python 以外のツールバージョンは [mise](https://mise.jdx.dev/)（`.mise.toml`）で管理する。
+Node.js や Docker CLI など、Python 以外のツールバージョンは [mise](https://mise.jdx.dev/)（`.mise.toml`）で管理する。
 
 ```bash
 mise install
@@ -41,56 +41,29 @@ mise install
 
 ### 外部ツールインストール
 
-#### otfcc
+#### otfcc（otfcc-rs）
 
-[otfcc](https://github.com/caryll/otfcc) は軽量で IVS にも対応している。
+フォントの JSON 展開・ビルドには otfcc 互換 CLI の `otfccdump` / `otfccbuild` を使う。
+[caryll/otfcc](https://github.com/caryll/otfcc) v0.10.4 は大きな GSUB alternate lookup（aalt）を書き出すとテーブルが壊れるため（[MaruTama/otfcc-rs#5](https://github.com/MaruTama/otfcc-rs/pull/5)）、修正済みの Rust 移植版 [otfcc-rs](https://github.com/MaruTama/otfcc-rs) を固定コミットでビルドして使う。CLI は caryll otfcc v0.10.4 と同じ（`--version` も `version 0.10.4` と表示される）。Docker イメージ（`docker/Dockerfile`）も同じコミットをビルドしている。
 
-##### macOSの場合
-
-```shell
-brew tap caryll/tap
-brew install otfcc-mac64
-```
-
-##### debian/ubuntuの場合
+[rustup](https://rustup.rs/) で Rust を入れておく。ツールチェーン（1.97.1）は otfcc-rs の `rust-toolchain.toml` で固定されており、自動で選ばれる。Linux ではリンカとして `cc` が要る（debian/ubuntu なら `sudo apt-get install -y build-essential git`）。macOS / debian/ubuntu 共通：
 
 ```shell
-# ビルド用依存関係をインストール
-$ sudo apt-get update && sudo apt-get install -y \
-    build-essential \
-    libfreetype6-dev \
-    uuid-dev \
-    unzip
+git clone https://github.com/MaruTama/otfcc-rs.git ~/otfcc-rs
+cd ~/otfcc-rs
+git checkout 9f512d836d16d4c155ceb6faf2e20d624c7b204f
+cargo build --release --locked
 
-# premake5をダウンロード・インストール
-$ wget -O /tmp/premake5.tar.gz "https://github.com/premake/premake-core/releases/download/v5.0.0-beta2/premake-5.0.0-beta2-linux.tar.gz"
-$ cd /tmp
-$ sudo tar -xzf premake5.tar.gz
-$ sudo mv premake5 /usr/local/bin/
-$ sudo chmod +x /usr/local/bin/premake5
-$ rm -f /tmp/premake5.tar.gz
+# target/release を PATH の先頭に置く（brew の otfcc-mac64 より優先させる）
+export PATH="$HOME/otfcc-rs/target/release:$PATH"
 
-# premake5のバージョン確認
-$ premake5 --version
-
-# otfccをソースからビルド
-$ git clone --depth 1 --branch v0.10.4 https://github.com/caryll/otfcc.git /tmp/otfcc
-$ cd /tmp/otfcc
-$ git submodule update --init --recursive
-$ premake5 gmake
-$ cd build/gmake
-$ make config=release_x64
-
-# ビルドされたバイナリをシステムにインストール
-$ sudo cp ../../bin/release-x64/* /usr/local/bin/
-
-# インストール確認
-$ otfccdump --version
-$ otfccbuild --version
-
-# 一時ファイル削除
-$ rm -rf /tmp/otfcc
+# インストール確認（otfcc-rs のパスが表示されること）
+which otfccdump otfccbuild
+otfccdump --version
+otfccbuild --version
 ```
+
+`export PATH=...` はシェルの設定ファイル（`~/.zshrc` など）にも書いておく。brew で `otfcc-mac64` を入れている場合は `brew uninstall otfcc-mac64` してもよい。
 
 #### jq
 
@@ -105,8 +78,6 @@ $ mas install 497799835
 # 以下の対処をすると直る。
 # [エラー：xcode-select: error: tool 'xcodebuild' requires Xcode, but active developer directory '/Library/Developer/CommandLineTools' is a command line tools instance](https://qiita.com/eytyet/items/59c5bad1c167d5addc68)
 
-$ brew tap caryll/tap
-$ brew install otfcc-mac64
 $ brew install jq
 ```
 

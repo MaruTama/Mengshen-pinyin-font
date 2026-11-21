@@ -11,7 +11,8 @@
 
 - Python 3.11+（[uv](https://docs.astral.sh/uv/) 推奨: `uv venv && uv pip install -e ".[webapp]"`）
 - Node.js 24+（[mise](https://mise.jdx.dev/) で管理。frontendの `vite ^8.1.1` が `node ^20.19.0 || >=22.12.0` を要求するため、Node 18 ではビルドできない）
-- `otfccdump` / `otfccbuild` / `jq`（フォント変換。`brew tap caryll/tap && brew install otfcc-mac64 jq`）
+- `otfccdump` / `otfccbuild`（フォント変換。[otfcc-rs](https://github.com/MaruTama/otfcc-rs) を固定コミットでビルドして `target/release` を PATH の先頭に置く。手順は [docs/HOW_TO_MAKE_JP.md](../docs/HOW_TO_MAKE_JP.md) の「otfcc（otfcc-rs）」）
+- `jq`（`brew install jq`）
 
 ## 起動
 

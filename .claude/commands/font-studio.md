@@ -22,7 +22,8 @@ FastAPI + React のローカル Web アプリを <http://localhost:8000> で起�
    ```
 
    - uvicorn が見つからない場合: `python3.11 -m venv .venv && .venv/bin/pip install -e ".[webapp]"`
-   - otfcc/jq がない場合: `brew tap caryll/tap && brew install otfcc-mac64 jq`
+   - otfcc がない場合: otfcc-rs を固定コミットでビルドして `target/release` を PATH の先頭に置く（手順は `docs/HOW_TO_MAKE_JP.md` の「otfcc（otfcc-rs）」）
+   - jq がない場合: `brew install jq`
    - dist がない場合: `cd webapp/frontend && npm install && npm run build`
 
 2. **起動**: `.claude/launch.json` に `font-studio` 設定があるので、
@@ -74,7 +75,7 @@ cd webapp/frontend && npm run dev   # http://localhost:5173
 | 症状 | 対処 |
 | --- | --- |
 | `Address already in use` | 既に起動済み。`pkill -f "uvicorn webapp.backend"` してから再起動 |
-| health が `degraded` | otfccdump/otfccbuild/jq が PATH にない。brew でインストール |
+| health が `degraded` | otfccdump/otfccbuild/jq が PATH にない。otfcc-rs をビルドして PATH に追加、jq は brew でインストール |
 | 画面が真っ白/古い | `cd webapp/frontend && npm run build` 後にブラウザをリロード |
 | prepare/build が `error: server restarted` | サーバー再起動でタスクが中断された。ビルド画面から再実行 |
 | プロジェクトの中間ファイル | `tmp/projects/<id>/` と `tmp/json/*_proj_*.json`。削除は UI から（成果物も GC される） |

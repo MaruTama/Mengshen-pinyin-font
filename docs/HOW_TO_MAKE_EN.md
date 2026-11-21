@@ -35,7 +35,7 @@ uv python install
 uv venv
 ```
 
-Non-Python tool versions (Node.js, the Docker CLI used for the otfcc build, etc.) are managed by [mise](https://mise.jdx.dev/) (`.mise.toml`).
+Non-Python tool versions (Node.js, the Docker CLI, etc.) are managed by [mise](https://mise.jdx.dev/) (`.mise.toml`).
 
 ```bash
 mise install
@@ -43,56 +43,29 @@ mise install
 
 ### External Tool Installation
 
-#### otfcc
+#### otfcc (otfcc-rs)
 
-[otfcc](https://github.com/caryll/otfcc) is lightweight and supports IVS.
+The font is dumped to JSON and rebuilt with the otfcc-compatible `otfccdump` / `otfccbuild` CLI.
+[caryll/otfcc](https://github.com/caryll/otfcc) v0.10.4 corrupts large GSUB alternate lookups (aalt) when writing the table ([MaruTama/otfcc-rs#5](https://github.com/MaruTama/otfcc-rs/pull/5)), so build the fixed Rust port [otfcc-rs](https://github.com/MaruTama/otfcc-rs) at a pinned commit. Its CLI is the same as caryll otfcc v0.10.4 (`--version` also prints `version 0.10.4`). The Docker image (`docker/Dockerfile`) builds the same commit.
 
-##### macOS
-
-```shell
-brew tap caryll/tap
-brew install otfcc-mac64
-```
-
-##### debian/ubuntu
+Install Rust with [rustup](https://rustup.rs/). The toolchain (1.97.1) is pinned by otfcc-rs's `rust-toolchain.toml` and selected automatically. On Linux, `cc` is needed as the linker (on debian/ubuntu: `sudo apt-get install -y build-essential git`). Same steps on macOS and debian/ubuntu:
 
 ```shell
-# Install build dependencies
-$ sudo apt-get update && sudo apt-get install -y \
-    build-essential \
-    libfreetype6-dev \
-    uuid-dev \
-    unzip
+git clone https://github.com/MaruTama/otfcc-rs.git ~/otfcc-rs
+cd ~/otfcc-rs
+git checkout 9f512d836d16d4c155ceb6faf2e20d624c7b204f
+cargo build --release --locked
 
-# Download and install premake5
-$ wget -O /tmp/premake5.tar.gz "https://github.com/premake/premake-core/releases/download/v5.0.0-beta2/premake-5.0.0-beta2-linux.tar.gz"
-$ cd /tmp
-$ sudo tar -xzf premake5.tar.gz
-$ sudo mv premake5 /usr/local/bin/
-$ sudo chmod +x /usr/local/bin/premake5
-$ rm -f /tmp/premake5.tar.gz
+# Put target/release first on PATH (ahead of brew's otfcc-mac64)
+export PATH="$HOME/otfcc-rs/target/release:$PATH"
 
-# Verify premake5 version
-$ premake5 --version
-
-# Build otfcc from source
-$ git clone --depth 1 --branch v0.10.4 https://github.com/caryll/otfcc.git /tmp/otfcc
-$ cd /tmp/otfcc
-$ git submodule update --init --recursive
-$ premake5 gmake
-$ cd build/gmake
-$ make config=release_x64
-
-# Install built binaries to system
-$ sudo cp ../../bin/release-x64/* /usr/local/bin/
-
-# Verify installation
-$ otfccdump --version
-$ otfccbuild --version
-
-# Clean up temporary files
-$ rm -rf /tmp/otfcc
+# Verify installation (should print the otfcc-rs paths)
+which otfccdump otfccbuild
+otfccdump --version
+otfccbuild --version
 ```
+
+Also add the `export PATH=...` line to your shell profile (e.g. `~/.zshrc`). If you installed `otfcc-mac64` with brew, you may `brew uninstall otfcc-mac64`.
 
 #### jq
 
@@ -107,8 +80,6 @@ $ mas install 497799835
 # The following solutions will fix this problem.
 # Refer to [エラー：xcode-select: error: tool 'xcodebuild' requires Xcode, but active developer directory '/Library/Developer/CommandLineTools' is a command line tools instance](https://qiita.com/eytyet/items/59c5bad1c167d5addc68)
 
-$ brew tap caryll/tap
-$ brew install otfcc-mac64
 $ brew install jq
 ```
 
