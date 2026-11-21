@@ -1039,7 +1039,7 @@ U+5944: yān,yǎn  #奄
 U+5947: qí,jī  #奇
 U+5948: nài,nai  #奈
 U+594A: xié,liè  #奊
-U+594B: gǎng,fèn  #奋
+U+594B: fèn,kǎng  #奋
 U+594E: kuí  #奎
 U+594F: zòu  #奏
 U+5951: qì,xiè,qiè  #契
@@ -1051,7 +1051,7 @@ U+5960: diàn  #奠
 U+5961: ào  #奡
 U+5965: yù,ào  #奥
 U+5967: ào,yù  #奧
-U+596E: fèn,gǎng  #奮
+U+596E: fèn  #奮
 U+5970: bèi,bì  #奰
 U+5971: lián,luán  #奱
 U+5972: chě,duǒ  #奲
@@ -3669,7 +3669,7 @@ U+79AB: tǎn,dàn  #禫
 U+79B0: mí,nǐ  #禰
 U+79B6: zǎn,zàn  #禶
 U+79BA: yú,yù,ǒu  #禺
-U+79BB: chī,lí  #离
+U+79BB: lí,chī  #离
 U+79C1: sī,si  #私
 U+79CE: fèn,fén  #秎
 U+79D1: kē  #科
@@ -5484,7 +5484,7 @@ U+8FCB: wàng,guǎng,kuāng  #迋
 U+8FD2: háng  #迒
 U+8FD6: tà,tì,dá  #迖
 U+8FD8: hái,huán,fú  #还
-U+8FD9: zhèi,zhè  #这
+U+8FD9: zhè,zhèi  #这
 U+8FDC: yuǎn,yuàn  #远
 U+8FDD: wéi,huí  #违
 U+8FDE: lián,liǎn,liàn,lian  #连

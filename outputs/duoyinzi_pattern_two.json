@@ -2,7 +2,6 @@
     "lookup_table": {
         "lookup_pattern_10": {
             "间": "间.ss02",
-            "离": "离.ss02",
             "兴": "兴.ss02",
             "头": "头.ss02",
             "干": "干.ss02",
@@ -73,7 +72,7 @@
                 "作": null
             },
             {
-                "离": "lookup_pattern_10"
+                "离": null
             },
             {
                 "间": "lookup_pattern_10"
