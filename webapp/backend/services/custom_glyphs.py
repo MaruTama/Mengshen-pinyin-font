@@ -120,24 +120,42 @@ def active_custom_glyphs(project: Optional[Project]) -> Dict[str, CustomGlyph]:
 
 
 @lru_cache(maxsize=16)
-def _bundled_for(path: str, sha256: str, bundle_dir: str) -> Dict[str, Glyph]:
+def _bundled_for(
+    path: str, sha256: str, bundle_dir: str
+) -> Tuple[Dict[str, Glyph], Dict[str, Glyph]]:
+    """(fill glyphs, override glyphs) of the bundle for the font."""
     del sha256  # cache key only: a replaced file at the same path reloads
-    return bundled_glyphs.bundled_glyphs_for_font(path, Path(bundle_dir))
+    return (
+        bundled_glyphs.bundled_glyphs_for_font(path, Path(bundle_dir)),
+        bundled_glyphs.bundled_overrides_for_font(path, Path(bundle_dir)),
+    )
 
 
-def bundled_letter_glyphs(project: Optional[Project]) -> Dict[str, Glyph]:
-    """Letter -> glyph shipped for the selected pinyin font (builtin fonts).
-
-    See src/refactored/utils/bundled_glyphs.py; the core pipeline merges
-    the same glyphs during alphabet extraction.
-    """
+def _bundle(project: Optional[Project]) -> Tuple[Dict[str, Glyph], Dict[str, Glyph]]:
     if project is None or project.pinyin_font is None:
-        return {}
+        return {}, {}
     return _bundled_for(
         project.pinyin_font.path,
         project.pinyin_font.sha256,
         str(bundled_glyphs.BUNDLED_GLYPHS_DIR),
     )
+
+
+def bundled_letter_glyphs(project: Optional[Project]) -> Dict[str, Glyph]:
+    """Letter -> glyph shipped for the selected pinyin font (builtin fonts).
+
+    Bundled fill glyphs plus overrides (letters the font has but whose
+    shape is replaced, e.g. single-story a). See
+    src/refactored/utils/bundled_glyphs.py; the core pipeline merges the
+    same glyphs during alphabet extraction.
+    """
+    fills, overrides = _bundle(project)
+    return {**fills, **overrides}
+
+
+def bundled_override_glyphs(project: Optional[Project]) -> Dict[str, Glyph]:
+    """Letter -> bundled glyph replacing the selected pinyin font's own one."""
+    return _bundle(project)[1]
 
 
 def font_provides(
@@ -162,10 +180,13 @@ def extra_letter_glyphs(
     project: Optional[Project], outlines: Optional[FontOutlines]
 ) -> Dict[str, Tuple[str, Glyph, str]]:
     """ASCII name -> (letter, glyph, "bundled"|"custom") for letters not in
-    the font's cmap: what build and preview add on top of the font."""
+    the font's cmap or replacing the font's own glyph (bundled overrides):
+    what build and preview add on top of the font. These take precedence
+    over the font's glyphs."""
     extra: Dict[str, Tuple[str, Glyph, str]] = {}
+    overrides = bundled_override_glyphs(project)
     for letter, glyph in bundled_letter_glyphs(project).items():
-        if not font_has(outlines, letter):
+        if letter in overrides or not font_has(outlines, letter):
             extra[PINYIN_TONE_TO_NUMERIC[letter]] = (letter, glyph, "bundled")
     for name, custom in custom_glyphs_in_use(project, outlines).items():
         extra[name] = (custom.letter, custom.glyph, "custom")
@@ -175,8 +196,12 @@ def extra_letter_glyphs(
 def lookup_glyph(
     project: Optional[Project], outlines: FontOutlines, letter: str
 ) -> Optional[Glyph]:
-    """Font glyph for the letter, else a bundled one, else an active custom one."""
+    """Bundled override, else the font glyph for the letter, else a bundled
+    one, else an active custom one (= what the built font shows)."""
     letter = unicodedata.normalize("NFC", letter)
+    override = bundled_override_glyphs(project).get(letter)
+    if override is not None:
+        return override
     glyph = font_glyph(outlines, letter)
     if glyph is not None:
         return glyph
@@ -250,7 +275,9 @@ def letter_row(
     name = PINYIN_TONE_TO_NUMERIC[letter]
     stored = project.glyph_overrides.custom_glyphs.get(name)
     active = active_custom_glyphs(project).get(name)
-    if font_has(outlines, letter):
+    if letter in bundled_override_glyphs(project):
+        status = "bundled"
+    elif font_has(outlines, letter):
         status = "font"
     elif letter in bundled_letter_glyphs(project):
         status = "bundled"

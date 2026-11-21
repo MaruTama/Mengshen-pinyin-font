@@ -78,14 +78,10 @@ def _alphabet_metric_glyphs(
     """Metric-only glyph dicts keyed by py_alphabet_* names.
 
     Only advanceWidth/advanceHeight are consumed by the placement math.
-    Custom (composed) letters fill in letters the font lacks.
+    Bundled / custom (composed) letters fill in letters the font lacks and
+    bundled overrides replace the font's own (e.g. single-story a).
     """
     glyphs: Dict[str, dict] = {}
-    for name, (_, glyph, _) in extra_letter_glyphs(project, outlines).items():
-        glyphs[f"py_alphabet_{name}"] = {
-            "advanceWidth": float(glyph.get("advanceWidth", outlines.upem)),
-            "advanceHeight": float(outlines.upem),
-        }
     for char in ALPHABET:
         glyph_name = outlines.glyph_name(char)
         if glyph_name is None:
@@ -94,6 +90,11 @@ def _alphabet_metric_glyphs(
         simplified = simplification_pronunciation(char)
         glyphs[f"py_alphabet_{simplified}"] = {
             "advanceWidth": width,
+            "advanceHeight": float(outlines.upem),
+        }
+    for name, (_, glyph, _) in extra_letter_glyphs(project, outlines).items():
+        glyphs[f"py_alphabet_{name}"] = {
+            "advanceWidth": float(glyph.get("advanceWidth", outlines.upem)),
             "advanceHeight": float(outlines.upem),
         }
     return glyphs
@@ -139,29 +140,31 @@ def _pinyin_letter_outline(
 ) -> Optional[Tuple[str, str, float, str]]:
     """(glyph name, SVG path, advance width, letter) for a py_alphabet_* key.
 
-    The pinyin font's own glyph wins; bundled/custom glyphs fill missing
-    letters.
+    Bundled overrides win, then the pinyin font's own glyph; bundled/custom
+    glyphs fill missing letters (extra_letter_glyphs holds overrides and
+    fills only).
     """
-    target = _alphabet_target_by_glyph_key().get(glyph_key)
-    if target is not None:
-        glyph_name = pinyin.glyph_name(target)
-        if glyph_name is not None:
-            return (
-                glyph_name,
-                pinyin.svg_path(glyph_name),
-                pinyin.advance_width(glyph_name),
-                target,
-            )
     name = glyph_key[len("py_alphabet_") :]
     extra = extra_letter_glyphs(project, pinyin).get(name)
-    if extra is None:
+    if extra is not None:
+        letter, glyph, _ = extra
+        return (
+            glyph_key,
+            contours_to_svg_path(glyph.get("contours", [])),
+            float(glyph.get("advanceWidth", pinyin.upem)),
+            letter,
+        )
+    target = _alphabet_target_by_glyph_key().get(glyph_key)
+    if target is None:
         return None
-    letter, glyph, _ = extra
+    glyph_name = pinyin.glyph_name(target)
+    if glyph_name is None:
+        return None
     return (
-        glyph_key,
-        contours_to_svg_path(glyph.get("contours", [])),
-        float(glyph.get("advanceWidth", pinyin.upem)),
-        letter,
+        glyph_name,
+        pinyin.svg_path(glyph_name),
+        pinyin.advance_width(glyph_name),
+        target,
     )
 
 

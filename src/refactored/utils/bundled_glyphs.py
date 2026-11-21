@@ -15,11 +15,15 @@ shipped as reviewable data in res/fonts/custom_pinyin_glyphs/<style>.json:
           "recipe": {...composition recipe...},
           "glyph": {"advanceWidth": n, "contours": [[{"x", "y", "on"}]]}
         }
-      }
+      },
+      "overrides": {...same entry format...}
     }
 
 A bundle applies only to the exact font file it was composed from
-(matched by sha256) and only fills letters that font lacks.
+(matched by sha256). ``glyphs`` only fill letters that font lacks;
+``overrides`` (optional) replace letters the font does have but whose
+shape does not suit pinyin (e.g. the double-story ``a`` -> single-story
+``ɑ`` as taught in Chinese schools, issue #15).
 Regenerate with: python tools/make_bundled_pinyin_glyphs.py
 """
 
@@ -61,24 +65,41 @@ def load_bundle_for_font(
     return None
 
 
-def bundled_glyphs_for_font(
-    font_path: PathLike, bundle_dir: Optional[Path] = None
+def _section_for_font(
+    font_path: PathLike, bundle_dir: Optional[Path], section: str
 ) -> Dict[str, Glyph]:
-    """Letter -> otfcc glyph for the bundle matching the font (or {})."""
     bundle = load_bundle_for_font(font_path, bundle_dir)
     if bundle is None:
         return {}
     return {
-        entry["letter"]: entry["glyph"] for entry in bundle.get("glyphs", {}).values()
+        entry["letter"]: entry["glyph"] for entry in bundle.get(section, {}).values()
     }
 
 
-def merge_bundled_glyphs(
-    alphabet: Mapping[str, Glyph], bundled: Mapping[str, Glyph]
+def bundled_glyphs_for_font(
+    font_path: PathLike, bundle_dir: Optional[Path] = None
 ) -> Dict[str, Glyph]:
-    """Add bundled letters the font lacks; the font's own glyphs win."""
+    """Letter -> otfcc glyph filling letters the font lacks (or {})."""
+    return _section_for_font(font_path, bundle_dir, "glyphs")
+
+
+def bundled_overrides_for_font(
+    font_path: PathLike, bundle_dir: Optional[Path] = None
+) -> Dict[str, Glyph]:
+    """Letter -> otfcc glyph replacing the font's own letter (or {})."""
+    return _section_for_font(font_path, bundle_dir, "overrides")
+
+
+def merge_bundled_glyphs(
+    alphabet: Mapping[str, Glyph],
+    bundled: Mapping[str, Glyph],
+    overrides: Optional[Mapping[str, Glyph]] = None,
+) -> Dict[str, Glyph]:
+    """Add bundled letters the font lacks (the font's own glyphs win), then
+    replace letters with their overrides."""
     merged = dict(alphabet)
     for letter, glyph in bundled.items():
         if letter not in merged:
             merged[letter] = glyph
+    merged.update(overrides or {})
     return merged

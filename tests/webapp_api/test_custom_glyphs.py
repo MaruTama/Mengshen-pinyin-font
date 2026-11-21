@@ -409,3 +409,130 @@ class TestBundledGlyphs:
         assert "<path" in glyph_catalog.thumbnail_svg(
             project, entries["py_alphabet_m1"]
         )
+
+
+class TestSingleStoryA:
+    """Issue #15: pinyin a is the single-story ɑ in both builtin styles.
+
+    The bundles' ``overrides`` replace letters the font does have.
+    """
+
+    A_FAMILY = ["a", "ā", "á", "ǎ", "à"]
+
+    @pytest.fixture
+    def no_bundles(self):
+        """Override the module-level fixture: use the real bundles."""
+
+    @staticmethod
+    def _font_path(style):
+        from src.refactored.config.font_config import FontConfig, FontType
+
+        return FontConfig.get_alphabet_font_path(FontType(style))
+
+    def _outlines(self, style):
+        return _FontOutlines(str(self._font_path(style)), f"t:{style}")
+
+    def _overrides(self, style):
+        from src.refactored.utils import bundled_glyphs
+
+        return bundled_glyphs.bundled_overrides_for_font(self._font_path(style))
+
+    def test_han_serif_a_family_is_alpha_plus_mark(self):
+        outlines = self._outlines("han_serif")
+        alpha = custom_glyphs.font_glyph(outlines, "ɑ")
+        plain = custom_glyphs.font_glyph(outlines, "a")
+        overrides = self._overrides("han_serif")
+        assert overrides["a"]["contours"] == alpha["contours"]
+        alpha_box = glyph_composer.bbox(alpha["contours"])
+        alpha_center = (alpha_box[0] + alpha_box[2]) / 2
+        plain_box = glyph_composer.bbox(plain["contours"])
+        plain_center = (plain_box[0] + plain_box[2]) / 2
+        body_count = len(alpha["contours"])
+        for letter in ["ā", "á", "ǎ", "à"]:
+            glyph = overrides[letter]
+            assert glyph["contours"][:body_count] == alpha["contours"], letter
+            mark = glyph["contours"][body_count:]
+            source = custom_glyphs.font_glyph(outlines, letter)
+            source_mark = [
+                source["contours"][i]
+                for i in glyph_composer.detect_mark_contours(source, plain)
+            ]
+            assert len(mark) == len(source_mark) >= 1, letter
+            mark_box = glyph_composer.bbox(mark)
+            source_box = glyph_composer.bbox(source_mark)
+            # same mark at the same height, re-centered over ɑ keeping its
+            # designed offset from the body center (acute right, grave left)
+            assert mark_box[1] == source_box[1], letter
+            assert mark_box[3] == source_box[3], letter
+            assert mark_box[2] - mark_box[0] == source_box[2] - source_box[0]
+            mark_offset = (mark_box[0] + mark_box[2]) / 2 - alpha_center
+            source_offset = (source_box[0] + source_box[2]) / 2 - plain_center
+            assert abs(mark_offset - source_offset) <= 1, letter
+            assert glyph["advanceWidth"] == alpha["advanceWidth"]
+
+    def test_handwritten_a_family_is_caron_a_body(self):
+        """Seto's only single-story a is ǎ: a = ǎ minus the caron, and
+        ā á à = that body + their own tone marks (ǎ stays the font's)."""
+        outlines = self._outlines("handwritten")
+        caron = custom_glyphs.font_glyph(outlines, "ǎ")
+        overrides = self._overrides("handwritten")
+        assert "ǎ" not in overrides
+        body = overrides["a"]
+        assert len(body["contours"]) == len(caron["contours"]) - 1
+        assert all(c in caron["contours"] for c in body["contours"])
+        assert body["advanceWidth"] == caron["advanceWidth"]
+        body_box = glyph_composer.bbox(body["contours"])
+        caron_mark = [c for c in caron["contours"] if c not in body["contours"]]
+        caron_gap = glyph_composer.bbox(caron_mark)[1] - body_box[3]
+        for letter in ["ā", "á", "à"]:
+            glyph = overrides[letter]
+            count = len(body["contours"])
+            assert glyph["contours"][:count] == body["contours"], letter
+            mark_box = glyph_composer.bbox(glyph["contours"][count:])
+            # every mark sits the same distance above the body as ǎ's caron
+            assert abs(mark_box[1] - body_box[3] - caron_gap) <= 1, letter
+            assert glyph["advanceWidth"] == caron["advanceWidth"]
+
+    @pytest.mark.parametrize("style", ["han_serif", "handwritten"])
+    def test_status_is_bundled(self, client, style):
+        project_id = _project(client, style)
+        letters = _letters(client, project_id)
+        for letter in self._overrides(style):
+            assert letters[letter]["status"] == "bundled", letter
+        assert letters["e"]["status"] == "font"
+        assert not [r for r in letters.values() if r["status"] == "missing"]
+
+    def test_lookup_preview_and_catalog_use_override(self, client, store):
+        from webapp.backend.services import glyph_catalog, preview_composer
+
+        project_id = _project(client, "han_serif")
+        client.put(
+            f"/api/projects/{project_id}/fonts/base/builtin",
+            json={"style": "han_serif"},
+        )
+        project = store.get(project_id)
+        overrides = self._overrides("han_serif")
+        outlines = self._outlines("han_serif")
+        looked_up = custom_glyphs.lookup_glyph(project, outlines, "ǎ")
+        assert looked_up["contours"] == overrides["ǎ"]["contours"]
+
+        project.glyph_overrides.readings["啊"] = ReadingOverride(
+            mode="replace", pronunciations=["ā"]
+        )
+        detail = preview_composer.compose_detail(project, "啊", project.canvas)
+        assert [g.label for g in detail.pinyin_glyphs] == ["ā"]
+        assert detail.pinyin_glyphs[0].path == glyph_composer.contours_to_svg_path(
+            overrides["ā"]["contours"]
+        )
+
+        pinyin_a = [
+            e
+            for e in glyph_catalog._build_index(project)
+            if e["category"] == "pinyin_alphabet" and e["char"] in self.A_FAMILY
+        ]
+        assert sorted(e["name"] for e in pinyin_a) == sorted(
+            f"py_alphabet_{name}" for name in ["a", "a1", "a2", "a3", "a4"]
+        )
+        assert {e["font"] for e in pinyin_a} == {"bundled"}
+        entry = next(e for e in pinyin_a if e["char"] == "a")
+        assert "<path" in glyph_catalog.thumbnail_svg(project, entry)

@@ -34,6 +34,9 @@ def font_and_bundle(tmp_path):
             },
             "e1": {"letter": "ē", "recipe": {}, "glyph": _glyph(999)},
         },
+        "overrides": {
+            "a": {"letter": "a", "recipe": {"base": "ɑ"}, "glyph": _glyph(480)},
+        },
     }
     (bundle_dir / "style.json").write_text(
         json.dumps(bundle, ensure_ascii=False), encoding="utf-8"
@@ -59,6 +62,32 @@ class TestBundledGlyphsForFont:
         assert bg.bundled_glyphs_for_font(font, tmp_path / "nope") == {}
 
 
+class TestBundledOverridesForFont:
+    def test_matches_by_sha256(self, font_and_bundle):
+        font, bundle_dir = font_and_bundle
+        overrides = bg.bundled_overrides_for_font(font, bundle_dir)
+        assert set(overrides) == {"a"}
+        assert overrides["a"]["advanceWidth"] == 480
+
+    def test_other_font_gets_nothing(self, font_and_bundle, tmp_path):
+        _, bundle_dir = font_and_bundle
+        other = tmp_path / "other.ttf"
+        other.write_bytes(b"different")
+        assert bg.bundled_overrides_for_font(other, bundle_dir) == {}
+
+    def test_section_is_optional(self, font_and_bundle):
+        font, bundle_dir = font_and_bundle
+        path = bundle_dir / "style.json"
+        bundle = json.loads(path.read_text(encoding="utf-8"))
+        del bundle["overrides"]
+        path.write_text(json.dumps(bundle, ensure_ascii=False), encoding="utf-8")
+        assert bg.bundled_overrides_for_font(font, bundle_dir) == {}
+
+    def test_fill_glyphs_exclude_overrides(self, font_and_bundle):
+        font, bundle_dir = font_and_bundle
+        assert "a" not in bg.bundled_glyphs_for_font(font, bundle_dir)
+
+
 class TestMerge:
     def test_only_fills_missing_letters(self):
         alphabet = {"ē": _glyph(1), "e": _glyph(2)}
@@ -70,6 +99,17 @@ class TestMerge:
         assert list(merged)[:2] == ["ē", "e"]
         assert alphabet == {"ē": _glyph(1), "e": _glyph(2)}  # not mutated
 
+    def test_overrides_replace_font_letters(self):
+        alphabet = {"a": _glyph(1), "e": _glyph(2)}
+        merged = bg.merge_bundled_glyphs(
+            alphabet, {E_MACRON_CIRCUMFLEX: _glyph(510)}, {"a": _glyph(480)}
+        )
+        assert merged["a"]["advanceWidth"] == 480  # override wins
+        assert merged["e"]["advanceWidth"] == 2
+        assert merged[E_MACRON_CIRCUMFLEX]["advanceWidth"] == 510
+        assert list(merged)[:2] == ["a", "e"]  # order kept
+        assert alphabet["a"]["advanceWidth"] == 1  # not mutated
+
 
 class TestRetrieverIntegration:
     def test_filter_then_bundle(self, font_and_bundle, monkeypatch):
@@ -80,9 +120,12 @@ class TestRetrieverIntegration:
         font, bundle_dir = font_and_bundle
         monkeypatch.setattr(bg, "BUNDLED_GLYPHS_DIR", bundle_dir)
         retriever = LatinAlphabetRetriever()
-        alphabet = retriever.add_bundled_glyphs({"ē": _glyph(1)}, str(font))
-        assert set(alphabet) == {"ē", E_MACRON_CIRCUMFLEX}
+        alphabet = retriever.add_bundled_glyphs(
+            {"ē": _glyph(1), "a": _glyph(2)}, str(font)
+        )
+        assert set(alphabet) == {"ē", "a", E_MACRON_CIRCUMFLEX}
         assert alphabet["ē"]["advanceWidth"] == 1
+        assert alphabet["a"]["advanceWidth"] == 480
 
 
 class TestRealBundles:
@@ -115,3 +158,23 @@ class TestRealBundles:
         for letter, glyph in glyphs.items():
             assert glyph["advanceWidth"] > 0, letter
             assert len(glyph["contours"]) >= 2, letter
+
+    @pytest.mark.parametrize(
+        "style,letters",
+        [
+            # mplus: every a-family glyph is double-story -> ɑ (+ tone mark)
+            ("han_serif", {"a", "ā", "á", "ǎ", "à"}),
+            # Seto: only ǎ is single-story; a ā á à are rebuilt on its body
+            ("handwritten", {"a", "ā", "á", "à"}),
+        ],
+    )
+    def test_builtin_single_story_a_overrides(self, style, letters):
+        """Issue #15: pinyin a is the single-story ɑ, consistently."""
+        from src.refactored.config.font_config import FontConfig, FontType
+
+        font_path = FontConfig.get_alphabet_font_path(FontType(style))
+        overrides = bg.bundled_overrides_for_font(font_path)
+        assert set(overrides) == letters
+        for letter, glyph in overrides.items():
+            assert glyph["advanceWidth"] > 0, letter
+            assert glyph["contours"], letter

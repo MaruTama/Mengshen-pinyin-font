@@ -574,6 +574,7 @@ Matrix can calculate the scale, rotation, and shift at one time by raising the d
 - glyf table 内の 拼音 は簡易表記(yī -> yi1) にする
 
 - 呣 m̀, 嘸 m̄, 欸 ê̄ のように合成済みコードポイントが無い拼音文字も読みに含める。拼音フォントに無い文字は [res/fonts/custom_pinyin_glyphs/](/res/fonts/custom_pinyin_glyphs) の合成グリフで補う（再生成: `python tools/make_bundled_pinyin_glyphs.py`）
+- 拼音の a は中国の学校で教える一階建ての ɑ に統一する（a ā á ǎ à、両スタイル）。同じバンドルの `overrides` でフォント本来の二階建てグリフを置き換える: han_serif は mplus の ɑ + 声調記号、handwritten は Seto フォントの ǎ の本体 + 各声調記号
 - [overwrite.txt](/res/phonics/unicode_mapping_table/overwrite.txt) は色々な目的のために追加している
     pypinyin で取得できない漢字
     発音の優先度の調整
