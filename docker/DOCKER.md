@@ -2,7 +2,7 @@
 
 このドキュメントでは、Docker Composeを使用してリファクタ版でフォント生成を実行する方法を説明します。
 
-**重要**: このDocker環境はLinux x64プラットフォーム専用です。otfccの安定したビルドを確保するため、`--platform=linux/amd64`を指定しています。
+**重要**: このDocker環境はLinux x64プラットフォーム専用です。otfcc-rs（otfcc 互換 CLI の Rust 移植版。固定コミットをソースからビルド）の安定したビルドを確保するため、`--platform=linux/amd64`を指定しています。
 
 ## 前提条件
 
@@ -16,7 +16,7 @@
 
 ### 1. イメージのビルド
 
-初回実行前に、otfccをソースからビルドするためイメージの構築が必要です：
+初回実行前に、otfcc-rs（`docker/Dockerfile` の `OTFCC_RS_REF` で固定したコミット）をソースからビルドするためイメージの構築が必要です：
 
 ```bash
 # イメージをビルド（5-10分程度かかります）
@@ -26,10 +26,10 @@ docker-compose build
 docker-compose build --no-cache
 ```
 
-### 2. otfccインストールの確認
+### 2. otfcc（otfcc-rs）インストールの確認
 
 ```bash
-# otfccが正しくインストールされているか確認
+# otfccdump / otfccbuild が正しくインストールされているか確認
 docker-compose run --rm mengshen-font otfccdump --version
 docker-compose run --rm mengshen-font otfccbuild --version
 ```
@@ -47,11 +47,13 @@ docker-compose up pipeline
 ### 2. 個別フォント生成
 
 #### han_serifフォントのみ生成
+
 ```bash
 docker-compose up han-serif
 ```
 
 #### handwrittenフォントのみ生成
+
 ```bash
 docker-compose up handwritten
 ```
@@ -66,6 +68,7 @@ docker-compose exec dev bash
 ```
 
 コンテナ内で個別にコマンド実行：
+
 ```bash
 # テスト実行
 python -m pytest tests/ -v
@@ -97,39 +100,47 @@ python -m refactored.cli.main -t handwritten --debug
 ## サービス構成
 
 ### mengshen-font (基本サービス)
+
 - ベースとなるサービス定義
 - Python 3.11 + 必要な依存関係
 
 ### han-serif
+
 - han_serifフォント生成専用
 - 実行: `python -m refactored.cli.main -t han_serif`
 
 ### handwritten
+
 - handwrittenフォント生成専用
 - 実行: `python -m refactored.cli.main -t handwritten`
 
 ### pipeline
+
 - 完全パイプライン実行
 - 辞書生成 → フォント生成の全工程
 
 ### dev
+
 - 開発・デバッグ用インタラクティブ環境
 - ソースコードの変更がリアルタイムで反映
 
 ## トラブルシューティング
 
 ### ログの確認
+
 ```bash
 docker-compose logs pipeline
 docker-compose logs han-serif
 ```
 
 ### コンテナの状態確認
+
 ```bash
 docker-compose ps
 ```
 
 ### クリーンアップ
+
 ```bash
 # 停止と削除
 docker-compose down
@@ -144,6 +155,7 @@ docker-compose build --no-cache
 ### 権限エラーの解決
 
 ホスト側でoutputsディレクトリの権限を確認：
+
 ```bash
 # 権限の確認
 ls -la outputs/
@@ -175,6 +187,7 @@ services:
 ### 並列実行
 
 han_serifとhandwrittenを並列で生成：
+
 ```bash
 docker-compose up han-serif handwritten
 ```

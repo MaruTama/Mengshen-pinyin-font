@@ -251,9 +251,16 @@ lefthook run pre-commit
 # Python 依存関係
 pip install -r requirements.txt
 
+# otfcc: caryll otfcc v0.10.4 は大きな GSUB alternate lookup を壊すため otfcc-rs を固定コミットでビルド
+# （MaruTama/otfcc-rs#5。詳細は docs/HOW_TO_MAKE_JP.md の「otfcc（otfcc-rs）」）
+git clone https://github.com/MaruTama/otfcc-rs.git ~/otfcc-rs
+cd ~/otfcc-rs
+git checkout 9f512d836d16d4c155ceb6faf2e20d624c7b204f
+cargo build --release --locked
+cd -
+export PATH="$HOME/otfcc-rs/target/release:$PATH"  # brew の otfcc より前に置く
+
 # 外部ツール（macOS）
-brew tap caryll/tap
-brew install otfcc-mac64
 brew install jq
 brew install lefthook
 
