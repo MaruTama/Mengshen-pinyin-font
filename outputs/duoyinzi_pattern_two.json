@@ -44,16 +44,22 @@
             "角": "角.ss02",
             "斗": "斗.ss02",
             "要": "要.ss02",
-            "挟": "挟.ss02"
+            "挟": "挟.ss02",
+            "地": "地.ss02",
+            "强": "强.ss02",
+            "方": "方.ss02"
         },
         "lookup_pattern_11": {
             "参": "参.ss03",
             "揣": "揣.ss03",
             "帖": "帖.ss03",
-            "和": "和.ss03"
+            "和": "和.ss03",
+            "单": "单.ss03",
+            "服": "服.ss03"
         },
         "lookup_pattern_12": {
-            "差": "差.ss04"
+            "差": "差.ss04",
+            "糊": "糊.ss04"
         },
         "lookup_pattern_13": {
             "着": "着.ss05",
@@ -352,6 +358,72 @@
             },
             {
                 "挟": "lookup_pattern_10"
+            }
+        ],
+        "悄悄地": [
+            {
+                "悄": "lookup_pattern_10"
+            },
+            {
+                "悄": "lookup_pattern_10"
+            },
+            {
+                "地": "lookup_pattern_10"
+            }
+        ],
+        "简单地": [
+            {
+                "简": null
+            },
+            {
+                "单": "lookup_pattern_11"
+            },
+            {
+                "地": "lookup_pattern_10"
+            }
+        ],
+        "勉强地": [
+            {
+                "勉": null
+            },
+            {
+                "强": "lookup_pattern_10"
+            },
+            {
+                "地": "lookup_pattern_10"
+            }
+        ],
+        "大方地": [
+            {
+                "大": null
+            },
+            {
+                "方": "lookup_pattern_10"
+            },
+            {
+                "地": "lookup_pattern_10"
+            }
+        ],
+        "含糊地": [
+            {
+                "含": null
+            },
+            {
+                "糊": "lookup_pattern_12"
+            },
+            {
+                "地": "lookup_pattern_10"
+            }
+        ],
+        "舒服地": [
+            {
+                "舒": null
+            },
+            {
+                "服": "lookup_pattern_11"
+            },
+            {
+                "地": "lookup_pattern_10"
             }
         ]
     }
