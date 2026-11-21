@@ -136,9 +136,13 @@ class LatinAlphabetRetriever:
     def add_bundled_glyphs(
         self, alphabet_glyphs: FontTable, source_font_name: str
     ) -> FontTable:
-        """Fill letters the font lacks from its bundled composed glyphs."""
-        bundled = bundled_glyphs.bundled_glyphs_for_font(source_font_name)
-        return bundled_glyphs.merge_bundled_glyphs(alphabet_glyphs, bundled)
+        """Fill letters the font lacks from its bundled composed glyphs and
+        apply the bundle's overrides (e.g. single-story a)."""
+        return bundled_glyphs.merge_bundled_glyphs(
+            alphabet_glyphs,
+            bundled_glyphs.bundled_glyphs_for_font(source_font_name),
+            bundled_glyphs.bundled_overrides_for_font(source_font_name),
+        )
 
     def save_alphabet_json(self, alphabet_glyphs: FontTable, output_path: str) -> None:
         """Save filtered alphabet glyphs to JSON file."""

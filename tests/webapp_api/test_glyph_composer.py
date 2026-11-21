@@ -121,6 +121,37 @@ class TestCompose:
                 assert isinstance(point["y"], int)
 
 
+class TestStripMark:
+    """The plain letter = an accented glyph minus its tone mark."""
+
+    def test_removes_detected_mark(self):
+        glyph = gc.strip_mark(E_MACRON, PLAIN_E)
+        assert glyph == {"advanceWidth": 500, "contours": [_rect(50, 0, 450, 500)]}
+
+    def test_fallback_on_redrawn_body(self):
+        # Body differs from the plain letter (e.g. single- vs double-story a)
+        source = {
+            "advanceWidth": 480,
+            "contours": [_rect(100, 600, 400, 650), _rect(52, 0, 448, 502)],
+        }
+        glyph = gc.strip_mark(source, PLAIN_E)
+        assert glyph == {"advanceWidth": 480, "contours": [_rect(52, 0, 448, 502)]}
+
+    def test_explicit_mark_contours(self):
+        glyph = gc.strip_mark(E_MACRON, None, mark_contours=[1])
+        assert glyph["contours"] == [_rect(50, 0, 450, 500)]
+
+    def test_does_not_mutate_source(self):
+        before = [[dict(p) for p in c] for c in E_MACRON["contours"]]
+        glyph = gc.strip_mark(E_MACRON, PLAIN_E)
+        glyph["contours"][0][0]["x"] = -1
+        assert E_MACRON["contours"] == before
+
+    def test_no_mark_found(self):
+        with pytest.raises(gc.CompositionError):
+            gc.strip_mark(PLAIN_E, PLAIN_E)
+
+
 class TestSvgPath:
     def test_lines(self):
         assert gc.contours_to_svg_path([_rect(0, 0, 10, 10)]) == (

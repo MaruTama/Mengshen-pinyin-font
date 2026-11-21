@@ -18,14 +18,14 @@ from src.refactored.scripts.retrieve_latin_alphabet import ALPHABET
 
 from .. import settings
 from ..schemas import Project
-from .custom_glyphs import extra_letter_glyphs
+from .custom_glyphs import bundled_override_glyphs, extra_letter_glyphs
 from .glyph_composer import contours_to_svg_path
 from .preview_composer import _FontOutlines
 from .project_store import ProjectStore
 
 INDEX_FILENAME = "glyph_index.json"
 # Bump when index build logic changes so cached glyph_index.json regenerates
-_INDEX_VERSION = "v7"
+_INDEX_VERSION = "v8"
 
 # The latin letters (plain + tone-marked) actually used to compose
 # pinyin. The pinyin category must stay within these — a full latin font
@@ -234,6 +234,9 @@ def _build_index(project: Project) -> List[dict]:
     # as pinyin_alphabet rather than being shadowed by the base font.
     by_name: Dict[str, dict] = {}
     allowed = allowed_hanzi()
+    # Pinyin letters whose font glyph is replaced by a bundled override
+    # (e.g. single-story a): listed via custom_entries instead
+    overridden = set(bundled_override_glyphs(project))
 
     for role, font_ref in (
         ("base", project.base_font),
@@ -257,6 +260,8 @@ def _build_index(project: Project) -> List[dict]:
             # The pinyin category is exactly the 55 letters used for pinyin,
             # not every latin/greek letter the font happens to carry
             is_pinyin_letter = role == "pinyin" and char in _PINYIN_ALPHABET
+            if is_pinyin_letter and char in overridden:
+                continue
             if is_pinyin_letter and category == "other":
                 category = "pinyin_alphabet"
 

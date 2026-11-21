@@ -158,6 +158,27 @@ def _transform_mark(
     return result
 
 
+def _mark_indices(
+    source: Glyph, plain: Optional[Glyph], mark_contours: Optional[Sequence[int]]
+) -> List[int]:
+    """Validated explicit mark contour indices, else the detected ones."""
+    count = len(source.get("contours", []))
+    if mark_contours is not None:
+        indices = sorted(set(int(i) for i in mark_contours))
+        if not indices or any(i < 0 or i >= count for i in indices):
+            raise CompositionError(
+                "invalid_mark_contours",
+                f"Mark contour indices out of range (0..{count - 1})",
+            )
+    else:
+        indices = detect_mark_contours(source, plain)
+    if not indices:
+        raise CompositionError(
+            "mark_not_found", "Could not find a tone mark in the source glyph"
+        )
+    return indices
+
+
 def compose(
     base: Glyph,
     mark_source: Glyph,
@@ -170,19 +191,7 @@ def compose(
         raise CompositionError("invalid_scale", "Scale must be positive")
 
     source_contours: List[Contour] = list(mark_source.get("contours", []))
-    if recipe.mark_contours is not None:
-        indices = sorted(set(int(i) for i in recipe.mark_contours))
-        if not indices or any(i < 0 or i >= len(source_contours) for i in indices):
-            raise CompositionError(
-                "invalid_mark_contours",
-                f"Mark contour indices out of range (0..{len(source_contours) - 1})",
-            )
-    else:
-        indices = detect_mark_contours(mark_source, plain_of_source)
-    if not indices:
-        raise CompositionError(
-            "mark_not_found", "Could not find a tone mark in the source glyph"
-        )
+    indices = _mark_indices(mark_source, plain_of_source, recipe.mark_contours)
 
     mark = [source_contours[i] for i in indices]
     body = [c for i, c in enumerate(source_contours) if i not in indices]
@@ -212,6 +221,30 @@ def compose(
         auto_dy=auto_dy,
         base_contour_count=len(base_contours),
     )
+
+
+def strip_mark(
+    source: Glyph,
+    plain: Optional[Glyph],
+    mark_contours: Optional[Sequence[int]] = None,
+) -> Glyph:
+    """The source glyph without its tone mark (e.g. ``à`` -> its ``a`` body).
+
+    Useful when the accented glyphs are drawn differently from the plain
+    letter (e.g. single-story à vs double-story a) and the plain letter
+    should match them. The mark is detected like in compose() unless
+    ``mark_contours`` gives its contour indices.
+    """
+    contours: List[Contour] = list(source.get("contours", []))
+    indices = _mark_indices(source, plain, mark_contours)
+    return {
+        "advanceWidth": source.get("advanceWidth", 0),
+        "contours": [
+            [dict(p) for p in contour]
+            for i, contour in enumerate(contours)
+            if i not in indices
+        ],
+    }
 
 
 def _fmt(value: float) -> str:
