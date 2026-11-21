@@ -582,6 +582,7 @@ This feature is used for chaining contextual substitution
     Refer to [Tag: 'ss01' - 'ss20'](https://docs.microsoft.com/en-us/typography/opentype/spec/features_pt#-tag-ss01---ss20)
 - Chinese Pinyin is simplified in the glyf table (yī -> yi1)
 - Pinyin letters without a precomposed Unicode code point (e.g. 呣 m̀, 嘸 m̄, 欸 ê̄) are included in the readings. Letters the pinyin font lacks come from the bundled composed glyphs in [res/fonts/custom_pinyin_glyphs/](/res/fonts/custom_pinyin_glyphs) (regenerate with `python tools/make_bundled_pinyin_glyphs.py`)
+- The pinyin letter a is always the single-story ɑ, as taught in Chinese schools (a ā á ǎ à, both styles). The `overrides` section of the same bundles replaces the fonts' own double-story glyphs: han_serif uses mplus's ɑ plus its tone marks; handwritten uses the body of the Seto font's ǎ plus the other tone marks
 
 - [overwrite.txt](/res/phonics/unicode_mapping_table/overwrite.txt) has been added phrase for various purposes
     1. Register Pinyin that can not be acquired by pypinyin
