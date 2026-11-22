@@ -415,7 +415,8 @@
     "amacron",
     "caplog",
     "autouse",
-    "worktree"
+    "worktree",
+    "mozillazg"
   ],
   "ignorePaths": [
     ".git/**",

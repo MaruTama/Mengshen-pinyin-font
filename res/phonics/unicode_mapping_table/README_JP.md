@@ -11,6 +11,14 @@ python make_unicode_pinyin_map_table.py
 3. 繁体字と簡体字を統合した unicode テーブルを作成  
 4. unicode テーブル に overwrite.txt の内容を上書きする  
 
+## 読みの元データ（pinyin-data）
+
+読みの元データはサブモジュール `res/pinyin-data` で、[mozillazg/pinyin-data](https://github.com/mozillazg/pinyin-data) のフォーク [MaruTama/pinyin-data](https://github.com/MaruTama/pinyin-data) を参照する。
+
+- 目標は pinyin-data だけを読みの正とし、overwrite.txt はこのプロジェクト固有の細かい修正だけに絞ること
+- 読みの誤りはまずフォークで直して使い、本家へ PR を出す。本家に取り込まれたら overwrite.txt の該当行を消す
+- overwrite.txt の棚卸しは [#75](https://github.com/MaruTama/Mengshen-pinyin-font/issues/75) で行う
+
 ## 生成物
 
 unicode テーブルの書式は[pinyin-data](https://github.com/mozillazg/pinyin-data/blob/master/pinyin.txt)に準拠する  
