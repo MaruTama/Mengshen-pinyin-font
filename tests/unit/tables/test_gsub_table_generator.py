@@ -94,8 +94,8 @@ class TestGSUBTableGeneratorInitialization:
 
         # Verify feature tables
         assert "features" in gsub_data
-        assert gsub_data["features"]["aalt_00000"] == ["lookup_aalt_0"]
-        assert gsub_data["features"]["aalt_00001"] == ["lookup_aalt_0"]
+        assert gsub_data["features"]["aalt_00000"] == ["lookup_aalt_0", "lookup_aalt_1"]
+        assert gsub_data["features"]["aalt_00001"] == ["lookup_aalt_0", "lookup_aalt_1"]
         assert gsub_data["features"]["rclt_00000"] == [
             "lookup_rclt_0",
             "lookup_rclt_1",
@@ -111,13 +111,14 @@ class TestGSUBTableGeneratorInitialization:
         assert "lookups" in gsub_data
         lookups = gsub_data["lookups"]
 
-        # Check aalt lookup. lookup_aalt_1 (gsub_alternate) is intentionally
-        # not generated: otfccbuild corrupts large Alternate Substitution
-        # tables, which invalidates the whole GSUB table for real shapers.
+        # Check aalt lookups
         assert "lookup_aalt_0" in lookups
         assert lookups["lookup_aalt_0"]["type"] == "gsub_single"
         assert lookups["lookup_aalt_0"]["subtables"] == [{}]
-        assert "lookup_aalt_1" not in lookups
+
+        assert "lookup_aalt_1" in lookups
+        assert lookups["lookup_aalt_1"]["type"] == "gsub_alternate"
+        assert lookups["lookup_aalt_1"]["subtables"] == [{}]
 
         # Check rclt lookups
         assert "lookup_rclt_0" in lookups
@@ -127,6 +128,7 @@ class TestGSUBTableGeneratorInitialization:
         # Verify initial lookup order
         assert gsub_data["lookupOrder"] == [
             "lookup_aalt_0",
+            "lookup_aalt_1",
             "lookup_rclt_0",
             "lookup_rclt_1",
             "lookup_rclt_2",
@@ -309,6 +311,19 @@ class TestGSUBTableGeneratorAALTFeature:
             single_char_info
         ]
 
+        # Mock multiple pronunciation characters
+        multi_char_info_1 = Mock()
+        multi_char_info_1.character = "中"
+        multi_char_info_1.pronunciations = ["zhōng", "zhòng"]
+
+        multi_char_info_2 = Mock()
+        multi_char_info_2.character = "國"
+        multi_char_info_2.pronunciations = ["guó"]
+
+        character_manager.iter_multiple_pronunciation_characters.return_value = iter(
+            [multi_char_info_1, multi_char_info_2]
+        )
+
         return GSUBTableGenerator(
             pattern_one_path=Path("/mock/pattern_one.txt"),
             pattern_two_path=Path("/mock/pattern_two.json"),
@@ -336,23 +351,65 @@ class TestGSUBTableGeneratorAALTFeature:
         assert "lookup_aalt_0" in generator.lookup_order
 
     @pytest.mark.unit
-    def test_make_aalt_feature_does_not_generate_alternate_lookup(self):
-        """Multi-pronunciation characters must not produce lookup_aalt_1.
+    def test_make_aalt_feature_multiple_pronunciation(self):
+        """Multi-pronunciation characters populate lookup_aalt_1 (gsub_alternate).
 
-        otfccbuild corrupts large Alternate Substitution (gsub_alternate)
-        tables, which invalidates the whole GSUB table for real shapers
-        (HarfBuzz stops applying every GSUB feature, including the rclt
-        chaining rules that drive homograph reading switching). aalt_1 was
-        only a "manually browse all alternates" convenience feature, not
-        required for that switching, so it is never generated.
+        Each homograph maps to [cid.ss00, cid.ss01, ..., cid.ss{N}] where
+        ss00 is the glyph without pinyin and ss01..ssN are its N readings.
         """
         generator = self._create_test_generator_with_characters()
 
-        with patch("builtins.print"):  # Suppress debug output
-            generator._make_aalt_feature()
+        generator._make_aalt_feature()
 
-        assert "lookup_aalt_1" not in generator.gsub_data["lookups"]
-        assert "lookup_aalt_1" not in generator.lookup_order
+        aalt_1_subtables = generator.gsub_data["lookups"]["lookup_aalt_1"]["subtables"][
+            0
+        ]
+
+        # 中 has 2 pronunciations -> alternates ss00, ss01, ss02
+        assert aalt_1_subtables["uni4E2D"] == [
+            "uni4E2D.ss00",
+            "uni4E2D.ss01",
+            "uni4E2D.ss02",
+        ]
+
+        # 國 has 1 pronunciation -> alternates ss00, ss01
+        assert aalt_1_subtables["uni570B"] == ["uni570B.ss00", "uni570B.ss01"]
+
+        # Single-pronunciation characters stay in lookup_aalt_0 only
+        assert "uni4E00" not in aalt_1_subtables
+
+        # Verify lookup order tracking
+        assert "lookup_aalt_1" in generator.lookup_order
+
+    @pytest.mark.unit
+    def test_make_aalt_feature_multiple_pronunciation_missing_cmap(self):
+        """Homographs missing from cmap are skipped in lookup_aalt_1."""
+        character_manager = Mock(spec=CharacterDataManager)
+        mapping_manager = Mock(spec=MappingDataManager)
+        character_manager.get_single_pronunciation_characters.return_value = []
+
+        multi_char_info = Mock()
+        multi_char_info.character = "中"
+        multi_char_info.pronunciations = ["zhōng", "zhòng"]
+        character_manager.iter_multiple_pronunciation_characters.return_value = iter(
+            [multi_char_info]
+        )
+
+        generator = GSUBTableGenerator(
+            pattern_one_path=Path("/mock/pattern_one.txt"),
+            pattern_two_path=Path("/mock/pattern_two.json"),
+            exception_pattern_path=Path("/mock/exception.json"),
+            character_manager=character_manager,
+            mapping_manager=mapping_manager,
+            cmap_table={},
+        )
+
+        generator._make_aalt_feature()
+
+        aalt_1_subtables = generator.gsub_data["lookups"]["lookup_aalt_1"]["subtables"][
+            0
+        ]
+        assert aalt_1_subtables == {}
 
     @pytest.mark.unit
     def test_make_aalt_feature_missing_cmap(self):
@@ -367,6 +424,7 @@ class TestGSUBTableGeneratorAALTFeature:
         character_manager.get_single_pronunciation_characters.return_value = [
             single_char_info
         ]
+        character_manager.iter_multiple_pronunciation_characters.return_value = iter([])
 
         generator = GSUBTableGenerator(
             pattern_one_path=Path("/mock/pattern_one.txt"),
@@ -759,6 +817,7 @@ class TestGSUBTableGeneratorRCLT1Feature:
         # Only base lookups should exist
         expected_base_lookups = {
             "lookup_aalt_0",
+            "lookup_aalt_1",
             "lookup_rclt_0",
             "lookup_rclt_1",
             "lookup_rclt_2",
@@ -889,6 +948,7 @@ class TestGSUBTableGeneratorRCLT2Feature:
         lookups = generator.gsub_data["lookups"]
         expected_base_lookups = {
             "lookup_aalt_0",
+            "lookup_aalt_1",
             "lookup_rclt_0",
             "lookup_rclt_1",
             "lookup_rclt_2",
@@ -917,6 +977,7 @@ class TestGSUBTableGeneratorLookupOrder:
         )
 
         # Add some lookups to track
+        generator.lookup_order.add("lookup_aalt_1")
         generator.lookup_order.add("lookup_11_2")
         generator.lookup_order.add("lookup_11_3")
 
@@ -925,6 +986,7 @@ class TestGSUBTableGeneratorLookupOrder:
 
         expected_order = [
             "lookup_aalt_0",
+            "lookup_aalt_1",
             "lookup_11_2",
             "lookup_11_3",
             "lookup_rclt_0",
@@ -935,10 +997,8 @@ class TestGSUBTableGeneratorLookupOrder:
         assert generator.gsub_data["lookupOrder"] == expected_order
 
     @pytest.mark.unit
-    def test_make_lookup_order_ignores_stray_aalt_1(self):
-        """lookup_aalt_1 is never emitted, even if something adds it to
-        lookup_order (defense in depth: it must not resurrect the lookup
-        that corrupts otfccbuild's GSUB output)."""
+    def test_make_lookup_order_no_aalt_1(self):
+        """Test lookup order when aalt_1 is not present."""
         character_manager = Mock(spec=CharacterDataManager)
         mapping_manager = Mock(spec=MappingDataManager)
         cmap_table = {}
@@ -952,8 +1012,6 @@ class TestGSUBTableGeneratorLookupOrder:
             cmap_table=cmap_table,
         )
 
-        # Something adds lookup_aalt_1 back to the tracking set anyway
-        generator.lookup_order.add("lookup_aalt_1")
         generator.lookup_order.add("lookup_11_2")
 
         with patch("builtins.print"):  # Suppress debug output
@@ -968,7 +1026,6 @@ class TestGSUBTableGeneratorLookupOrder:
         ]
 
         assert generator.gsub_data["lookupOrder"] == expected_order
-        assert "lookup_aalt_1" not in generator.gsub_data["lookupOrder"]
 
     @pytest.mark.unit
     def test_make_lookup_order_filters_non_strings(self):
@@ -1021,6 +1078,7 @@ class TestGSUBTableGeneratorIntegration:
         character_manager.get_single_pronunciation_characters.return_value = [
             single_char_info
         ]
+        character_manager.iter_multiple_pronunciation_characters.return_value = iter([])
 
         # Mock mapping
         mapping_manager.has_glyph_for_character.return_value = True
@@ -1070,6 +1128,13 @@ class TestGSUBTableGeneratorIntegration:
         # Mock character data
         character_manager.get_single_pronunciation_characters.return_value = []
 
+        multi_char_info = Mock()
+        multi_char_info.character = "中"
+        multi_char_info.pronunciations = ["zhōng", "zhòng"]
+        character_manager.iter_multiple_pronunciation_characters.return_value = iter(
+            [multi_char_info]
+        )
+
         mapping_manager.has_glyph_for_character.return_value = True
 
         generator = GSUBTableGenerator(
@@ -1107,10 +1172,13 @@ class TestGSUBTableGeneratorIntegration:
         # Verify all features were processed
         lookups = result["lookups"]
 
-        # AALT features: only the single-pronunciation lookup is generated.
-        # lookup_aalt_1 (multi-pronunciation gsub_alternate) must never
-        # appear — otfccbuild corrupts it, breaking rclt-based switching.
-        assert "lookup_aalt_1" not in lookups
+        # AALT features: multiple pronunciation character -> lookup_aalt_1
+        assert lookups["lookup_aalt_1"]["subtables"][0]["uni4E2D"] == [
+            "uni4E2D.ss00",
+            "uni4E2D.ss01",
+            "uni4E2D.ss02",
+        ]
+        assert "lookup_aalt_1" in result["lookupOrder"]
 
         # RCLT features
         assert "lookup_11_2" in lookups  # Pattern one
@@ -1190,6 +1258,7 @@ class TestGSUBTableGeneratorErrorHandling:
         character_manager.get_single_pronunciation_characters.return_value = [
             single_char_info
         ]
+        character_manager.iter_multiple_pronunciation_characters.return_value = iter([])
 
         generator = GSUBTableGenerator(
             pattern_one_path=Mock(spec=Path),

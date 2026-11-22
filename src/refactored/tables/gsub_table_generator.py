@@ -77,17 +77,14 @@ class GSUBTableGenerator:
             },
             # feature ごとに使用する lookup table を指定する
             #
-            # NOTE: aalt には本来 "拼音が複数の漢字" 用の lookup_aalt_1
-            # (gsub_alternate, 数千エントリ規模) を含める設計だったが、
-            # otfccbuild がこの規模の Alternate Substitution を圧縮する際に
-            # Coverage テーブルと AlternateSet の数が一致しない壊れたバイナリを
-            # 生成することが判明した（fontTools/HarfBuzz で GSUB 全体が
-            # 破損扱いとなり、rclt による多音字の自動切替が機能しなくなる）。
-            # aalt は「フォントツール上で手動候補を選ぶ」ための補助機能で
-            # rclt の自動切替には不要なため、lookup_aalt_1 は生成しない。
+            # NOTE: lookup_aalt_1 (gsub_alternate, 数千エントリ規模) は
+            # caryll otfcc 0.10.4 では壊れた Alternate Substitution を生成して
+            # GSUB 全体が無効化されていた (PR #39 で一時削除)。ビルドは
+            # MaruTama/otfcc-rs (PR #58, otfcc-rs PR #5 で修正済み) に移行済み
+            # なので復活させている (issue #40)。caryll otfcc でビルドしないこと。
             "features": {
-                "aalt_00000": ["lookup_aalt_0"],
-                "aalt_00001": ["lookup_aalt_0"],
+                "aalt_00000": ["lookup_aalt_0", "lookup_aalt_1"],
+                "aalt_00001": ["lookup_aalt_0", "lookup_aalt_1"],
                 "rclt_00000": ["lookup_rclt_0", "lookup_rclt_1", "lookup_rclt_2"],
                 "rclt_00001": ["lookup_rclt_0", "lookup_rclt_1", "lookup_rclt_2"],
             },
@@ -95,6 +92,12 @@ class GSUBTableGenerator:
                 # aalt_0 は拼音が一つのみの漢字 + 記号とか。置き換え対象が一つのみのとき
                 "lookup_aalt_0": {
                     "type": "gsub_single",
+                    "flags": {},
+                    "subtables": [{}],
+                },
+                # aalt_1 は拼音が複数の漢字
+                "lookup_aalt_1": {
+                    "type": "gsub_alternate",
                     "flags": {},
                     "subtables": [{}],
                 },
@@ -119,6 +122,7 @@ class GSUBTableGenerator:
             },
             "lookupOrder": [
                 "lookup_aalt_0",
+                "lookup_aalt_1",
                 "lookup_rclt_0",
                 "lookup_rclt_1",
                 "lookup_rclt_2",
@@ -199,11 +203,29 @@ class GSUBTableGenerator:
         # >                 ...
         # >             }
         # >         ]
+        # >     },
+        # >     "lookup_aalt_1": {
+        # >         "type": "gsub_alternate",
+        # >         "flags": {},
+        # >         "subtables": [
+        # >             {
+        # >                 "uni4E00": [
+        # >                     "uni4E00.ss00",
+        # >                     "uni4E00.ss01",
+        # >                     "uni4E00.ss02"
+        # >                 ],
+        # >                 ...
+        # >             }
+        # >         ]
         # >     }
         # > }
 
         aalt_0_subtables = cast(
             Dict[str, str], self.gsub_data["lookups"]["lookup_aalt_0"]["subtables"][0]
+        )
+        aalt_1_subtables = cast(
+            Dict[str, List[str]],
+            self.gsub_data["lookups"]["lookup_aalt_1"]["subtables"][0],
         )
 
         # Single pronunciation characters -> lookup_aalt_0
@@ -218,9 +240,24 @@ class GSUBTableGenerator:
 
         self.lookup_order.add("lookup_aalt_0")
 
-        # NOTE: multi-pronunciation characters intentionally do NOT get a
-        # lookup_aalt_1 (gsub_alternate) entry — see the comment on
-        # gsub_data["features"] in __init__ for why.
+        # Multiple pronunciation characters -> lookup_aalt_1
+        multiple_pinyin_characters = (
+            self.character_manager.iter_multiple_pronunciation_characters()
+        )
+        for char_info in multiple_pinyin_characters:
+            cid = self.cmap_manager.convert_hanzi_to_cid_safe(char_info.character)
+            if not cid:
+                continue
+            # ss00 はピンインのないグリフ、ss01..ss{N} が各読みのグリフ
+            aalt_1_subtables[cid] = [
+                f"{cid}.ss{i:02d}" for i in range(len(char_info.pronunciations) + 1)
+            ]
+
+        self.logger.debug(
+            "aalt_1 subtables populated with %d entries", len(aalt_1_subtables)
+        )
+
+        self.lookup_order.add("lookup_aalt_1")
 
     def _make_rclt0_feature(self) -> None:
         """Generate pattern one -> creates lookup_11_* tables."""
@@ -538,6 +575,10 @@ class GSUBTableGenerator:
 
         # Always include base lookups
         final_order = ["lookup_aalt_0"]
+
+        # Add lookup_aalt_1 if it exists
+        if "lookup_aalt_1" in order_list:
+            final_order.append("lookup_aalt_1")
 
         # Add lookup_11_* in order
         lookup_11_list = [name for name in order_list if name.startswith("lookup_11_")]
