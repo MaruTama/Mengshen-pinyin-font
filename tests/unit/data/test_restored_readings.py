@@ -15,11 +15,10 @@ from src.refactored.utils.pinyin_utils import (
 )
 
 ROOT = Path(__file__).resolve().parents[3]
-OVERWRITE = ROOT / "res" / "phonics" / "unicode_mapping_table" / "overwrite.txt"
 MERGED = ROOT / "outputs" / "merged-mapping-table.txt"
 ALPHABET_JSON = ROOT / "tmp" / "json" / "alphabet_for_pinyin_{style}.json"
 
-# Raw (pinyin-data) order first, overwrite-only readings after them
+# Expected merged readings: pinyin-data order first, overwrite-only readings after
 EXPECTED = {
     "呣": ["ḿ", "m̀", "móu"],
     "哏": ["gén", "hěn", "ǹ", "hēn"],
@@ -45,11 +44,12 @@ def _table(path: Path) -> dict[str, list[str]]:
     return table
 
 
-@pytest.mark.parametrize("path", [OVERWRITE, MERGED], ids=["overwrite", "merged"])
 @pytest.mark.parametrize("char", list(EXPECTED))
-def test_restored_readings(path, char):
+def test_restored_readings(char):
+    # Checked on the merged table: a reading may come from pinyin-data or
+    # overwrite.txt (overwrite lines identical to pinyin-data are removed, #62).
     expected = [unicodedata.normalize("NFC", p) for p in EXPECTED[char]]
-    assert _table(path)[char] == expected
+    assert _table(MERGED)[char] == expected
 
 
 def test_readings_are_nfc_and_representable():
