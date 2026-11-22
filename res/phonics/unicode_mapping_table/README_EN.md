@@ -11,6 +11,14 @@ python make_unicode_pinyin_map_table.py
 3. Create the integrated unicode table(i.e. [marged-mapping-table.txt](https://github.com/MaruTama/Mengshen-pinyin-font/blob/master/outputs/marged-mapping-table.txt)) that traditional and simplified Chinese
 4. Overwrite the integrated Unicode table (i.e. [marged-mapping-table.txt](https://github.com/MaruTama/Mengshen-pinyin-font/blob/master/outputs/marged-mapping-table.txt)) with [overwrite.txt](overwrite.txt)
 
+## Source of readings (pinyin-data)
+
+Readings come from the `res/pinyin-data` submodule, which points to [MaruTama/pinyin-data](https://github.com/MaruTama/pinyin-data), a fork of [mozillazg/pinyin-data](https://github.com/mozillazg/pinyin-data).
+
+- The goal is for pinyin-data alone to be the source of readings, with overwrite.txt limited to small project-specific fixes.
+- Reading errors are fixed in the fork first (so they can be used right away) and sent upstream as PRs. Once upstream adopts a fix, the matching overwrite.txt line is removed.
+- The inventory of overwrite.txt is tracked in [#75](https://github.com/MaruTama/Mengshen-pinyin-font/issues/75).
+
 ## Outputs
 
 The format of the unicode table conforms to [pinyin-data](https://github.com/mozillazg/pinyin-data/blob/master/pinyin.txt).  
