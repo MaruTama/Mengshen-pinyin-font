@@ -450,6 +450,9 @@ handwritten スタイルも同様（`res/fonts/` 配下の対応するベース�
 otfccdump -o /tmp/check.json --pretty outputs/Mengshen-HanSerif.ttf 2>&1
 # 例: "[WARNING] [Consolidate] Lookup lookup_aalt_1 is empty and will be removed."
 #     → ビルド時に投入したデータが失われている証拠
+#     （caryll otfcc 0.10.4 でビルドすると lookup_aalt_1 でこれが出る。
+#      lookup_aalt_1 は otfcc-rs 前提で生成しているので（issue #40）、
+#      otfcc-rs でビルドしたフォントでは出てはいけない）
 
 # 2. fontTools の厳格なパーサで読み込めるか確認する
 #    otfcc の甘い実装と違い、仕様違反があると例外を出す
@@ -460,6 +463,10 @@ gsub = f['GSUB'].table
 print('lookup types:', [lk.LookupType for lk in gsub.LookupList.Lookup])
 "
 # AssertionError や 'Unknown Coverage format: NNNNN' が出たら破損確定
+# outputs/*.ttf をビルド済みなら同じ確認 + aalt の AlternateSubst が多音字を
+# 網羅しているかを pytest でも確認できる（未ビルドなら skip。
+# 別ディレクトリのフォントは MENGSHEN_FONT_DIR=<dir> で指定）
+PYTHONPATH=src python -m pytest tests/integration/test_built_font_gsub.py -v
 
 # 3. 実際の HarfBuzz シェーピングで期待通りに動くか確認する
 LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 \
