@@ -968,7 +968,7 @@ U+552F: wéi,wěi  #唯
 U+5530: shuā  #唰
 U+5531: chàng  #唱
 U+5533: lì  #唳
-U+5535: ǎn,ng,n  #唵
+U+5535: ǎn,ān  #唵
 U+5537: yō,yù  #唷
 U+553C: shà,qiè  #唼
 U+553E: tuò  #唾
@@ -1238,7 +1238,7 @@ U+57A9: è,shèng  #垩
 U+57AB: diàn  #垫
 U+57AD: yā  #垭
 U+57AE: kuǎ  #垮
-U+57AF: da  #垯
+U+57AF: da,dá  #垯
 U+57B1: dàng  #垱
 U+57B2: kǎi  #垲
 U+57B4: nǎo  #垴
@@ -3252,7 +3252,7 @@ U+6BF9: shū,yú  #毹
 U+6BFD: jiàn  #毽
 U+6C05: chǎng  #氅
 U+6C06: pǔ  #氆
-U+6C07: lu  #氇
+U+6C07: lu,lǔ  #氇
 U+6C0D: qú  #氍
 U+6C0F: shì,zhī,jīng  #氏
 U+6C10: dī,dǐ,zhī  #氐
@@ -3768,7 +3768,7 @@ U+708A: chuī  #炊
 U+708C: kài  #炌
 U+708E: yán,yàn,tán  #炎
 U+7092: chǎo  #炒
-U+7094: guì,quē,xuè  #炔
+U+7094: quē,guì,xuè  #炔
 U+7095: kàng,hāng  #炕
 U+7096: dùn,tún  #炖
 U+7098: xīn  #炘
@@ -5754,7 +5754,7 @@ U+8446: bǎo,bāo  #葆
 U+844E: lǜ  #葎
 U+8451: fēng,fèng  #葑
 U+8456: tū  #葖
-U+8457: zhù,zhuó,chú,zhāo,zháo,zhe  #著
+U+8457: zhù,zhe,zhuó,chú,zhāo,zháo  #著
 U+8459: xiāng  #葙
 U+845A: rèn,shèn  #葚
 U+845B: gé,gě  #葛
