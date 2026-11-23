@@ -287,7 +287,6 @@
 传达: chuán/dá
 传播: chuán/bō
 传单: chuán/dān
-单县: shàn/xiàn
 传递: chuán/dì
 传授: chuán/shòu
 传统: chuán/tǒng
@@ -867,6 +866,7 @@
 角落: jiǎo/luò
 角色: jué/sè
 角逐: jué/zhú
+角斗: jué/dòu
 将近: jiāng/jìn
 将军: jiāng/jūn
 将来: jiāng/lái
@@ -922,10 +922,10 @@
 尽量: jǐn/liàng
 尽早: jǐn/zǎo
 尽自: jǐn/zì
+尽着: jǐn/zhe
 尽力: jìn/lì
 尽情: jìn/qíng
 尽头: jìn/tóu
-尽兴: jìn/xìng
 尽职: jìn/zhí
 尽忠: jìn/zhōng
 禁闭: jìn/bì
@@ -1162,9 +1162,9 @@
 空悄: kōng/qiāo
 清悄: qīng/qiāo
 悄然: qiǎo/rán
-悄寂: qiǎo/jì
 悄声: qiǎo/shēng
 悄怆: qiǎo/chuàng
+悄切: qiāo/qiè
 翘揭: qiào/jiē
 朱翘: zhū/qiào
 翘板: qiào/bǎn
@@ -1197,6 +1197,7 @@
 切口: qiē/kǒu
 切片: qiē/piàn
 切面: qiē/miàn
+切削: qiē/xiāo
 曲尺: qū/chǐ
 曲解: qū/jiě
 曲直: qū/zhí
@@ -1286,6 +1287,7 @@
 数见不鲜: shuò/jiàn/bù/xiān
 似乎: sì/hū
 相似: xiāng/sì
+雪茄: xuě/jiā
 似的: shì/de
 踏步: tà/bù
 踏歌: tà/gē
@@ -1316,6 +1318,8 @@
 妥帖: tuǒ/tiē
 伏帖: fú/tiē
 宁帖: níng/tiē
+熨烫: yùn/tàng
+熨帖: yù/tiē
 请帖: qǐng/tiě
 帖子: tiě/zǐ
 黑帖: hēi/tiě
@@ -1751,6 +1755,8 @@
 大大地: dà/dà/de
 高高地: gāo/gāo/de
 认真地: rèn/zhēn/de
+悄悄地: qiāo/qiāo/de
+简单地: jiǎn/dān/de
 仔细地: zǐ/xì/de
 努力地: nǔ/lì/de
 耐心地: nài/xīn/de

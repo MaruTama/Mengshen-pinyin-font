@@ -287,10 +287,10 @@ U+4F33: xiè  #伳
 U+4F34: bàn  #伴
 U+4F36: líng  #伶
 U+4F38: shēn  #伸
-U+4F3A: sì,cì  #伺
+U+4F3A: cì,sì  #伺
 U+4F3B: bēng  #伻
-U+4F3C: sì,shì  #似
-U+4F3D: jiā,qié,gā  #伽
+U+4F3C: shì,sì  #似
+U+4F3D: gā,jiā,qié  #伽
 U+4F3E: pī  #伾
 U+4F3F: yì,zhì  #伿
 U+4F41: yǐ,ǎi,chì  #佁
@@ -419,13 +419,13 @@ U+4FDB: fǔ,miǎn  #俛
 U+4FDC: pīng  #俜
 U+4FDD: bǎo  #保
 U+4FDE: yú,shū,yù,shù  #俞
-U+4FDF: sì,qí  #俟
+U+4FDF: qí,sì  #俟
 U+4FE0: xiá,jiá  #俠
 U+4FE1: xìn,shēn  #信
 U+4FE3: yǔ  #俣
 U+4FE6: chóu,dào  #俦
 U+4FE8: yǎn  #俨
-U+4FE9: liǎng,liǎ  #俩
+U+4FE9: liǎ,liǎng  #俩
 U+4FEA: lì,lí  #俪
 U+4FEB: lái  #俫
 U+4FEC: sī  #俬
@@ -443,7 +443,7 @@ U+4FFA: ǎn,yàn  #俺
 U+4FFE: bì,bǐ,bēi  #俾
 U+5000: chāng,chàng,chéng  #倀
 U+5005: cuì,zú  #倅
-U+5006: liǎng,liǎ  #倆
+U+5006: liǎ,liǎng  #倆
 U+5007: wǎn  #倇
 U+5009: cāng,chuàng  #倉
 U+500B: gè,ge,gě  #個
@@ -791,7 +791,7 @@ U+51DB: lǐn,qín  #凛
 U+51DC: lǐn,qín  #凜
 U+51DD: níng  #凝
 U+51DE: xī  #凞
-U+51E0: jī,jǐ  #几
+U+51E0: jǐ,jī  #几
 U+51E1: fán  #凡
 U+51E4: fèng  #凤
 U+51EB: fú  #凫
@@ -813,7 +813,7 @@ U+5200: dāo,dao  #刀
 U+5201: diāo  #刁
 U+5203: rèn  #刃
 U+5206: fēn,fèn,fén  #分
-U+5207: qiē,qiè,qì  #切
+U+5207: qiè,qiē,qì  #切
 U+5208: yì  #刈
 U+5209: jī,guì,jì  #刉
 U+520A: kān  #刊
@@ -883,7 +883,7 @@ U+525C: wān  #剜
 U+525D: bō,bāo  #剝
 U+525E: jī  #剞
 U+525F: duó,duō  #剟
-U+5261: yǎn,shàn  #剡
+U+5261: shàn,yǎn  #剡
 U+5262: dū,zhuó  #剢
 U+5265: bāo,bō  #剥
 U+5267: jù,jí  #剧
@@ -1045,7 +1045,7 @@ U+5351: bēi  #卑
 U+5352: zú,cù  #卒
 U+5353: zhuó,zhuō  #卓
 U+5354: xié  #協
-U+5355: shàn,chán,dān  #单
+U+5355: dān,chán,shàn  #单
 U+5356: mài,mai  #卖
 U+5357: nán,ná,nā  #南
 U+535A: bó  #博
@@ -1247,7 +1247,7 @@ U+5460: běn,pěn  #呠
 U+5461: wěn,mín,mǐn  #呡
 U+5462: ne,ní  #呢
 U+5463: ḿ,m̀,móu  #呣
-U+5464: líng,lìng  #呤
+U+5464: lìng,líng  #呤
 U+5465: rán  #呥
 U+5466: yōu  #呦
 U+5467: dǐ  #呧
@@ -1465,7 +1465,7 @@ U+557D: án,ān  #啽
 U+557E: jiū  #啾
 U+557F: kān,dàn  #啿
 U+5580: kā,kà,kè  #喀
-U+5581: yú,yóng  #喁
+U+5581: yóng,yú  #喁
 U+5582: wèi,wéi  #喂
 U+5583: nán  #喃
 U+5584: shàn  #善
@@ -1573,7 +1573,7 @@ U+5604: jiāo,jiào,dǎo  #嘄
 U+5606: tàn,yòu  #嘆
 U+5608: cáo  #嘈
 U+5609: jiā  #嘉
-U+560C: piāo,piào  #嘌
+U+560C: piào,piāo  #嘌
 U+560D: lóu,lǒu,lou  #嘍
 U+560E: gā,gá,gǎ  #嘎
 U+560F: gǔ,jiǎ  #嘏
@@ -1717,7 +1717,7 @@ U+56CC: sū,sù  #囌
 U+56CD: xǐ  #囍
 U+56D1: zhǔ  #囑
 U+56D3: niè  #囓
-U+56D4: nang,nāng  #囔
+U+56D4: nāng,nang  #囔
 U+56D7: wéi,guó  #囗
 U+56DA: qiú  #囚
 U+56DB: sì  #四
@@ -1727,7 +1727,7 @@ U+56DF: xìn  #囟
 U+56E0: yīn,yin  #因
 U+56E1: nān  #囡
 U+56E2: tuán,qiú  #团
-U+56E4: tún,dùn  #囤
+U+56E4: dùn,tún  #囤
 U+56E5: kàng  #囥
 U+56E7: jiǒng  #囧
 U+56EA: cōng,chuāng  #囪
@@ -2706,7 +2706,7 @@ U+5C39: yǐn  #尹
 U+5C3A: chǐ,chě,chí  #尺
 U+5C3B: kāo  #尻
 U+5C3C: ní  #尼
-U+5C3D: jìn,jǐn  #尽
+U+5C3D: jǐn,jìn  #尽
 U+5C3E: wěi,yǐ  #尾
 U+5C3F: niào,suī  #尿
 U+5C40: jú  #局
@@ -3046,7 +3046,7 @@ U+5E10: zhàng  #帐
 U+5E11: tǎng,nú  #帑
 U+5E14: pèi  #帔
 U+5E15: pà  #帕
-U+5E16: tiè,tiě,tiē  #帖
+U+5E16: tiē,tiě,tiè  #帖
 U+5E17: fú,bō  #帗
 U+5E18: lián  #帘
 U+5E19: zhì  #帙
@@ -3361,7 +3361,7 @@ U+5FB6: bié  #徶
 U+5FB7: dé  #德
 U+5FB9: chè  #徹
 U+5FBB: wèi,huì  #徻
-U+5FBC: jiào,jiǎo,jiāo,yāo  #徼
+U+5FBC: jiǎo,jiào,jiāo,yāo  #徼
 U+5FBD: huī  #徽
 U+5FBE: méi  #徾
 U+5FBF: lòng,lǒng  #徿
@@ -3461,7 +3461,7 @@ U+603B: zǒng,zōng  #总
 U+603C: duì,duǐ  #怼
 U+603F: yì  #怿
 U+6040: chǐ,shì  #恀
-U+6041: rèn,nín,nèn  #恁
+U+6041: nèn,rèn,nín  #恁
 U+6042: xún  #恂
 U+6043: shì  #恃
 U+6044: xì,xī  #恄
@@ -3512,7 +3512,7 @@ U+607F: yǒng  #恿
 U+6080: yǒng  #悀
 U+6081: juàn,juān,yuān  #悁
 U+6083: kǔn  #悃
-U+6084: qiǎo,qiāo,qiào  #悄
+U+6084: qiāo,qiǎo,qiào  #悄
 U+6085: yuè  #悅
 U+6086: yù,shū  #悆
 U+6087: tú  #悇
@@ -3983,7 +3983,7 @@ U+62E7: níng,nǐng,nìng  #拧
 U+62E8: bō,fá,bo  #拨
 U+62E9: zé,zhái,zè  #择
 U+62EB: hén  #拫
-U+62EC: guā,kuò  #括
+U+62EC: kuò,guā  #括
 U+62ED: shì  #拭
 U+62EE: jié,jiá  #拮
 U+62EF: zhěng  #拯
@@ -4086,7 +4086,7 @@ U+6368: shě,shè  #捨
 U+6369: liè,lì  #捩
 U+636B: mén  #捫
 U+636D: bǎi,bò  #捭
-U+636E: jū,jù  #据
+U+636E: jù,jū  #据
 U+636F: dáo,dǎo  #捯
 U+6370: wǒ,luò,luǒ  #捰
 U+6371: ái,āi  #捱
@@ -4507,7 +4507,7 @@ U+6593: lán  #斓
 U+6594: yǔ,zhōng  #斔
 U+6595: lán  #斕
 U+6596: wěi,mén  #斖
-U+6597: dǒu,dòu,zhǔ  #斗
+U+6597: dòu,dǒu,zhǔ  #斗
 U+6599: liào,liao  #料
 U+659B: hú  #斛
 U+659C: xié,yé,xiá,xie  #斜
@@ -4823,7 +4823,7 @@ U+6744: qiān  #杄
 U+6745: yú,wū  #杅
 U+6746: gān,gǎn  #杆
 U+6747: wū  #杇
-U+6748: chà,chā  #杈
+U+6748: chā,chà  #杈
 U+6749: shān,shā  #杉
 U+674B: fán,xìn  #杋
 U+674C: wù  #杌
@@ -4921,7 +4921,7 @@ U+67C3: líng  #柃
 U+67C4: bǐng,bìng  #柄
 U+67C5: nǐ,chì  #柅
 U+67C6: lā  #柆
-U+67C8: pán,pàn,bàn  #柈
+U+67C8: bàn,pán,pàn  #柈
 U+67C9: fán,biān,fān  #柉
 U+67CA: zhōng  #柊
 U+67CB: dài  #柋
@@ -4941,7 +4941,7 @@ U+67DA: yòu,yóu  #柚
 U+67DB: shēn  #柛
 U+67DC: jǔ,guì,kuì  #柜
 U+67DD: tuò  #柝
-U+67DE: zuò,zé,zhà  #柞
+U+67DE: zhà,zuò,zé  #柞
 U+67DF: nán  #柟
 U+67E0: chǔ,níng  #柠
 U+67E2: dǐ,chí  #柢
@@ -5721,7 +5721,7 @@ U+6C0D: qú  #氍
 U+6C0F: shì,zhī  #氏
 U+6C10: dī,dǐ  #氐
 U+6C11: mín  #民
-U+6C13: méng,máng  #氓
+U+6C13: máng,méng  #氓
 U+6C14: qì,qi  #气
 U+6C15: piě,piē  #氕
 U+6C16: nǎi  #氖
@@ -6265,7 +6265,7 @@ U+6EAB: wēn  #溫
 U+6EAE: shī  #溮
 U+6EAF: sù  #溯
 U+6EB0: yī,ái  #溰
-U+6EB1: zhēn,qín  #溱
+U+6EB1: qín,zhēn  #溱
 U+6EB2: sōu  #溲
 U+6EB3: yún  #溳
 U+6EB4: xiù  #溴
@@ -6282,7 +6282,7 @@ U+6EBF: pàn  #溿
 U+6EC0: chù,xù  #滀
 U+6EC1: chú  #滁
 U+6EC2: pāng  #滂
-U+6EC3: wěng,wēng  #滃
+U+6EC3: wēng,wěng  #滃
 U+6EC4: cāng  #滄
 U+6EC5: miè  #滅
 U+6EC6: hé,gé  #滆
@@ -6669,7 +6669,7 @@ U+70A9: lìng  #炩
 U+70AB: xuàn  #炫
 U+70AC: jù  #炬
 U+70AD: tàn  #炭
-U+70AE: pào,páo,bāo  #炮
+U+70AE: pào,bāo,páo  #炮
 U+70AF: jiǒng  #炯
 U+70B0: páo,fǒu  #炰
 U+70B1: tái  #炱
@@ -6837,7 +6837,7 @@ U+719B: biāo  #熛
 U+719C: cōng,zǒng  #熜
 U+719D: lù,āo  #熝
 U+719E: jiān  #熞
-U+719F: shóu,shú  #熟
+U+719F: shú,shóu  #熟
 U+71A0: yì  #熠
 U+71A1: lóu  #熡
 U+71A4: yì  #熤
@@ -7189,7 +7189,7 @@ U+736F: xūn  #獯
 U+7370: níng  #獰
 U+7372: huò,huái  #獲
 U+7373: nóu,nòu,rú  #獳
-U+7374: méng,měng  #獴
+U+7374: měng,méng  #獴
 U+7375: liè,què,xí  #獵
 U+7376: náo,nǎo,yōu  #獶
 U+7377: guǎng  #獷
@@ -7229,7 +7229,7 @@ U+739E: fū  #玞
 U+739F: wén,mín,wēn  #玟
 U+73A0: jiè  #玠
 U+73A1: yà,yá,yé  #玡
-U+73A2: fēn,bīn  #玢
+U+73A2: bīn,fēn  #玢
 U+73A4: bàng  #玤
 U+73A5: yuè  #玥
 U+73A6: jué  #玦
@@ -7492,7 +7492,7 @@ U+74F7: cí  #瓷
 U+74FB: chī  #瓻
 U+74FD: dàng,dǎng  #瓽
 U+74FE: měng,wā  #瓾
-U+74FF: pǒu,bù  #瓿
+U+74FF: bù,pǒu  #瓿
 U+7500: chuí,zhuì  #甀
 U+7502: biān  #甂
 U+7503: zhòu  #甃
@@ -7841,7 +7841,7 @@ U+76D6: gài,hé,gě,gai  #盖
 U+76D7: dào  #盗
 U+76D8: pán,pan  #盘
 U+76DA: qiú  #盚
-U+76DB: chéng,shèng  #盛
+U+76DB: shèng,chéng  #盛
 U+76DC: dào  #盜
 U+76DD: lù  #盝
 U+76DE: zhǎn  #盞
@@ -7919,7 +7919,7 @@ U+773E: zhòng,pān,yín  #眾
 U+7740: zháo,zhù,zhāo,zhuó,zhe,zhuo  #着
 U+7741: zhēng  #睁
 U+7743: jùn,suō  #睃
-U+7744: qiáo,shào,xiāo  #睄
+U+7744: shào,qiáo,xiāo  #睄
 U+7745: hàn  #睅
 U+7746: huàn,huǎn  #睆
 U+7747: dì  #睇
@@ -8657,7 +8657,7 @@ U+7B4D: sǔn  #筍
 U+7B4E: rú  #筎
 U+7B4F: fá  #筏
 U+7B50: kuāng  #筐
-U+7B51: zhú,zhù  #筑
+U+7B51: zhù,zhú  #筑
 U+7B52: tǒng,tong  #筒
 U+7B54: dá,dā,da  #答
 U+7B56: cè  #策
@@ -8716,7 +8716,7 @@ U+7B9C: kōng  #箜
 U+7B9D: qián  #箝
 U+7BA0: chuí  #箠
 U+7BA1: guǎn  #管
-U+7BA2: wǎn,yuān  #箢
+U+7BA2: yuān,wǎn  #箢
 U+7BA4: jú,suì,zú  #箤
 U+7BA6: zé,zhài  #箦
 U+7BA7: qiè  #箧
@@ -8739,7 +8739,7 @@ U+7BC1: huáng  #篁
 U+7BC4: fàn  #範
 U+7BC6: zhuàn  #篆
 U+7BC7: piān  #篇
-U+7BC9: zhú,zhù  #築
+U+7BC9: zhù,zhú  #築
 U+7BCA: huáng,hóng  #篊
 U+7BCB: qiè  #篋
 U+7BCC: hóu  #篌
@@ -9595,7 +9595,7 @@ U+8015: gēng,jīng  #耕
 U+8016: chào  #耖
 U+8017: hào,hao  #耗
 U+8018: yún  #耘
-U+8019: pá,bà  #耙
+U+8019: bà,pá  #耙
 U+801B: chí,yí,sì  #耛
 U+801C: sì  #耜
 U+801E: jiā  #耞
@@ -9604,7 +9604,7 @@ U+8020: hé,huō  #耠
 U+8021: chú  #耡
 U+8022: lào  #耢
 U+8024: jí,jiè  #耤
-U+8025: tǎng,tāng  #耥
+U+8025: tāng,tǎng  #耥
 U+8026: ǒu  #耦
 U+8027: lóu,lǒu  #耧
 U+8028: nòu  #耨
@@ -9817,7 +9817,7 @@ U+8147: něi  #腇
 U+8148: qīng,jīng  #腈
 U+814A: là,xí,xī  #腊
 U+814B: yè,yì  #腋
-U+814C: āng,yān,ā  #腌
+U+814C: yān,ā,āng  #腌
 U+814D: rěn,rèn  #腍
 U+814E: shèn  #腎
 U+814F: duó,chuò,zhuì  #腏
@@ -9916,7 +9916,7 @@ U+81C5: chù  #臅
 U+81C6: yì  #臆
 U+81C7: juǎn,zuī  #臇
 U+81C9: liǎn  #臉
-U+81CA: sào,sāo  #臊
+U+81CA: sāo,sào  #臊
 U+81CC: gǔ  #臌
 U+81CD: qí  #臍
 U+81CF: bìn  #臏
@@ -10091,7 +10091,7 @@ U+82A7: xù,zhù  #芧
 U+82A8: jí,jī  #芨
 U+82A9: qín  #芩
 U+82AA: shì,qí  #芪
-U+82AB: yuán,yán  #芫
+U+82AB: yán,yuán  #芫
 U+82AC: fēn  #芬
 U+82AD: bā  #芭
 U+82AE: ruì  #芮
@@ -10128,7 +10128,7 @@ U+82D1: yuàn,yù,yuán  #苑
 U+82D2: rǎn  #苒
 U+82D3: líng  #苓
 U+82D4: tái,tāi  #苔
-U+82D5: tiáo,sháo  #苕
+U+82D5: sháo,tiáo  #苕
 U+82D6: dí  #苖
 U+82D7: miáo  #苗
 U+82D8: qǐng  #苘
@@ -10166,7 +10166,7 @@ U+8300: fú  #茀
 U+8301: zhuó  #茁
 U+8302: mào,mòu  #茂
 U+8303: fàn  #范
-U+8304: qié,jiā  #茄
+U+8304: jiā,qié  #茄
 U+8305: máo  #茅
 U+8306: máo,mǎo  #茆
 U+8307: bá,bèi  #茇
@@ -10233,7 +10233,7 @@ U+834D: qiáo  #荍
 U+834E: chí  #荎
 U+834F: rěn  #荏
 U+8350: jiàn  #荐
-U+8351: yí,tí  #荑
+U+8351: tí,yí  #荑
 U+8352: huāng,huang  #荒
 U+8353: píng  #荓
 U+8354: lì  #荔
@@ -10447,8 +10447,8 @@ U+8454: hóu  #葔
 U+8456: tú,tū  #葖
 U+8457: zhe,zhù,zhāo,zháo,zhuó,zhuo  #著
 U+8459: xiāng  #葙
-U+845A: shèn,rèn  #葚
-U+845B: gě,gé  #葛
+U+845A: rèn,shèn  #葚
+U+845B: gé,gě  #葛
 U+845C: qiā  #葜
 U+845D: qíng,jìng  #葝
 U+845E: mǐ  #葞
@@ -10676,7 +10676,7 @@ U+8577: yù  #蕷
 U+8578: xiá  #蕸
 U+8579: wèng,yōng  #蕹
 U+857A: jí  #蕺
-U+857B: hòng,hóng  #蕻
+U+857B: hóng,hòng  #蕻
 U+857C: sì  #蕼
 U+857E: lěi  #蕾
 U+8580: yùn  #薀
@@ -10742,7 +10742,7 @@ U+85C5: fá  #藅
 U+85C6: jiǎn  #藆
 U+85C7: xù,yù,xū  #藇
 U+85C8: kuī,kuí  #藈
-U+85C9: jiè,jí  #藉
+U+85C9: jí,jiè  #藉
 U+85CB: diào,dí,zhuó  #藋
 U+85CD: lán,lan  #藍
 U+85CE: jìn  #藎
@@ -10982,7 +10982,7 @@ U+86F4: qí  #蛴
 U+86F5: xīng,xíng  #蛵
 U+86F6: liè,jiè  #蛶
 U+86F7: qiú  #蛷
-U+86F8: xiāo,shāo  #蛸
+U+86F8: shāo,xiāo  #蛸
 U+86F9: yǒng  #蛹
 U+86FA: jiá  #蛺
 U+86FB: tuì,shuì  #蛻
@@ -10994,7 +10994,7 @@ U+8703: shèn  #蜃
 U+8704: shèn,zhèn  #蜄
 U+8705: fǔ  #蜅
 U+8706: xiǎn,xiàn  #蜆
-U+8707: zhé,zhē  #蜇
+U+8707: zhē,zhé  #蜇
 U+8708: wú  #蜈
 U+8709: fú  #蜉
 U+870A: lí,lì  #蜊
@@ -11130,7 +11130,7 @@ U+87A3: tè,téng  #螣
 U+87A4: yǔ,zhōng  #螤
 U+87A8: mǎn,mán  #螨
 U+87AA: shāng  #螪
-U+87AB: zhē,shì  #螫
+U+87AB: shì,zhē  #螫
 U+87AC: cáo  #螬
 U+87AD: chī  #螭
 U+87AE: dì  #螮
@@ -11281,7 +11281,7 @@ U+8863: yī,yì,yi  #衣
 U+8865: bǔ,bu  #补
 U+8867: yú  #衧
 U+8868: biǎo  #表
-U+8869: chà,chǎ  #衩
+U+8869: chǎ,chà  #衩
 U+886A: yí,yì  #衪
 U+886B: shān  #衫
 U+886C: chèn,chen  #衬
@@ -12956,7 +12956,7 @@ U+90C1: yù  #郁
 U+90C3: gé,hé  #郃
 U+90C4: xì,què,qiè  #郄
 U+90C5: zhì  #郅
-U+90C7: xún,huán  #郇
+U+90C7: huán,xún  #郇
 U+90C8: hòu  #郈
 U+90CA: jiāo  #郊
 U+90CB: xī,xí  #郋
@@ -13072,7 +13072,7 @@ U+9146: fēng  #酆
 U+9147: zàn,cuó,cuán  #酇
 U+9148: lì,lí,zhí  #酈
 U+9149: yǒu  #酉
-U+914A: dǐng,dīng  #酊
+U+914A: dīng,dǐng  #酊
 U+914B: qiú  #酋
 U+914C: zhuó  #酌
 U+914D: pèi  #配
@@ -14137,7 +14137,7 @@ U+96B9: zhuī,cuī,wéi  #隹
 U+96BA: hú,hè,què  #隺
 U+96BB: zhī,zhǐ  #隻
 U+96BC: zhǔn,sǔn  #隼
-U+96BD: jùn,juàn  #隽
+U+96BD: juàn,jùn  #隽
 U+96BE: nán,nàn,nuó,nan  #难
 U+96BF: yì  #隿
 U+96C0: què,qiāo,qiǎo  #雀
