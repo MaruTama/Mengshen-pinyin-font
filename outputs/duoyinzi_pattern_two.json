@@ -2,7 +2,6 @@
     "lookup_table": {
         "lookup_pattern_10": {
             "间": "间.ss02",
-            "离": "离.ss02",
             "兴": "兴.ss02",
             "头": "头.ss02",
             "干": "干.ss02",
@@ -24,10 +23,7 @@
             "不": "不.ss02",
             "翘": "翘.ss02",
             "棱": "棱.ss02",
-            "悄": "悄.ss02",
-            "切": "切.ss02",
             "踏": "踏.ss02",
-            "熨": "熨.ss02",
             "吐": "吐.ss02",
             "血": "血.ss02",
             "相": "相.ss02",
@@ -41,20 +37,25 @@
             "子": "子.ss02",
             "空": "空.ss02",
             "奔": "奔.ss02",
-            "角": "角.ss02",
-            "斗": "斗.ss02",
             "要": "要.ss02",
             "挟": "挟.ss02",
-            "地": "地.ss02",
             "强": "强.ss02",
-            "方": "方.ss02"
+            "地": "地.ss02",
+            "方": "方.ss02",
+            "悄": "悄.ss02",
+            "寂": "寂.ss02",
+            "斗": "斗.ss02",
+            "柜": "柜.ss02",
+            "爪": "爪.ss02",
+            "耙": "耙.ss02",
+            "臊": "臊.ss02",
+            "酩": "酩.ss02",
+            "酊": "酊.ss02"
         },
         "lookup_pattern_11": {
             "参": "参.ss03",
             "揣": "揣.ss03",
-            "帖": "帖.ss03",
             "和": "和.ss03",
-            "单": "单.ss03",
             "服": "服.ss03"
         },
         "lookup_pattern_12": {
@@ -79,7 +80,7 @@
                 "作": null
             },
             {
-                "离": "lookup_pattern_10"
+                "离": null
             },
             {
                 "间": "lookup_pattern_10"
@@ -215,14 +216,6 @@
                 "棱": "lookup_pattern_10"
             }
         ],
-        "悄切": [
-            {
-                "悄": "lookup_pattern_10"
-            },
-            {
-                "切": "lookup_pattern_10"
-            }
-        ],
         "数得着": [
             {
                 "数": "lookup_pattern_13"
@@ -240,14 +233,6 @@
             },
             {
                 "实": "lookup_pattern_10"
-            }
-        ],
-        "熨帖": [
-            {
-                "熨": "lookup_pattern_10"
-            },
-            {
-                "帖": "lookup_pattern_11"
             }
         ],
         "吐血": [
@@ -344,42 +329,12 @@
                 "儿": "lookup_pattern_14"
             }
         ],
-        "角斗": [
-            {
-                "角": "lookup_pattern_10"
-            },
-            {
-                "斗": "lookup_pattern_10"
-            }
-        ],
         "要挟": [
             {
                 "要": "lookup_pattern_10"
             },
             {
                 "挟": "lookup_pattern_10"
-            }
-        ],
-        "悄悄地": [
-            {
-                "悄": "lookup_pattern_10"
-            },
-            {
-                "悄": "lookup_pattern_10"
-            },
-            {
-                "地": "lookup_pattern_10"
-            }
-        ],
-        "简单地": [
-            {
-                "简": null
-            },
-            {
-                "单": "lookup_pattern_11"
-            },
-            {
-                "地": "lookup_pattern_10"
             }
         ],
         "勉强地": [
@@ -424,6 +379,57 @@
             },
             {
                 "地": "lookup_pattern_10"
+            }
+        ],
+        "悄寂": [
+            {
+                "悄": "lookup_pattern_10"
+            },
+            {
+                "寂": "lookup_pattern_10"
+            }
+        ],
+        "五斗柜": [
+            {
+                "五": null
+            },
+            {
+                "斗": "lookup_pattern_10"
+            },
+            {
+                "柜": "lookup_pattern_10"
+            }
+        ],
+        "爪子": [
+            {
+                "爪": "lookup_pattern_10"
+            },
+            {
+                "子": "lookup_pattern_10"
+            }
+        ],
+        "耙子": [
+            {
+                "耙": "lookup_pattern_10"
+            },
+            {
+                "子": "lookup_pattern_10"
+            }
+        ],
+        "臊子": [
+            {
+                "臊": "lookup_pattern_10"
+            },
+            {
+                "子": "lookup_pattern_10"
+            }
+        ],
+        "酩酊": [
+            {
+                "酩": "lookup_pattern_10"
+            },
+            {
+                "酊": "lookup_pattern_10"
             }
         ]
     }
