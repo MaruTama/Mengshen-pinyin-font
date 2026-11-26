@@ -44,6 +44,8 @@ yomilint/
 - このリポジトリでは `tools/yomilint/` に置き、`src/` のビルド用コードからは
   import しない（逆向きの依存も作らない）。切り出すときにそのまま別リポジトリへ
   移せるようにする。
+- テストも `tools/yomilint/tests/` に置き、専用の pytest 設定で動かす。この
+  リポジトリの `pytest.ini`（`--cov=src`、カバレッジ 80% 以上）とは分ける。
 - fontbakery には、公開の段階で外部プロファイルとして呼べる薄い層を足す。
 
 ## 3. 仕様ファイル（`yomilint.toml`）
@@ -61,6 +63,13 @@ none_label = "ss00"           # 注釈なしの字形を指す呼び名（任意
 kind = "components"           # components / names / sidecar
 # kind = "names" のとき:
 # pattern = '^(?P<base>.+)\.ss(?P<index>\d{2})$'   # index 0 は注釈なし
+
+[resolver.letters]            # 注釈の部品 → 字母 の求め方（components のとき）
+# cmap にある部品はそのまま文字に戻す。cmap にない専用のグリフは、名前か対応表で戻す。
+pattern = '^py_alphabet_(?P<letter>.+)$'
+encoding = "tone-number"      # 名前の中の字母の表し方。プロファイルが解く（a1 → ā、v3 → ǚ）
+# table = "letters.json"      # 名前で決まらないときの対応表（グリフ名 → 字母）
+# reference_font = "x.ttf"    # 名前がないときに、輪郭で照合する相手のフォント
 
 [dictionary]                  # 文字 → 読みの並び（先頭が既定の読み）
 path = "outputs/merged-mapping-table.txt"
@@ -102,12 +111,24 @@ path = "yomilint-baseline.json"
 
 | 方式 | 求め方 | 向いているフォント |
 | --- | --- | --- |
-| `components` | 複合グリフを部品に分け、注釈の領域にある部品を cmap の逆引きで文字に戻し、位置の順に並べる | 親字と注釈の字母を部品として持つフォント（Mengshen） |
+| `components` | 複合グリフを単純なグリフまで再帰的に展開し、注釈の領域にある部品を字母に戻して、位置の順に並べる | 親字と注釈の字母を部品として持つフォント（Mengshen） |
 | `names` | グリフ名を正規表現で分け、番号を辞書の読みの並びに当てる | 命名規則が決まっているフォント |
 | `sidecar` | グリフ名 → 読み の JSON を読む | 部品を持たない（輪郭を焼き込んだ）フォント |
 
-- `components` は命名規則に依存しないので既定にする。注釈の領域は
-  `annotation.position` と親字の部品の bbox から決める。
+- `components` を既定にする。注釈の領域は `annotation.position` と親字の部品の
+  bbox から決める。
+- 部品を字母に戻す方法は、次の順に試す（`[resolver.letters]`）。
+  1. cmap の逆引き。注釈の字母がフォント自身の文字のグリフならこれで決まる。
+  2. グリフ名の規則か対応表。Mengshen の字母は cmap にない専用のグリフ
+     （`py_alphabet_a1`、`py_alphabet_v3` など）なので、この方法を使う。
+     対応表が要る場合でも、字母の数（拼音なら数十）で済む。
+  3. 輪郭の照合。グリフ名のないフォントで、拡大縮小をそろえた輪郭を、指定した
+     フォントの文字のグリフと比べる。
+- Mengshen の複合グリフは入れ子になっている（既定のグリフ → `.ss01` →
+  字母と `.ss00`）。展開は `maxp` の深さの上限まで再帰し、循環があれば
+  `format/no-circular-reference` の失敗として扱う。
+- 2 と `names` はグリフ名に頼る。グリフ名を落としたフォント（`post` の
+  version 3）では使えないので、その場合は 1、3、`sidecar` のどれかになる。
 - 2 つの方式を両方使える場合（Mengshen）は、結果が一致するかも検査する
   （`resolve/methods-agree`）。命名や番号のずれを見つけられる。
 - 1 つの語句が 1 つの合字グリフになるフォント（ふりがなで想定）は、HarfBuzz の
@@ -134,7 +155,7 @@ path = "yomilint-baseline.json"
 | ID | 重大度 | 最小版 | 検査すること |
 | --- | --- | --- | --- |
 | `context/phrase` | ERROR | ○ | 語句をシェーピングした結果の読みが期待どおりである |
-| `context/phrase-in-sentence` | ERROR | ○ | 語句の前後にほかの文字を置いても結果が変わらない（例外パターンを除く） |
+| `context/phrase-in-sentence` | ERROR | ○ | 語句の前後にほかの文字を置いても結果が変わらない。置く文字には、どの語句テストにも出てこない文字を選ぶ |
 | `context/exception` | ERROR | ○ | 例外パターン（「着手」と「背着手」）が両方とも期待どおりである |
 | `context/isolated-default` | ERROR | ○ | 多音字を単独で置くと既定の読みになる |
 | `context/rule-conflict` | WARN |  | 同じ文脈に違う結果を出す規則がない（GSUB の静的解析） |
@@ -145,8 +166,8 @@ path = "yomilint-baseline.json"
 
 | ID | 重大度 | 最小版 | 検査すること |
 | --- | --- | --- | --- |
-| `select/ivs-order` | ERROR | ○ | 異体字セレクタの n 番目が、辞書の n 番目の読みを表示する |
-| `select/ivs-none` | WARN | ○ | 注釈なしを選ぶセレクタがあり、注釈のない字形になる |
+| `select/ivs-order` | ERROR | ○ | 読みが複数ある文字で、異体字セレクタの n 番目が辞書の n 番目の読みを表示する。辞書の読みの数だけセレクタがある |
+| `select/ivs-none` | WARN | ○ | 対象のすべての文字（読みが 1 つの文字を含む）に、注釈なしを選ぶセレクタがあり、注釈のない字形になる |
 | `select/aalt-covers-readings` | ERROR | ○ | `aalt` の候補が、注釈なしと全部の読みを辞書の順に並べている |
 | `select/ivs-after-context` | WARN |  | セレクタを付けた文字は、文脈による読み分けより優先される |
 
@@ -228,7 +249,8 @@ yomilint diff OLD.ttf NEW.ttf --spec SPEC
 ## 8. 進め方
 
 1. **最小版**（このリポジトリの `tools/yomilint/`）
-   - `components` と `names` の resolver、`mengshen` 形式の読み込み器。
+   - `components`（字母は cmap の逆引きとグリフ名の規則まで）と `names` の
+     resolver、`mengshen` 形式の読み込み器。
    - 5 章で「最小版 ○」の検査、端末と JSON の報告、baseline。
    - Mengshen の 2 書体で動かし、`test_built_font_gsub.py` と `gsub_checker.py` の
      検証をこのツールの呼び出しに置き換える。
