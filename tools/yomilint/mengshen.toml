@@ -1,0 +1,38 @@
+# The spec of the Mengshen fonts, for `python -m yomilint check FONT --spec mengshen.toml`
+# run from tools/yomilint.
+
+[font]
+profile = "pinyin"
+
+[annotation]
+position = "top"
+
+[resolver]
+kind = "components"
+pattern = '^(?P<base>.+)\.ss(?P<index>\d{2})$'
+
+[resolver.letters]
+pattern = '^py_alphabet_(?P<letter>.+)$'
+encoding = "tone-number"
+
+[dictionary]
+path = "../../outputs/merged-mapping-table.txt"
+format = "mengshen"
+
+[[phrases]]
+path = "../../res/phonics/duo_yin_zi/phrase_of_pattern_one.txt"
+format = "mengshen"
+
+[[phrases]]
+path = "../../res/phonics/duo_yin_zi/phrase_of_pattern_two.txt"
+format = "mengshen"
+
+[[phrases]]
+path = "../../res/phonics/duo_yin_zi/phrase_of_exceptional_pattern.txt"
+format = "mengshen"
+
+[selectors]
+base = 0xE01E0
+
+[limits]
+glyph_headroom = 500
