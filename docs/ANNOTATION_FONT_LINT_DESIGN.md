@@ -29,7 +29,7 @@
 
 ## 2. 全体の構成
 
-```
+```text
 yomilint/
   core/        フォントの読み込み（fontTools）、シェーピング（uharfbuzz）
   resolve/     グリフ → 読み の求め方（4 章）
@@ -137,7 +137,7 @@ path = "yomilint-baseline.json"
 ## 5. 検査の一覧
 
 重大度は ERROR（読みが誤る、表示が壊れる）、WARN（品質の問題）、INFO（参考）。
-「最小版」に ○ が付いたものから作る。
+「最小版」に ○ が付いたものから作る（- は後の段階）。
 
 ### 網羅と辞書（`coverage/`）
 
@@ -147,8 +147,8 @@ path = "yomilint-baseline.json"
 | `coverage/charset-has-reading` | ERROR | ○ | 対象の文字の既定のグリフに注釈がある |
 | `coverage/default-reading` | ERROR | ○ | 既定の読みが辞書の先頭の読みと一致する |
 | `coverage/all-readings-reachable` | ERROR | ○ | 辞書の読みすべてに、切り替えで届くグリフがある |
-| `coverage/valid-reading` | ERROR |  | 表示される読みが正しい形である（プロファイルが定義） |
-| `coverage/annotation-letters` | ERROR |  | 注釈に要る字母がすべてフォントにある（拼音なら ǚ、ḿ、ê̄ など） |
+| `coverage/valid-reading` | ERROR | - | 表示される読みが正しい形である（プロファイルが定義） |
+| `coverage/annotation-letters` | ERROR | - | 注釈に要る字母がすべてフォントにある（拼音なら ǚ、ḿ、ê̄ など） |
 
 ### 文脈による読み分け（`context/`）
 
@@ -158,9 +158,9 @@ path = "yomilint-baseline.json"
 | `context/phrase-in-sentence` | ERROR | ○ | 語句の前後にほかの文字を置いても結果が変わらない。置く文字には、どの語句テストにも出てこない文字を選ぶ |
 | `context/exception` | ERROR | ○ | 例外パターン（「着手」と「背着手」）が両方とも期待どおりである |
 | `context/isolated-default` | ERROR | ○ | 多音字を単独で置くと既定の読みになる |
-| `context/rule-conflict` | WARN |  | 同じ文脈に違う結果を出す規則がない（GSUB の静的解析） |
-| `context/unreachable-rule` | WARN |  | 前の規則に隠れて決して発動しない規則がない |
-| `context/feature-always-on` | WARN |  | 読み分けが、既定で有効な機能（`rclt`、`calt` など）に入っている |
+| `context/rule-conflict` | WARN | - | 同じ文脈に違う結果を出す規則がない（GSUB の静的解析） |
+| `context/unreachable-rule` | WARN | - | 前の規則に隠れて決して発動しない規則がない |
+| `context/feature-always-on` | WARN | - | 読み分けが、既定で有効な機能（`rclt`、`calt` など）に入っている |
 
 ### 手動の切り替え（`select/`）
 
@@ -169,7 +169,7 @@ path = "yomilint-baseline.json"
 | `select/ivs-order` | ERROR | ○ | 読みが複数ある文字で、異体字セレクタの n 番目が辞書の n 番目の読みを表示する。辞書の読みの数だけセレクタがある |
 | `select/ivs-none` | WARN | ○ | 対象のすべての文字（読みが 1 つの文字を含む）に、注釈なしを選ぶセレクタがあり、注釈のない字形になる |
 | `select/aalt-covers-readings` | ERROR | ○ | `aalt` の候補が、注釈なしと全部の読みを辞書の順に並べている |
-| `select/ivs-after-context` | WARN |  | セレクタを付けた文字は、文脈による読み分けより優先される |
+| `select/ivs-after-context` | WARN | - | セレクタを付けた文字は、文脈による読み分けより優先される |
 
 ### 注釈の寸法（`geometry/`）
 
@@ -179,10 +179,10 @@ path = "yomilint-baseline.json"
 | `geometry/no-overlap` | ERROR | ○ | 注釈と親字の bbox が重ならず、`min_gap` 以上離れている |
 | `geometry/advance-matches-base` | ERROR | ○ | 注釈付きのグリフの送り幅が、注釈なしと同じ |
 | `geometry/annotation-within-advance` | WARN | ○ | 注釈が送り幅からはみ出さない |
-| `geometry/centered` | WARN |  | 注釈の中央が送り幅の中央にある（`center_tolerance` 以内） |
-| `geometry/baseline-aligned` | WARN |  | 注釈のベースラインがグリフ間でそろっている |
-| `geometry/min-scale` | WARN |  | 長い読みの縮小率が `min_scale` 以上である |
-| `geometry/line-gap` | WARN |  | 行間の指定で、隣の行の注釈と親字がぶつからない |
+| `geometry/centered` | WARN | - | 注釈の中央が送り幅の中央にある（`center_tolerance` 以内） |
+| `geometry/baseline-aligned` | WARN | - | 注釈のベースラインがグリフ間でそろっている |
+| `geometry/min-scale` | WARN | - | 長い読みの縮小率が `min_scale` 以上である |
+| `geometry/line-gap` | WARN | - | 行間の指定で、隣の行の注釈と親字がぶつからない |
 
 ### 形式の上限と健全性（`format/`）
 
@@ -192,15 +192,15 @@ path = "yomilint-baseline.json"
 | `format/ots` | ERROR | ○ | OpenType Sanitizer を通る（入っていなければスキップ） |
 | `format/tables-parse` | ERROR | ○ | fontTools で全テーブルを読める（壊れた GSUB を見つける） |
 | `format/no-circular-reference` | ERROR | ○ | 複合グリフに循環参照がない |
-| `format/maxp-composite` | WARN |  | 複合グリフの深さと部品数が `maxp` の値以内である |
-| `format/derived-values` | WARN |  | bbox などの計算値が、輪郭から求めた値と一致する |
+| `format/maxp-composite` | WARN | - | 複合グリフの深さと部品数が `maxp` の値以内である |
+| `format/derived-values` | WARN | - | bbox などの計算値が、輪郭から求めた値と一致する |
 
 ### 元のフォントとの差分（`source/`。元のフォントを渡したときだけ）
 
 | ID | 重大度 | 最小版 | 検査すること |
 | --- | --- | --- | --- |
-| `source/base-outline` | ERROR |  | 親字の輪郭が元のフォントと同じである |
-| `source/other-glyphs` | WARN |  | 注釈に関係しないグリフ（かな、記号など）が変わっていない |
+| `source/base-outline` | ERROR | - | 親字の輪郭が元のフォントと同じである |
+| `source/other-glyphs` | WARN | - | 注釈に関係しないグリフ（かな、記号など）が変わっていない |
 
 ### リリース間の差分（`yomilint diff OLD NEW`）
 
@@ -213,7 +213,7 @@ path = "yomilint-baseline.json"
 
 ## 6. 実行と報告
 
-```
+```bash
 yomilint check outputs/Mengshen-HanSerif.ttf --spec yomilint.toml
 yomilint check FONT --spec SPEC --format json > report.json
 yomilint check FONT --spec SPEC --select 'context/*' --fail-on warn
