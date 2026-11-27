@@ -2,7 +2,7 @@
 
 ## 状態
 
-設計中（設計書の案を作成。実装は未着手）
+実装中（最小版の第 1 段: 中核、resolver、検査 12 個、CLI まで）
 
 ## 概要
 
@@ -23,14 +23,30 @@
 ## サブタスク
 
 - [x] 設計書の案（仕様ファイルの書式、検査の一覧、プロファイル）
-- [ ] 設計書のレビューと、未決定の点（設計書 9 章）の決定
-- [ ] 🔴 試験用フォントを作る仕組み（FontBuilder）と、最初の検査の失敗するテスト
-- [ ] 🟢 中核（読み込み、シェーピング）、resolver（components、names）
-- [ ] 🟢 最小版の検査（設計書 5 章の ○）、端末と JSON の報告、baseline
-- [ ] 🔵 Mengshen の 2 書体で実行し、既存の `test_built_font_gsub.py` と
-      `gsub_checker.py` の検証を置き換える
+- [x] 設計書のレビュー（#84 でマージ）
+- [x] 🔴 試験用フォントを作る仕組み（`tests/fontmaker.py`）と、失敗するテスト
+- [x] 🟢 中核（読み込み、シェーピング）、resolver（components、names）
+- [x] 🟢 検査 12 個（coverage 4、context 2、select 3、resolve 1、format 2）、
+      端末と JSON の報告
+- [x] 🔵 整形（black、isort）、flake8、mypy。Mengshen-HanSerif（リリース版）で実行
+- [ ] 最小版の残り: `context/phrase-in-sentence`、`context/exception`、
+      `geometry/` の 4 個、`format/ots`、`format/no-circular-reference`、baseline
+- [ ] 既存の `test_built_font_gsub.py` と `gsub_checker.py` の検証を置き換える
+- [ ] 設計書 9 章の未決定の点の決定
 - [ ] 拡張（静的解析、HTML の報告、diff、source/ の検査）
 - [ ] 公開（別リポジトリへの切り出し、PyPI、fontbakery プロファイル）
+
+## 発見事項
+
+- **Mengshen の字母は cmap にない。** `py_alphabet_*` という専用のグリフなので、
+  部品を字母に戻すにはグリフ名の規則が要る（設計書 4 章に反映済み）。
+- **1 つのグリフが複数の文字に対応する。** 康熙部首（U+2F00 など）と漢字が同じ
+  グリフを共有する。グリフから文字を引くときは、対応する文字すべてを見る。
+- **リリース版（v20261125）の HanSerif で `context/phrase` が 58 件落ちる。**
+  語句表（`phrase_of_pattern_one.txt`）にある語句が、生成されたパターン表
+  （`outputs/duoyinzi_pattern_one.txt`）になく、フォントに規則がない。
+  例: 个别（gè/bié のはずが ge/bié）、屏除、惜别、臭虫。原因の調査は未着手。
+  ほかの 11 個の検査は、16,029 文字すべてで通る。
 
 ## 関連
 
