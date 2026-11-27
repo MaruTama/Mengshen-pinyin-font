@@ -154,9 +154,8 @@ path = "yomilint-baseline.json"
 
 | ID | 重大度 | 最小版 | 検査すること |
 | --- | --- | --- | --- |
-| `context/phrase` | ERROR | ○ | 語句をシェーピングした結果の読みが期待どおりである |
+| `context/phrase` | ERROR | ○ | 語句をシェーピングした結果の読みが期待どおりである。例外パターン（「着手」と「背着手」）は、語句表の同じ行から別々の語句として読むので、この検査が両方を見る |
 | `context/phrase-in-sentence` | ERROR | ○ | 語句の前後にほかの文字を置いても結果が変わらない。置く文字には、どの語句テストにも出てこない文字を選ぶ |
-| `context/exception` | ERROR | ○ | 例外パターン（「着手」と「背着手」）が両方とも期待どおりである |
 | `context/isolated-default` | ERROR | ○ | 多音字を単独で置くと既定の読みになる |
 | `context/rule-conflict` | WARN | - | 同じ文脈に違う結果を出す規則がない（GSUB の静的解析） |
 | `context/unreachable-rule` | WARN | - | 前の規則に隠れて決して発動しない規則がない |
@@ -175,7 +174,7 @@ path = "yomilint-baseline.json"
 
 | ID | 重大度 | 最小版 | 検査すること |
 | --- | --- | --- | --- |
-| `geometry/no-clipping` | ERROR | ○ | 注釈が usWinAscent/usWinDescent と hhea の範囲に収まる（切れない） |
+| `geometry/no-clipping` | ERROR | ○ | 注釈が usWinAscent と usWinDescent の範囲に収まる（Windows で切れない）。hhea の ascender は行送りを決める値で、超えても切れないので見ない |
 | `geometry/no-overlap` | ERROR | ○ | 注釈と親字の bbox が重ならず、`min_gap` 以上離れている |
 | `geometry/advance-matches-base` | ERROR | ○ | 注釈付きのグリフの送り幅が、注釈なしと同じ |
 | `geometry/annotation-within-advance` | WARN | ○ | 注釈が送り幅からはみ出さない |

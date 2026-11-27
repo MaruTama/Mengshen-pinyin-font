@@ -8,7 +8,8 @@
 
 ## 使い方
 
-`fonttools` と `uharfbuzz` が要ります（Python 3.11 以上）。
+`fonttools` と `uharfbuzz` が要ります（Python 3.11 以上）。`opentype-sanitizer` を
+入れると、`format/ots` の検査も走ります。
 
 ```bash
 cd tools/yomilint
@@ -20,6 +21,19 @@ python -m yomilint check FONT --spec SPEC --fail-on warn
 
 終了コードは、ERROR が 1 件でもあれば 1、仕様ファイルやデータが読めなければ 2 です。
 
+### 既知の問題を除く
+
+古い問題が残っているフォントでも、新しく増えた問題だけを失敗にできます。
+
+```bash
+python -m yomilint baseline FONT --spec SPEC -o known.json
+python -m yomilint check FONT --spec SPEC --baseline known.json
+```
+
+`known.json` に載っている指摘（検査 ID と対象の組）は数えません。載っているのに出なく
+なった指摘は「known but no longer found」と表示するので、一覧から消してください。
+仕様ファイルの `[ignore] path` に書いておくこともできます。
+
 ## 今ある検査
 
 | ID | 重大度 | 検査すること |
@@ -29,15 +43,26 @@ python -m yomilint check FONT --spec SPEC --fail-on warn
 | `coverage/default-reading` | ERROR | 既定の読みが辞書の先頭の読みと一致する |
 | `coverage/all-readings-reachable` | ERROR | 辞書の読みすべてに、切り替えで届くグリフがある |
 | `context/phrase` | ERROR | 語句をシェーピングした結果の読みが期待どおりである |
+| `context/phrase-in-sentence` | ERROR | 語句の前後にほかの文字を置いても、読みが変わらない |
 | `context/isolated-default` | ERROR | 多音字を単独で置くと既定の読みになる |
 | `select/ivs-order` | ERROR | 異体字セレクタの n 番目が、辞書の n 番目の読みを表示する |
 | `select/ivs-none` | WARN | 注釈なしを選ぶセレクタがある |
 | `select/aalt-covers-readings` | ERROR | `aalt` の候補が、注釈なしと全部の読みを辞書の順に並べている |
 | `resolve/methods-agree` | WARN | 部品から求めた読みと、グリフ名から求めた読みが一致する |
+| `geometry/no-clipping` | ERROR | 注釈が usWinAscent と usWinDescent の範囲に収まる |
+| `geometry/no-overlap` | ERROR | 注釈が親字と重ならず、`[geometry] min_gap` 以上離れている |
+| `geometry/advance-matches-base` | ERROR | 読みを切り替えても送り幅が変わらない |
+| `geometry/annotation-within-advance` | WARN | 注釈が送り幅からはみ出さない |
 | `format/glyph-count` | WARN | グリフ数に余裕がある |
 | `format/tables-parse` | ERROR | fontTools が全テーブルを読める |
+| `format/no-circular-reference` | ERROR | 複合グリフに循環参照がない |
+| `format/ots` | ERROR | OpenType Sanitizer を通る（入っていなければ走らない） |
 
-寸法の検査（`geometry/`）と、設計書にある残りの検査はまだありません。
+検査が例外で止まったときは、その検査の指摘として「the check could not run」を出し、
+ほかの検査は続けます。壊れたテーブルが 1 つあっても、残りの結果は得られます。
+
+設計書の最小版の検査は、これで全部です。拡張（規則の静的解析、寸法の残りの検査、
+HTML の報告、リリース間の差分、元のフォントとの差分）はまだありません。
 
 ## 開発
 

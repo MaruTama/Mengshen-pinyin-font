@@ -44,6 +44,9 @@ format = "mengshen"
 [selectors]
 base = 0xE01E0
 
+[geometry]
+min_gap = {min_gap}
+
 [limits]
 glyph_headroom = {headroom}
 """
@@ -62,13 +65,15 @@ class Project:
         dictionary: Optional[Dict[str, List[str]]] = None,
         kind: str = "components",
         headroom: int = 500,
+        min_gap: int = 0,
     ) -> None:
         self.font = make_font(directory / "font.ttf", plan)
         write_dictionary(directory / "dictionary.txt", dictionary)
         write_phrases(directory / "phrases.txt", phrases)
         self.spec = directory / "yomilint.toml"
         self.spec.write_text(
-            SPEC.format(kind=kind, headroom=headroom), encoding="utf-8"
+            SPEC.format(kind=kind, headroom=headroom, min_gap=min_gap),
+            encoding="utf-8",
         )
 
     def findings(self) -> List[str]:
