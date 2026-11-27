@@ -42,6 +42,7 @@ class Context:
     # The resolver of the other kind, when the spec allows both.
     second_resolver: Optional[Resolver] = None
     _sequences: Optional[Dict] = field(default=None, repr=False)
+    _selected: Optional[Dict[str, List[str]]] = field(default=None, repr=False)
     _alternates: Optional[Dict] = field(default=None, repr=False)
 
     def reading(self, glyph: str) -> Optional[str]:
@@ -74,8 +75,13 @@ class Context:
         default = self.font.glyph_for(char)
         if default is None:
             return []
+        if self._selected is None:
+            # Grouped once: a font has tens of thousands of sequences.
+            self._selected = {}
+            for (c, _), glyph in self.sequences().items():
+                self._selected.setdefault(c, []).append(glyph)
         glyphs = [default]
-        glyphs += [g for (c, _), g in self.sequences().items() if c == char]
+        glyphs += self._selected.get(char, [])
         glyphs += self.alternates().get(default, [])
         return list(dict.fromkeys(glyphs))
 

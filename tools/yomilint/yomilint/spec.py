@@ -7,6 +7,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from .profiles import PROFILES
+
 
 @dataclass
 class Source:
@@ -64,6 +66,9 @@ def load_spec(path: Path) -> Spec:
         selector_base=data.get("selectors", {}).get("base"),
         glyph_headroom=data.get("limits", {}).get("glyph_headroom", 500),
     )
+    if spec.profile not in PROFILES:
+        known = ", ".join(sorted(PROFILES))
+        raise SpecError(f"[font] profile {spec.profile!r} is not known ({known})")
     if spec.position not in ("top", "bottom", "left", "right"):
         raise SpecError(f"[annotation] position {spec.position!r} is not a side")
     if spec.resolver_kind not in ("components", "names"):

@@ -35,3 +35,11 @@ def test_select_runs_only_the_named_checks(project, capsys):
     )
     out = capsys.readouterr().out
     assert code == 1 and "context/phrase" not in out
+
+
+def test_a_spec_that_cannot_be_used_exits_two(project, capsys):
+    built = project()
+    text = built.spec.read_text(encoding="utf-8")
+    built.spec.write_text(text.replace('"pinyin"', '"klingon"'), encoding="utf-8")
+    assert main(["check", str(built.font), "--spec", str(built.spec)]) == 2
+    assert "klingon" in capsys.readouterr().err
