@@ -184,6 +184,12 @@ path = "yomilint-baseline.json"
 | `geometry/min-scale` | WARN | - | 長い読みの縮小率が `min_scale` 以上である |
 | `geometry/line-gap` | WARN | - | 行間の指定で、隣の行の注釈と親字がぶつからない |
 
+### 読みの求め方（`resolve/`）
+
+| ID | 重大度 | 最小版 | 検査すること |
+| --- | --- | --- | --- |
+| `resolve/methods-agree` | WARN | ○ | 部品から求めた読みと、グリフ名から求めた読みが一致する（両方の方式が使えるフォントだけ） |
+
 ### 形式の上限と健全性（`format/`）
 
 | ID | 重大度 | 最小版 | 検査すること |
