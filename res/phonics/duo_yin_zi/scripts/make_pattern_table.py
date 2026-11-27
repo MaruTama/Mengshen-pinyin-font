@@ -79,7 +79,7 @@ def add_pattern_one_table(pattern_table, character, pinyin, pattern):
         pattern_table.update({character: new_dict_of_character})
 
 
-# pattern_table[漢字]["patterns"] が一つだけのときは不要なパターンである。
+# pattern_table[漢字]["patterns"] が標準の読み一つだけのときは不要なパターンである。
 # （標準的なピンインで構成された単語なので消してもいいが、もったいないので他のパターンに入れる. 他のパターンが見つからないなら削除）
 # 辨 {'pinyin': ['biàn', 'biǎn', 'bàn', 'piàn'], 'patterns': {'biàn': ['~别']}}
 # なら 别 のテーブルに移動する
@@ -88,8 +88,14 @@ def compress_pattern_one_table(pattern_table):
     import copy as cy
 
     pattern_table_4_work = cy.deepcopy(pattern_table)
+    # 標準の読みだけのものに限る。標準でない読み（个 の gè など）だけのパターンは
+    # 表から外すと規則そのものが失われるので残す。
     characters_of_having_pattern_length_one_only = [
-        c for c in pattern_table if len(pattern_table[c]["patterns"]) == 1
+        c
+        for c in pattern_table
+        if len(pattern_table[c]["patterns"]) == 1
+        and PINYIN_MAPPING_TABLE[c][NORMAL_PRONUNCIATION]
+        in pattern_table[c]["patterns"]
     ]
 
     for character in characters_of_having_pattern_length_one_only:

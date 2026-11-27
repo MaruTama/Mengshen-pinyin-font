@@ -91,6 +91,77 @@ class TestExportPatternOneTable:
         assert orders == {"zháo": 1, "zhāo": 3, "zhuó": 4, "zhe": 5}
 
 
+class TestCompressPatternOneTable:
+    """compress_pattern_one_table: 読みが 1 種類だけの漢字の扱い。"""
+
+    FAKE_MAPPING = {
+        "个": ["ge", "gè", "gě"],
+        "别": ["bié", "biè"],
+        "累": ["lèi", "léi"],
+    }
+
+    def _table(self):
+        return {
+            "个": {
+                "pinyin": self.FAKE_MAPPING["个"],
+                "patterns": {"gè": ["~别"]},
+            },
+            "别": {
+                "pinyin": self.FAKE_MAPPING["别"],
+                "patterns": {"bié": ["个~"], "biè": ["~扭"]},
+            },
+        }
+
+    def test_nonstandard_only_pattern_is_kept(
+        self, make_pattern_table_module, monkeypatch
+    ):
+        """標準でない読み（个 の gè）だけのパターンは表に残す。
+
+        消すと 个别 が標準の読み ge で描かれ、規則が失われる。
+        """
+        mpt = make_pattern_table_module
+        monkeypatch.setattr(mpt, "PINYIN_MAPPING_TABLE", self.FAKE_MAPPING)
+
+        result = mpt.compress_pattern_one_table(self._table())
+
+        assert result["个"]["patterns"] == {"gè": ["~别"]}
+
+    def test_partner_standard_pattern_does_not_absorb_it(
+        self, make_pattern_table_module, monkeypatch
+    ):
+        """残した語句を、相手（别）の標準の読みのパターンへ移さない。"""
+        mpt = make_pattern_table_module
+        monkeypatch.setattr(mpt, "PINYIN_MAPPING_TABLE", self.FAKE_MAPPING)
+        table = self._table()
+        table["别"]["patterns"] = {"bié": ["~扭"], "biè": ["~字"]}
+
+        result = mpt.compress_pattern_one_table(table)
+
+        assert result["别"]["patterns"]["bié"] == ["~扭"]
+
+    def test_standard_only_pattern_is_moved_to_partner(
+        self, make_pattern_table_module, monkeypatch
+    ):
+        """標準の読みだけのパターンは従来どおり相手へ移して表から外す。"""
+        mpt = make_pattern_table_module
+        monkeypatch.setattr(mpt, "PINYIN_MAPPING_TABLE", self.FAKE_MAPPING)
+        table = {
+            "累": {
+                "pinyin": self.FAKE_MAPPING["累"],
+                "patterns": {"lèi": ["~别"]},
+            },
+            "别": {
+                "pinyin": self.FAKE_MAPPING["别"],
+                "patterns": {"bié": ["~扭"], "biè": ["~字"]},
+            },
+        }
+
+        result = mpt.compress_pattern_one_table(table)
+
+        assert "累" not in result
+        assert "累~" in result["别"]["patterns"]["bié"]
+
+
 class TestExceptionalPattern:
     """make_exceptional_pattern の ss 番号の単体テスト。"""
 
