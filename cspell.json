@@ -416,7 +416,19 @@
     "caplog",
     "autouse",
     "worktree",
-    "mozillazg"
+    "mozillazg",
+    "fontbakery",
+    "yomilint",
+    "uharfbuzz",
+    "zhuyin",
+    "jyutping",
+    "furigana",
+    "Bopo",
+    "maxp",
+    "zoek",
+    "CEDICT",
+    "vmtx",
+    "ㄓㄨㄛˊ"
   ],
   "ignorePaths": [
     ".git/**",
