@@ -142,6 +142,11 @@ class FontPlan:
     aliases: Dict[str, str] = field(default_factory=dict)
     # Extra glyphs that do nothing, to reach a glyph count.
     padding_glyphs: int = 0
+    # Draw each letter as a composite of a body and a mark above it (the
+    # mark's own origin is 380 up), as a font draws ǚ from u and a caron.
+    composite_letters: bool = False
+    # A letter glyph (U+0067) reaching this far below the baseline; 0 for none.
+    latin_descent: int = 0
 
 
 def _annotated(
@@ -204,13 +209,29 @@ def _hanzi_glyphs(
     return variants, f"sub {base} from [{' '.join(variants)}];"
 
 
+def _letter_glyphs(
+    plan: FontPlan, letters: Sequence[str], glyphs: Dict[str, Glyph]
+) -> None:
+    """Adds a glyph for each letter: a box, or a body with a mark above it."""
+    if plan.composite_letters:
+        glyphs["lt_body"] = _box(50, 0, 450, 380)
+        glyphs["lt_mark"] = _box(150, 0, 350, 120)
+    for letter in letters:
+        if plan.composite_letters:
+            glyphs[letter_glyph_name(letter)] = _composite(
+                [("lt_body", (1, 0, 0, 1, 0, 0)), ("lt_mark", (1, 0, 0, 1, 0, 380))],
+                glyphs,
+            )
+        else:
+            glyphs[letter_glyph_name(letter)] = _box(50, 0, 450, 500)
+
+
 def make_font(path: Path, plan: Optional[FontPlan] = None) -> Path:
     plan = plan or FontPlan()
     glyphs: Dict[str, Glyph] = {".notdef": _box(100, 0, 900, 700)}
     letters = sorted({ch for rs in plan.readings.values() for r in rs for ch in r})
     letters = sorted(set(letters) | {ch for r in plan.shown.values() for ch in r})
-    for letter in letters:
-        glyphs[letter_glyph_name(letter)] = _box(50, 0, 450, 500)
+    _letter_glyphs(plan, letters, glyphs)
 
     cmap: Dict[int, str] = {}
     uvs: List[Tuple[int, int, str]] = []
@@ -226,6 +247,9 @@ def make_font(path: Path, plan: Optional[FontPlan] = None) -> Path:
                 uvs.append((ord(char), IVS_BASE + offset, variant))
     for alias, char in plan.aliases.items():
         cmap[ord(alias)] = base_name(char)
+    if plan.latin_descent:
+        glyphs["g"] = _box(100, -plan.latin_descent, 900, 500)
+        cmap[ord("g")] = "g"
     for n in range(plan.padding_glyphs):
         glyphs[f"pad{n:05d}"] = Glyph()
     if plan.circular:

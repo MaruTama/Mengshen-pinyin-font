@@ -45,7 +45,6 @@ format = "mengshen"
 base = 0xE01E0
 
 [geometry]
-min_gap = {min_gap}
 {geometry}
 
 [limits]
@@ -77,8 +76,10 @@ class Project:
             SPEC.format(
                 kind=kind,
                 headroom=headroom,
-                min_gap=min_gap,
-                geometry="".join(f"{k} = {v}\n" for k, v in (geometry or {}).items()),
+                geometry="".join(
+                    f"{k} = {v}\n"
+                    for k, v in {"min_gap": min_gap, **(geometry or {})}.items()
+                ),
             ),
             encoding="utf-8",
         )

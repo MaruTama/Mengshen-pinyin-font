@@ -1,0 +1,516 @@
+{
+  "known": [
+    {
+      "check": "geometry/centered",
+      "subject": "仴"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "俄"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "匎"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "厄"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "吖"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "吪"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "呃"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "呒"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "呣"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "呵"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "咢"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "哑"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "哦"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "唈"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "唔"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "啊"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "啞"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "喔"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "嗄"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "嗯"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "嘸"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "噁"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "噢"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "噩"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "嚄"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "囮"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "圔"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "垩"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "埡"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "堊"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "堨"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "堮"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "姶"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "娥"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "娾"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "婀"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "婐"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "屙"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "岋"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "峉"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "峨"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "崿"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "嶭"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "廅"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "恶"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "惡"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "愕"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "我"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "扼"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "搕"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "搤"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "搹"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "枙"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "櫮"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "櫱"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "欸"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "歞"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "歹"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "洝"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "涐"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "猗"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "珴"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "疴"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "痷"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "痾"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "皒"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "睋"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "砐"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "砨"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "硪"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "腌"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "腭"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "苊"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "莪"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "萼"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "蘁"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "蘖"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "蚅"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "蚵"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "蛾"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "蝁"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "訛"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "詻"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "誒"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "諤"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "讹"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "谔"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "豟"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "軛"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "軶"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "轭"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "迗"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "遏"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "遻"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "鄂"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "醃"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "鋨"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "錒"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "鍔"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "鑩"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "锇"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "锕"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "锷"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "閜"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "閼"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "阏"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "阨"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "阿"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "隘"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "頞"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "額"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "顎"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "颚"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "额"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "餓"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "餩"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "饿"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "魤"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "鱷"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "鳄"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "鵝"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "鶚"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "鹅"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "鹗"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "齃"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "齶"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "𥔲"
+    },
+    {
+      "check": "geometry/centered",
+      "subject": "𫫇"
+    }
+  ]
+}

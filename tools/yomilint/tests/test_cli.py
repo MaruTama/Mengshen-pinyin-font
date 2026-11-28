@@ -55,9 +55,10 @@ def _check(built, *extra):
 def test_known_findings_do_not_fail_the_run(project, tmp_path, capsys):
     built = project(plan=FontPlan(with_rclt=False))
     known = tmp_path / "known.json"
-    assert main(
-        ["baseline", str(built.font), "--spec", str(built.spec), "-o", str(known)]
-    ) == 0
+    assert (
+        main(["baseline", str(built.font), "--spec", str(built.spec), "-o", str(known)])
+        == 0
+    )
     capsys.readouterr()
     assert _check(built, "--baseline", str(known)) == 0
     out = capsys.readouterr().out
@@ -84,3 +85,13 @@ def test_a_known_finding_that_is_gone_is_pointed_out(project, tmp_path, capsys):
     capsys.readouterr()
     assert _check(built, "--baseline", str(known)) == 0
     assert "no longer found" in capsys.readouterr().out
+
+
+def test_a_baseline_can_be_limited_to_some_checks(project, tmp_path, capsys):
+    # Two checks find something; only the selected one is saved as known.
+    built = project(plan=FontPlan(with_rclt=False, with_aalt=False))
+    known = tmp_path / "known.json"
+    args = ["baseline", str(built.font), "--spec", str(built.spec), "-o", str(known)]
+    assert main(args + ["--select", "select/"]) == 0
+    saved = json.loads(known.read_text(encoding="utf-8"))["known"]
+    assert {item["check"] for item in saved} == {"select/aalt-covers-readings"}

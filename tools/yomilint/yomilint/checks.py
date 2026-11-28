@@ -575,27 +575,28 @@ def baseline_aligned(context: Context):
     "geometry/min-scale",
     WARN,
     "A long reading is drawn smaller to fit; below [geometry] min_scale of "
-    "the largest letters it is too small to read.",
+    "the usual size of the letters it is too small to read.",
 )
 def min_scale(context: Context):
     items = [item for item in context.annotations() if item.letters]
     if not items:
         return
-    # The size of a reading is that of its smallest letter; the full size is
-    # the largest any reading is drawn at.
+    # The size of a reading is that of its smallest letter. The usual size
+    # is the one most readings are drawn at: a reading drawn larger than the
+    # rest does not make the rest small.
     sizes = {id(item): min(part.scale for part in item.letters) for item in items}
-    largest = max(sizes.values())
-    if largest <= 0:
+    usual = Counter(round(size, 3) for size in sizes.values()).most_common(1)[0][0]
+    if usual <= 0:
         return
     least = context.spec.min_scale
 
     def found():
         for item in items:
-            ratio = sizes[id(item)] / largest
+            ratio = sizes[id(item)] / usual
             if ratio < least:
                 yield item.char, (
                     f"{item.glyph}: the letters are drawn at {ratio:.2f} of the "
-                    f"largest, less than {least:g}"
+                    f"usual size, less than {least:g}"
                 )
 
     yield from once_per_character(found())
@@ -605,7 +606,8 @@ def min_scale(context: Context):
     "geometry/line-gap",
     WARN,
     "With the font's own line spacing (hhea), the annotation of one line must "
-    "not reach the characters of the line next to it.",
+    "not reach the characters of the line next to it, whatever they are "
+    "(letters with descenders too).",
 )
 def line_gap(context: Context):
     side = context.spec.position
@@ -613,22 +615,26 @@ def line_gap(context: Context):
     if side not in ("top", "bottom") or pitch is None or not context.annotations():
         return
     least = context.spec.min_gap
+    # Every glyph of the font may stand on the neighbouring line.
+    extents = context.font.extents()
+    if not extents:
+        return
     # Lines are `pitch` apart. Above the characters, the annotation of the
     # lower line reaches up toward the characters of the upper line; below,
     # the annotation of the upper line reaches down.
     if side == "top":
         reaching = max(context.annotations(), key=lambda item: item.box[3])
-        facing = min(context.annotations(), key=lambda item: item.base[1])
-        gap = pitch + facing.base[1] - reaching.box[3]
+        facing = min(extents, key=lambda name: extents[name][0])
+        gap = pitch + extents[facing][0] - reaching.box[3]
     else:
         reaching = min(context.annotations(), key=lambda item: item.box[1])
-        facing = max(context.annotations(), key=lambda item: item.base[3])
-        gap = pitch + reaching.box[1] - facing.base[3]
+        facing = max(extents, key=lambda name: extents[name][1])
+        gap = pitch + reaching.box[1] - extents[facing][1]
     if gap < least:
         yield reaching.char, (
             f"lines {pitch} apart leave {gap:g} between the annotation of "
-            f"{reaching.glyph} and the character of {facing.glyph} on the next "
-            f"line, less than {least:g}"
+            f"{reaching.glyph} and the glyph {facing} on the next line, "
+            f"less than {least:g}"
         )
 
 
@@ -638,7 +644,7 @@ def line_gap(context: Context):
 @check(
     "format/glyph-count",
     WARN,
-    "A font holds 65,535 glyphs; one close to that has no room for another " "reading.",
+    "A font holds 65,535 glyphs; one close to that has no room for another reading.",
 )
 def glyph_count(context: Context):
     count = len(context.font.glyph_order)

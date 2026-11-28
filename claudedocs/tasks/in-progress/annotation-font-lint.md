@@ -67,7 +67,8 @@
 - **検査の速さ。** 異体字セレクタの対応を漢字ごとに全件走査していたのをやめ、
   一度だけ漢字ごとにまとめるようにした。HanSerif で 43 秒が 10 秒になった。
 - **寸法の残り 4 個をリリース版で実行した結果。**
-  - `geometry/baseline-aligned`、`min-scale`、`line-gap` は両書体で 0 件。HanSerif は
+  - `geometry/baseline-aligned`、`min-scale` は両書体で 0 件（`line-gap` は下の PR #88
+    のレビュー対応で全グリフを見るようにして、1 件ずつ出る）。HanSerif は
     ベースラインが 1914 だけ、字母の倍率は 0.58 だけ（縮小なし）。Handwritten は
     長い読みで横だけ 0.319（ほかは 0.419）に縮め、比は 0.76。行間のすき間は最小 69
     （HanSerif は 558）。
@@ -81,6 +82,17 @@
 - **決めたこと（オーナー）。** `centered` は輪郭の bbox で測る。`center_tolerance` と
   `baseline_tolerance` は em に対する比（UPM で割った値）にする。既定は 0.01 と 0.001
   （HanSerif の 20 ユニット、1 ユニットに相当）。
+
+- **PR #88 のレビュー対応（実フォントでの結果）。**
+  - `geometry/centered` の指摘は、フォントごとの baseline（`tools/yomilint/baselines/`）に
+    登録した（HanSerif 128 件、Handwritten 9,809 件。`baseline --select geometry/centered`）。
+    許容の 0.01 em はそのまま。
+  - `geometry/line-gap` を、注釈付きの漢字だけでなく cmap の全グリフで見るようにした。
+    両書体で 1 件ずつ出る。HanSerif は U+3031（縦書き用の繰り返し記号）の下端が -1116 で
+    すき間 -341、Handwritten は U+0326（下に付く結合コンマ）の下端が -258 ですき間 -40。
+    漢字だけで見たときの最小すき間は 558 と 69 で、変わらない。
+  - 字母が合成グリフ（本体と声調記号）でも、字母ごとに 1 つの部品として扱う
+    （`FontUnderTest.parts` の `stop`）。`min-scale` の基準は最頻の倍率にした。
 
 ## 関連
 

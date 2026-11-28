@@ -186,6 +186,34 @@ def test_the_baseline_tolerance_is_a_part_of_the_em(project):
     assert large.findings() == []
 
 
+def test_good_fonts_with_letters_drawn_from_parts(project):
+    # A letter that is a composite (a body and a mark) must read as one
+    # letter: the mark's own origin is no baseline.
+    plan = FontPlan(composite_letters=True)
+    assert project(plan=plan).findings() == []
+    assert project(plan=plan, kind="names").findings() == []
+
+
+def test_a_raised_annotation_with_letters_drawn_from_parts(project):
+    plan = FontPlan(composite_letters=True, baseline_shift={("着", 2): 40})
+    assert project(plan=plan).findings() == ["geometry/baseline-aligned"]
+
+
+def test_one_reading_drawn_larger_does_not_make_the_rest_too_small(project):
+    # 着's second reading is 1.5 times the size of all the others: they are
+    # not too small, it is large. Against the largest they would be 0.67.
+    plan = FontPlan(shrink={("着", 2): 1.5})
+    built = project(plan=plan, geometry={"min_scale": 0.7})
+    assert built.findings() == []
+
+
+def test_lines_so_close_that_a_descender_touches_the_annotation_below(project):
+    # A letter g reaches 300 below the baseline: the annotation of the next
+    # line, 910 above its own baseline, is 10 units into it.
+    built = project(plan=FontPlan(latin_descent=300))
+    assert built.findings() == ["geometry/line-gap"]
+
+
 def test_a_long_reading_shrunk_too_far(project):
     # Letters at 0.4 of the size the other readings have; the lower bound
     # is 0.6.
