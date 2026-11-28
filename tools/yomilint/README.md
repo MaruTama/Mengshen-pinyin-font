@@ -73,6 +73,9 @@ python -m yomilint check FONT --spec mengshen.toml --baseline baselines/Mengshen
 | `context/phrase` | ERROR | 語句をシェーピングした結果の読みが期待どおりである |
 | `context/phrase-in-sentence` | ERROR | 語句の前後にほかの文字を置いても、読みが変わらない |
 | `context/isolated-default` | ERROR | 多音字を単独で置くと既定の読みになる |
+| `context/rule-conflict` | WARN | 同じ feature の別々の lookup が、完全に同じ文脈に違う置き換えをする規則を持っていない |
+| `context/unreachable-rule` | WARN | 同じ lookup の前の規則が合うところすべてで合うため、決して働かない規則がない |
+| `context/feature-always-on` | WARN | 文脈で読みを選ぶ lookup が、既定で有効な機能（`[context] default_features`）から届く |
 | `select/ivs-order` | ERROR | 異体字セレクタの n 番目が、辞書の n 番目の読みを表示する |
 | `select/ivs-none` | WARN | 注釈なしを選ぶセレクタがある |
 | `select/aalt-covers-readings` | ERROR | `aalt` の候補が、注釈なしと全部の読みを辞書の順に並べている |
@@ -99,11 +102,18 @@ python -m yomilint check FONT --spec mengshen.toml --baseline baselines/Mengshen
 エラーです。
 各検査の定義は設計書の 5 章にあります。
 
+規則の静的解析（`context/rule-conflict`、`unreachable-rule`、`feature-always-on`）は、
+シェーピングせずに GSUB の文脈規則（lookup type 5 と 6）を読みます。定義と、検出しない
+ものは設計書の 5 章にあります。`feature-always-on` が「既定で有効」とみなす機能は、
+仕様ファイルの `[context] default_features = ["rclt", "calt"]` で変えられます（省略時は
+ccmp locl rvrn rlig calt clig liga rclt vert vrt2 ltra ltrm rtla rtlm）。
+
 検査が例外で止まったときは、その検査の指摘として「the check could not run」を出し、
 ほかの検査は続けます。壊れたテーブルが 1 つあっても、残りの結果は得られます。
 
-設計書の最小版の検査と、寸法の検査（`geometry/`）は、これで全部です。拡張（規則の
-静的解析、HTML の報告、リリース間の差分、元のフォントとの差分）はまだありません。
+設計書の最小版の検査、寸法の検査（`geometry/`）、規則の静的解析（`context/` の 3 つ）は、
+これで全部です。拡張（HTML の報告、リリース間の差分、元のフォントとの差分）は
+まだありません。
 
 ## 開発
 

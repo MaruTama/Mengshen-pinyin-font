@@ -93,6 +93,10 @@ center_tolerance = 0.01       # 注釈の中央と送り幅の中央のずれ（
 baseline_tolerance = 0.001    # 注釈のベースラインの、最頻値からのずれ（em に対する比。0 以上 1 未満）
 min_scale = 0.6               # 長い読みを縮めるときの下限（最頻の大きさに対する比。0 より大きく 1 以下）
 
+[context]                     # 規則の静的解析（context/feature-always-on）
+# 既定で有効な GSUB の機能。省略時は ccmp locl rvrn rlig calt clig liga rclt vert vrt2 ltra ltrm rtla rtlm
+# default_features = ["rclt", "calt"]
+
 [limits]
 glyph_headroom = 500          # 65,535 に対して残しておくグリフ数
 
@@ -158,9 +162,62 @@ path = "yomilint-baseline.json"
 | `context/phrase` | ERROR | ○ | 語句をシェーピングした結果の読みが期待どおりである。例外パターン（「着手」と「背着手」）は、語句表の同じ行から別々の語句として読むので、この検査が両方を見る |
 | `context/phrase-in-sentence` | ERROR | ○ | 語句の前後にほかの文字を置いても結果が変わらない。置く文字には、どの語句テストにも出てこない文字を選ぶ |
 | `context/isolated-default` | ERROR | ○ | 多音字を単独で置くと既定の読みになる |
-| `context/rule-conflict` | WARN | - | 同じ文脈に違う結果を出す規則がない（GSUB の静的解析） |
-| `context/unreachable-rule` | WARN | - | 前の規則に隠れて決して発動しない規則がない |
-| `context/feature-always-on` | WARN | - | 読み分けが、既定で有効な機能（`rclt`、`calt` など）に入っている |
+| `context/rule-conflict` | WARN | ✓ 実装済み | 同じ文脈に違う結果を出す規則がない（GSUB の静的解析） |
+| `context/unreachable-rule` | WARN | ✓ 実装済み | 前の規則に隠れて決して発動しない規則がない |
+| `context/feature-always-on` | WARN | ✓ 実装済み | 読み分けが、既定で有効な機能（`rclt`、`calt` など）に入っている |
+
+`context/` の 3 つの静的解析は、フォントをシェーピングせず、GSUB の文脈規則
+（lookup type 5 と 6 の format 1、2、3。Extension で包まれたものも）を読んで調べる。
+語句テストでは見えない、規則どうしの関係の問題を見つけるための検査で、定義は
+実装で次のように決めた。誤検出を避けるため、定義は狭くしてある。
+
+OpenType の適用の仕方（定義の土台）: lookup は、グリフ列の各位置で、サブテーブルを
+順に、サブテーブルの中の規則を順に試し、最初に文脈が合った規則だけが働く。
+`ignore sub` は、働きのない規則として、合えば同じく先に勝つ。feature の lookup は
+LookupList の順に、前の lookup の出力に対して 1 つずつ走る。
+
+- 規則の文脈は、後ろ向き（backtrack。入力に近い順）、入力、前向き（lookahead）の
+  グリフ集合の列で表す。クラス 0（クラス定義に載っていない全グリフ）は「リストにある
+  グリフ以外の全部」の集合にし、リストの集合はこれを含まない（フォントのグリフ数を
+  数えない）。
+- `context/unreachable-rule`（隠れた規則）: feature から届く lookup の中で、前にある規則
+  A が、後ろにある規則 B の合うところすべてで合うとき、B は決して働かない。A が B を
+  「覆う」条件は、入力の長さが同じで、各位置の集合が A のほうが B を含み、A の後ろ向きと
+  前向きが B より長くなく、重なる分が同じように含む（A のほうが要求が少ない）こと。
+  A と B が同じ lookup（サブテーブルをまたいでもよい）にあるものだけを比べる。
+  A と B の働きが同じでも違っても指摘する（メッセージに違いを書く）。
+  例: 先に `ignore sub 背 着' 手;`、後ろに同じ文脈の `sub 背 着' lookup X 手;`。
+  Mengshen で 着手 の `ignore` と 背着手 の規則が同じ文脈で並んだ状態がこれである。
+- `context/rule-conflict`（衝突）: 同じ feature の中の別々の lookup にある 2 つの規則が、
+  文脈（後ろ向き、入力、前向きの集合の列）が完全に同じで、働きが違うとき。働きは、
+  呼ぶ lookup が単独置換、複数置換、代替置換なら、入力の各グリフの置き換え先で比べ、
+  それ以外の lookup なら、呼ぶ lookup の番号で比べる。片方に働きがない（`ignore`）、または
+  置き換え先が同じなら衝突ではない。lookup の番号が小さいほうが先に走り、普通は後ろの
+  規則は同じ入力に合わなくなるので、後ろの規則は働かないか、前の結果を上書きする。
+  同じ lookup の中の同じ文脈は、先の規則が勝つので、衝突でなく `unreachable-rule` が指摘する。
+- `context/feature-always-on`: 文脈で読みを選ぶ lookup は、既定で有効な機能から届かなければ
+  ならない。「読みを選ぶ lookup」は、文脈規則が呼ぶ単独置換・複数置換・代替置換が、
+  その位置の入力のグリフを、resolver で読みが違うグリフに置き換えるもの。既定で有効な
+  機能は `[context] default_features`（省略時は ccmp locl rvrn rlig calt clig liga rclt vert
+  vrt2 ltra ltrm rtla rtlm。HarfBuzz の共通・横書き・縦書きの機能と OpenType の推奨）。
+  届くとは、機能が直接 lookup に持つか、届く lookup の規則が呼ぶことである。
+  `ss01` などの手動の機能にだけ入っている、または機能にまったく使われていない
+  lookup を指摘する。文脈のない単独置換（`aalt`、`salt`、`ssXX` の候補）は、手動の
+  切り替えが目的なので指摘しない。
+
+検出しないもの:
+
+- 複数の規則の合わせで覆われるもの（A と C の和集合が B を覆うなど）、入力の長さが違う
+  規則による隠れ、lookup flag（マークの無視など）による文脈の変化。
+- 同じ文脈でない、重なっているだけの規則どうしの衝突。別の feature の lookup どうしの衝突。
+  上書きの連鎖（前の lookup が出力したグリフに後ろの lookup が合う設計）かどうかの
+  判定（同じ文脈で働きが違えば指摘する）。
+- 入れ子の lookup が文脈規則のとき（その中身）、連続して適用される複数の lookup の
+  合成結果、type 8（逆向きの連鎖）と type 4（合字）。
+- script と言語による feature の選別（どの `LangSys` にも入らない feature レコードも
+  あるものとして数える）。
+- 注釈の位置や 1 文字 1 音節を前提にした判定。読みの違いは resolver で判定し、
+  拼音の知識は持たない。
 
 ### 手動の切り替え（`select/`）
 
