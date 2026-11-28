@@ -55,3 +55,27 @@ def test_thresholds_at_the_edges_are_accepted(tmp_path):
         tmp_path, "center_tolerance = 0\nbaseline_tolerance = 0\nmin_scale = 1"
     )
     assert (spec.center_tolerance, spec.baseline_tolerance, spec.min_scale) == (0, 0, 1)
+
+
+def test_the_default_features_have_a_default(tmp_path):
+    path = tmp_path / "yomilint.toml"
+    path.write_text('[font]\nprofile = "pinyin"\n', encoding="utf-8")
+    spec = load_spec(path)
+    assert {"rclt", "calt", "ccmp", "liga"} <= set(spec.default_features)
+    assert "aalt" not in spec.default_features and "ss01" not in spec.default_features
+
+
+def test_the_default_features_are_read(tmp_path):
+    path = tmp_path / "yomilint.toml"
+    path.write_text('[context]\ndefault_features = ["rclt", "ss01"]\n', "utf-8")
+    assert load_spec(path).default_features == ("rclt", "ss01")
+
+
+@pytest.mark.parametrize(
+    "value", ['"rclt"', "[1]", '["rcl"]', '["rclt", ""]', '["rclt "]']
+)
+def test_default_features_that_are_not_tags_are_refused(tmp_path, value):
+    path = tmp_path / "yomilint.toml"
+    path.write_text(f"[context]\ndefault_features = {value}\n", encoding="utf-8")
+    with pytest.raises(SpecError):
+        load_spec(path)

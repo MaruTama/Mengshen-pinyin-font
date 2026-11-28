@@ -11,6 +11,7 @@ from typing import Callable, Dict, Iterable, Iterator, List, Optional, Tuple
 from fontTools.ttLib import TTFont
 
 from .font import Box, FontUnderTest, Part, union
+from .gsub import GsubModel
 from .profiles import Profile
 from .readers import Dictionary, Phrase
 from .resolve import ComponentsResolver, Resolver
@@ -60,6 +61,13 @@ class Context:
     _selected: Optional[Dict[str, List[str]]] = field(default=None, repr=False)
     _alternates: Optional[Dict] = field(default=None, repr=False)
     _annotations: Optional[List[Annotated]] = field(default=None, repr=False)
+    _gsub: Optional[GsubModel] = field(default=None, repr=False)
+
+    def gsub(self) -> GsubModel:
+        """The substitution rules of the font, read once."""
+        if self._gsub is None:
+            self._gsub = GsubModel(self.font.tt)
+        return self._gsub
 
     def reading(self, glyph: str) -> Optional[str]:
         return self.resolver.reading(glyph)
@@ -308,6 +316,75 @@ def phrase_in_sentence(context: Context):
             yield item.text, (
                 f"between two {filler} it reads "
                 f"{'/'.join(shown(r) for r in got)}, expected {'/'.join(expected)}"
+            )
+
+
+@check(
+    "context/rule-conflict",
+    WARN,
+    "Two lookups of one feature must not match exactly the same context and "
+    "substitute differently: only the first one's result can show.",
+)
+def rule_conflict(context: Context):
+    model = context.gsub()
+    for first, second in model.conflicting_rules():
+        shared = set(model.tags_of(first.lookup)) & set(model.tags_of(second.lookup))
+        yield f"{first.where()} and {second.where()}", (
+            f"{first.text()} (lookup {first.lookup}) and {second.text()} "
+            f"(lookup {second.lookup}) match the same context in "
+            f"{', '.join(sorted(shared))} and substitute differently; lookup "
+            f"{first.lookup} runs first"
+        )
+
+
+@check(
+    "context/unreachable-rule",
+    WARN,
+    "A rule that an earlier rule of its lookup matches everywhere it does "
+    "never fires: the earlier one is chosen at each position.",
+)
+def unreachable_rule(context: Context):
+    for rule, earlier in context.gsub().hidden_rules():
+        same = rule.covers(earlier)
+        differs = "" if rule.actions == earlier.actions else ", and does something else"
+        yield rule.where(), (
+            f"{rule.text()} never fires: {earlier.where()} ({earlier.text()}) "
+            f"comes first and "
+            f"{'has the same match' if same else 'matches wherever it does'}"
+            f"{differs}"
+        )
+
+
+@check(
+    "context/feature-always-on",
+    WARN,
+    "A rule that chooses a reading by context belongs in a feature that is on "
+    "by default (`rclt`, `calt`, ...): in any other the reader must switch it "
+    "on to get the right reading.",
+)
+def feature_always_on(context: Context):
+    model = context.gsub()
+    readings: Dict[str, Optional[str]] = {}
+
+    def reading(glyph: str) -> Optional[str]:
+        if glyph not in readings:
+            readings[glyph] = context.reading(glyph)
+        return readings[glyph]
+
+    on = model.reachable(context.spec.default_features)
+    used = model.reachable(model.features)
+    for lookup in model.choosing(lambda a, b: reading(a) != reading(b)):
+        if lookup in on:
+            continue
+        if lookup in used:
+            tags = [t for t in model.features if lookup in model.reachable([t])]
+            yield f"lookup {lookup}", (
+                f"chooses a reading by context, but only {', '.join(tags)} "
+                "use it, and a shaper does not run them by default"
+            )
+        else:
+            yield f"lookup {lookup}", (
+                "chooses a reading by context, but no feature uses it"
             )
 
 

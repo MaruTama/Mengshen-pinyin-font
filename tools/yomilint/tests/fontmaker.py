@@ -69,8 +69,17 @@ lookup zhe_to_zhuo {{ sub {zhe} by {zhe}.ss02; }} zhe_to_zhuo;
 feature rclt {{
   ignore sub {bei} {zhe}' {shou};
 {ignores}  sub {zhe}' lookup zhe_to_zhuo {shou};
-}} rclt;
+{shadowed}{conflicting}}} rclt;
 """
+
+# After the 着手 rule, a lookup of its own that substitutes another glyph for
+# the same context.
+CONFLICTING = """  lookup bare_rule {{
+    ignore sub {bei} {zhe}' {shou};
+    sub {zhe}' lookup zhe_to_bare {shou};
+  }} bare_rule;
+"""
+BARE = "lookup zhe_to_bare {{ sub {zhe} by {zhe}.ss00; }} zhe_to_bare;\n"
 
 
 def base_name(char: str) -> str:
@@ -119,6 +128,14 @@ class FontPlan:
     unmapped: Sequence[str] = ()
     # Characters after which the 着手 rule wrongly does not fire.
     ignore_after: Sequence[str] = ()
+    # A rule after the exception that has the same match, so it never fires.
+    shadowed_rule: bool = False
+    # A second lookup of `rclt` that, for the context of the 着手 rule, makes
+    # another substitution than the first one.
+    conflicting_rule: bool = False
+    # A feature tag in which a rule chooses 着's reading after 一. A feature
+    # that is off by default (`ss01`) keeps the reading from being chosen.
+    reading_feature: str = ""
     # Where the annotation sits and how far apart its letters are.
     annotation_y: int = ANNOTATION_Y
     letter_advance: int = LETTER_ADVANCE
@@ -182,8 +199,32 @@ def _features(plan: FontPlan, alternates: Sequence[str]) -> str:
         ignores = "".join(
             f"  ignore sub {base_name(c)} {zhe}' {shou};\n" for c in plan.ignore_after
         )
+        bei = base_name("背")
+        shadowed = (
+            f"  sub {bei} {zhe}' lookup zhe_to_zhuo {shou};\n"
+            if plan.shadowed_rule
+            else ""
+        )
+        conflicting = (
+            CONFLICTING.format(zhe=zhe, bei=bei, shou=shou)
+            if plan.conflicting_rule
+            else ""
+        )
+        if plan.conflicting_rule:
+            features += BARE.format(zhe=zhe)
         features += RCLT.format(
-            zhe=zhe, bei=base_name("背"), shou=shou, ignores=ignores
+            zhe=zhe,
+            bei=bei,
+            shou=shou,
+            ignores=ignores,
+            shadowed=shadowed,
+            conflicting=conflicting,
+        )
+    if plan.reading_feature:
+        tag = plan.reading_feature
+        features += (
+            f"feature {tag} {{ sub {base_name('一')} "
+            f"{base_name('着')}' lookup zhe_to_zhuo; }} {tag};\n"
         )
     if plan.with_aalt:
         features += "feature aalt {\n  " + "\n  ".join(alternates) + "\n} aalt;\n"

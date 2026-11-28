@@ -2,7 +2,7 @@
 
 ## 状態
 
-実装中（最小版の検査 19 個、baseline、寸法の残り 4 個まで。静的解析などの拡張は未着手）
+実装中（最小版の検査 19 個、baseline、寸法の残り 4 個、規則の静的解析 3 個まで。HTML の報告などの拡張は未着手）
 
 ## 概要
 
@@ -40,7 +40,9 @@
 - [ ] 寸法のキーの単位をそろえる（`min_gap` などを em に対する比にするか）。別の変更で
 - [x] 拡張: 寸法の残り 4 個（`geometry/centered`、`baseline-aligned`、`min-scale`、
       `line-gap`）。左右の注釈は見ない
-- [ ] 拡張（静的解析、HTML の報告、diff、source/ の検査）
+- [x] 拡張: 規則の静的解析 3 個（`context/rule-conflict`、`unreachable-rule`、
+      `feature-always-on`）。定義は設計書 5 章
+- [ ] 拡張（HTML の報告、diff、source/ の検査）
 - [ ] 公開（別リポジトリへの切り出し、PyPI、fontbakery プロファイル）
 
 ## 発見事項
@@ -122,6 +124,18 @@
     ない（CFF）フォントでは何も報告しない。
   - 字母が合成グリフ（本体と声調記号）でも、字母ごとに 1 つの部品として扱う
     （`FontUnderTest.parts` の `stop`）。`min-scale` の基準は最頻の倍率にした。
+
+- **規則の静的解析 3 個をリリース版（v20261125-125901）で実行した結果。** 両書体とも
+  3 個とも 0 件（HanSerif: `context/phrase` の 58 件だけ、Handwritten: 既知の指摘だけ）。
+  両書体とも GSUB は同じ構造で、`rclt` が lookup 8、9、10（chain context format 2。
+  780、39、4 規則）を持ち、働きのない規則（`ignore`）は 1 つ。#87 で外した「背着手と
+  同じ文脈の 着手 の ignore」はリリース版にない。同じ状態は、`FontPlan(shadowed_rule=True)`
+  の試験用フォントで再現し、`context/unreachable-rule` が指摘することを確かめた。
+- **規則の静的解析の定義（設計書 5 章）。** 隠れた規則は同じ lookup の中だけで比べ、覆う
+  条件は入力の長さが同じで集合が含み、前の規則の前後の文脈が短いこと。衝突は同じ feature の
+  別の lookup の、完全に同じ文脈で働きが違う規則。`ignore` 同士や、置き換え先が同じものは
+  衝突でない。同じ lookup の同じ文脈は先の規則が勝つので `unreachable-rule` に任せる。
+  `feature-always-on` の既定の機能一覧は `[context] default_features` で変えられる。
 
 ## 関連
 
