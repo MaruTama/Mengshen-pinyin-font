@@ -301,20 +301,37 @@ def make_exceptional_pattern(OUTPUT_EXCEPTION_PATTERN_TABLE_FILE):
             # ss 番号は merged-mapping-table.txt の読みの添字 + 1
             # 着: [zháo, zhù, zhāo, zhuó, zhe, zhuo] -> zhuó = ss04
             # 轴: [zhóu, zhòu, zhú] -> zhòu = ss02
-            "lookup_pattern_20": {"着": "着.ss04", "轴": "轴.ss02"}
+            # 子: [zǐ, zi] -> zi = ss02
+            "lookup_pattern_20": {"着": "着.ss04", "轴": "轴.ss02", "子": "子.ss02"},
+            # 着 -> zhe = ss05（lookup_pattern_20 の 着 は zhuó なので別の lookup）
+            "lookup_pattern_21": {"着": "着.ss05"},
         },
+        # 規則は書いた順に試され、最初に一致したものだけが働く。
+        # 着手 を含む 背着手 は 着手 より前に置く。
         "patterns": {
+            "背着手": {
+                "ignore": None,
+                "pattern": [{"背": None}, {"着": "lookup_pattern_21"}, {"手": None}],
+            },
             "着手": {
                 "ignore": "背 着' 手",
                 "pattern": [{"着": "lookup_pattern_20"}, {"手": None}],
             },
             "大轴子": {
                 "ignore": None,
-                "pattern": [{"大": None}, {"轴": "lookup_pattern_20"}, {"子": None}],
+                "pattern": [
+                    {"大": None},
+                    {"轴": "lookup_pattern_20"},
+                    {"子": "lookup_pattern_20"},
+                ],
             },
             "压轴子": {
                 "ignore": None,
-                "pattern": [{"压": None}, {"轴": "lookup_pattern_20"}, {"子": None}],
+                "pattern": [
+                    {"压": None},
+                    {"轴": "lookup_pattern_20"},
+                    {"子": "lookup_pattern_20"},
+                ],
             },
         },
     }

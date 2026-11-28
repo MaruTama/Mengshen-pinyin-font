@@ -181,6 +181,55 @@ class TestExceptionalPattern:
         assert lookup["轴"] == f"轴.ss{expected_zhou_ss:02d}"
 
 
+class TestExceptionalPatternSubstitutions:
+    """例外パターンが期待どおりの読みへ替えること（yomilint context/phrase 由来）。"""
+
+    @pytest.fixture
+    def exceptional(self, make_pattern_table_module, tmp_path):
+        out_file = tmp_path / "exceptional.json"
+        make_pattern_table_module.make_exceptional_pattern(str(out_file))
+        return json.loads(out_file.read_text(encoding="utf-8"))
+
+    @staticmethod
+    def _substituted_glyphs(data, phrase):
+        """語句の規則が各位置で替えるグリフ名（替えない位置は None）。"""
+        glyphs = []
+        for entry in data["patterns"][phrase]["pattern"]:
+            ((hanzi, lookup_name),) = entry.items()
+            glyphs.append(
+                data["lookup_table"][lookup_name][hanzi] if lookup_name else None
+            )
+        return glyphs
+
+    @staticmethod
+    def _ss(mapping_table, hanzi, reading):
+        return f"{hanzi}.ss{mapping_table[hanzi].index(reading) + 1:02d}"
+
+    def test_beizhuoshou_substitutes_zhe(self, exceptional, mapping_table):
+        """背着手 の 着 は zhe のグリフへ替える。"""
+        assert self._substituted_glyphs(exceptional, "背着手") == [
+            None,
+            self._ss(mapping_table, "着", "zhe"),
+            None,
+        ]
+
+    def test_beizhuoshou_rule_precedes_zhuoshou(self, exceptional):
+        """最初に一致した規則だけが働くので 背着手 は 着手 より前に並ぶ。"""
+        phrases = list(exceptional["patterns"])
+        assert phrases.index("背着手") < phrases.index("着手")
+
+    @pytest.mark.parametrize("phrase,first", [("大轴子", "大"), ("压轴子", "压")])
+    def test_zhouzi_substitutes_zhou_and_zi(
+        self, exceptional, mapping_table, phrase, first
+    ):
+        """大轴子・压轴子 は 轴→zhòu と 子→zi の両方を替える。"""
+        assert self._substituted_glyphs(exceptional, phrase) == [
+            None,
+            self._ss(mapping_table, "轴", "zhòu"),
+            self._ss(mapping_table, "子", "zi"),
+        ]
+
+
 class TestGeneratedOutputConsistency:
     """outputs/ の生成済みファイルが現行 mapping table と整合しているか。"""
 

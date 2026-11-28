@@ -2,10 +2,28 @@
     "lookup_table": {
         "lookup_pattern_20": {
             "着": "着.ss04",
-            "轴": "轴.ss02"
+            "轴": "轴.ss02",
+            "子": "子.ss02"
+        },
+        "lookup_pattern_21": {
+            "着": "着.ss05"
         }
     },
     "patterns": {
+        "背着手": {
+            "ignore": null,
+            "pattern": [
+                {
+                    "背": null
+                },
+                {
+                    "着": "lookup_pattern_21"
+                },
+                {
+                    "手": null
+                }
+            ]
+        },
         "着手": {
             "ignore": "背 着' 手",
             "pattern": [
@@ -27,7 +45,7 @@
                     "轴": "lookup_pattern_20"
                 },
                 {
-                    "子": null
+                    "子": "lookup_pattern_20"
                 }
             ]
         },
@@ -41,7 +59,7 @@
                     "轴": "lookup_pattern_20"
                 },
                 {
-                    "子": null
+                    "子": "lookup_pattern_20"
                 }
             ]
         }
