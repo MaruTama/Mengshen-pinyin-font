@@ -3,15 +3,16 @@ with an id, a severity and the reason it exists."""
 
 from __future__ import annotations
 
+import tempfile
 from dataclasses import dataclass, field
 from typing import Callable, Dict, Iterable, Iterator, List, Optional, Tuple
 
 from fontTools.ttLib import TTFont
 
-from .font import FontUnderTest
+from .font import Box, FontUnderTest, union
 from .profiles import Profile
 from .readers import Dictionary, Phrase
-from .resolve import Resolver
+from .resolve import ComponentsResolver, Resolver
 from .spec import Spec
 
 ERROR = "ERROR"
@@ -47,6 +48,30 @@ class Context:
 
     def reading(self, glyph: str) -> Optional[str]:
         return self.resolver.reading(glyph)
+
+    def layout(self, glyph: str) -> Optional[Tuple[Box, Box]]:
+        """The box of the character and the box of its annotation in
+        `glyph`, or None when it has not both or its parts cannot be told
+        apart (the font has no composites, or the spec no way to name the
+        letters)."""
+        for resolver in (self.resolver, self.second_resolver):
+            if isinstance(resolver, ComponentsResolver):
+                base, annotation = resolver.split(glyph)
+                base_box = union([part.box for part in base])
+                annotation_box = union([part.box for part, _ in annotation])
+                if base_box is None or annotation_box is None:
+                    return None
+                return base_box, annotation_box
+        return None
+
+    def annotated(self) -> Iterator[Tuple[str, str, Box, Box]]:
+        """(character, glyph, character box, annotation box) of every glyph
+        that draws an annotation."""
+        for char, _ in self.mapped():
+            for glyph in self.glyphs_of(char):
+                boxes = self.layout(glyph)
+                if boxes is not None:
+                    yield char, glyph, boxes[0], boxes[1]
 
     def expected(self, char: str) -> List[str]:
         return [self.profile.normalize(r) for r in self.dictionary.get(char, [])]
@@ -219,6 +244,43 @@ def isolated_default(context: Context):
             yield char, f"alone it reads {shown(got)}, expected {expected[0]}"
 
 
+@check(
+    "context/phrase-in-sentence",
+    ERROR,
+    "A phrase reads the same inside a sentence as alone: a rule must not "
+    "depend on the phrase starting or ending the text.",
+)
+def phrase_in_sentence(context: Context):
+    in_phrases = {char for item in context.phrases for char in item.text}
+    # Put around each phrase: a character of one reading that is in none.
+    filler = next(
+        (
+            char
+            for char, _ in context.mapped()
+            if len(context.expected(char)) == 1 and char not in in_phrases
+        ),
+        None,
+    )
+    if filler is None:
+        return
+    for item in context.phrases:
+        expected = [context.profile.normalize(r) for r in item.readings]
+        if len(expected) != len(item.text):
+            continue
+        if any(context.font.glyph_for(c) is None for c in item.text):
+            continue
+        alone = [context.reading(g) for g in context.font.shape(item.text)]
+        if alone != expected:
+            continue  # `context/phrase` reports it
+        glyphs = context.font.shape(filler + item.text + filler)
+        got = [context.reading(g) for g in glyphs[1:-1]]
+        if got != expected:
+            yield item.text, (
+                f"between two {filler} it reads "
+                f"{'/'.join(shown(r) for r in got)}, expected {'/'.join(expected)}"
+            )
+
+
 # ---- selection ---------------------------------------------------------
 
 
@@ -307,6 +369,106 @@ def methods_agree(context: Context):
                 break
 
 
+# ---- geometry ----------------------------------------------------------
+
+
+def once_per_character(found: Iterable[Tuple[str, str]]) -> Iterator[Tuple[str, str]]:
+    """The first finding of each character: its glyphs share a design, so
+    one says it."""
+    seen = set()
+    for char, message in found:
+        if char not in seen:
+            seen.add(char)
+            yield char, message
+
+
+@check(
+    "geometry/no-clipping",
+    ERROR,
+    "Windows cuts a glyph off above usWinAscent and below usWinDescent; an "
+    "annotation that reaches past them loses its top or bottom.",
+)
+def no_clipping(context: Context):
+    window = context.font.window()
+    if window is None:
+        return
+    low, high = window
+
+    def found():
+        for char, glyph, _, box in context.annotated():
+            if box[3] > high:
+                yield char, f"{glyph} reaches {box[3]:g}, above usWinAscent {high}"
+            elif box[1] < low:
+                yield char, f"{glyph} reaches {box[1]:g}, below usWinDescent {low}"
+
+    yield from once_per_character(found())
+
+
+@check(
+    "geometry/no-overlap",
+    ERROR,
+    "The annotation must stand clear of its character, at least "
+    "[geometry] min_gap away.",
+)
+def no_overlap(context: Context):
+    side = context.spec.position
+    least = context.spec.min_gap
+
+    def found():
+        for char, glyph, base, box in context.annotated():
+            gap = {
+                "top": box[1] - base[3],
+                "bottom": base[1] - box[3],
+                "right": box[0] - base[2],
+                "left": base[0] - box[2],
+            }[side]
+            if gap < 0:
+                yield char, f"{glyph}: the annotation overlaps the character by {-gap:g}"
+            elif gap < least:
+                yield char, f"{glyph}: the annotation is {gap:g} away, less than {least:g}"
+
+    yield from once_per_character(found())
+
+
+@check(
+    "geometry/advance-matches-base",
+    ERROR,
+    "Choosing another reading must not move the text: every glyph of a "
+    "character has the same advance width.",
+)
+def advance_matches_base(context: Context):
+    for char, default in context.mapped():
+        expected = context.font.advance(default)
+        for glyph in context.glyphs_of(char):
+            if context.font.advance(glyph) != expected:
+                yield char, (
+                    f"{glyph} advances {context.font.advance(glyph)}, "
+                    f"{default} advances {expected}"
+                )
+                break
+
+
+@check(
+    "geometry/annotation-within-advance",
+    WARN,
+    "An annotation wider than its character runs into the next one.",
+)
+def annotation_within_advance(context: Context):
+    if context.spec.position not in ("top", "bottom"):
+        return
+
+    def found():
+        for char, glyph, _, box in context.annotated():
+            advance = context.font.advance(glyph)
+            if box[0] < 0 or box[2] > advance:
+                yield char, (
+                    f"{glyph}: the annotation spans {box[0]:g} to {box[2]:g}, "
+                    f"outside 0 to {advance}"
+                )
+
+    yield from once_per_character(found())
+
+
 # ---- format ------------------------------------------------------------
 
 
@@ -341,3 +503,32 @@ def tables_parse(context: Context):
             strict[tag]
         except Exception as error:  # fontTools raises many kinds
             yield tag, f"{type(error).__name__}: {error}"
+
+
+@check(
+    "format/no-circular-reference",
+    ERROR,
+    "Composite glyphs that refer to each other cannot be drawn, and stop "
+    "some applications.",
+)
+def no_circular_reference(context: Context):
+    for glyph in context.font.circular_glyphs():
+        yield glyph, "is its own component, through the glyphs it refers to"
+
+
+@check(
+    "format/ots",
+    ERROR,
+    "Browsers pass a font through the OpenType Sanitizer and refuse the "
+    "tables, or the font, it rejects. Runs when the `ots` module is installed.",
+)
+def sanitizer(context: Context):
+    try:
+        import ots
+    except ImportError:
+        return
+    with tempfile.NamedTemporaryFile() as out:
+        done = ots.sanitize(str(context.font.path), out.name, capture_output=True)
+    if done.returncode != 0:
+        lines = done.stderr.decode(errors="replace").strip().splitlines()
+        yield "font", lines[-1] if lines else f"ots exited with {done.returncode}"

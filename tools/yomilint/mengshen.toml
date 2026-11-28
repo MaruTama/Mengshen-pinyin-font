@@ -34,5 +34,8 @@ format = "mengshen"
 [selectors]
 base = 0xE01E0
 
+[geometry]
+min_gap = 0
+
 [limits]
 glyph_headroom = 500

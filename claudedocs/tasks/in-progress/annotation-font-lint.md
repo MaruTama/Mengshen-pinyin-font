@@ -2,7 +2,7 @@
 
 ## 状態
 
-実装中（最小版の第 1 段: 中核、resolver、検査 12 個、CLI まで）
+実装中（最小版の検査 19 個と baseline まで。拡張は未着手）
 
 ## 概要
 
@@ -29,9 +29,13 @@
 - [x] 🟢 検査 12 個（coverage 4、context 2、select 3、resolve 1、format 2）、
       端末と JSON の報告
 - [x] 🔵 整形（black、isort）、flake8、mypy。Mengshen-HanSerif（リリース版）で実行
-- [ ] 最小版の残り: `context/phrase-in-sentence`、`context/exception`、
-      `geometry/` の 4 個、`format/ots`、`format/no-circular-reference`、baseline
-- [ ] 既存の `test_built_font_gsub.py` と `gsub_checker.py` の検証を置き換える
+- [x] 最小版の残り: `context/phrase-in-sentence`、`geometry/` の 4 個、`format/ots`、
+      `format/no-circular-reference`、baseline。`context/exception` は
+      `context/phrase` と同じ検査になるので、設計書の一覧から外した
+- [ ] 既存の検証の置き換え（保留）。`gsub_checker.py` は webapp がビルド前の
+      テンプレートを見る機能で、完成したフォントを見る yomilint では置き換えられない。
+      `test_built_font_gsub.py` は `tests/` から `tools/` を import しない方針と合わない。
+      置き換えるなら、CI でフォントをビルドして yomilint を走らせる形になる
 - [ ] 設計書 9 章の未決定の点の決定
 - [ ] 拡張（静的解析、HTML の報告、diff、source/ の検査）
 - [ ] 公開（別リポジトリへの切り出し、PyPI、fontbakery プロファイル）
@@ -55,6 +59,8 @@
      止めるだけなので、着 は既定の zháo になる。語句表は zhe を期待している。
   3. **2 件（大轴子、压轴子）: 2 文字目の読みしか替えない。** 轴 は zhòu になるが、
      子 を軽声の zi にする規則がない。
+- **リリース版の HanSerif は、寸法の検査をすべて通る。** 注釈付きのグリフ 31,748 個で、
+  注釈と親字のすき間は最小 19.6、注釈の上端は最大 2,439（usWinAscent は 2,628）。
 - **検査の速さ。** 異体字セレクタの対応を漢字ごとに全件走査していたのをやめ、
   一度だけ漢字ごとにまとめるようにした。HanSerif で 43 秒が 10 秒になった。
 

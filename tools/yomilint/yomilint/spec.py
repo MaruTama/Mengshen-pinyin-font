@@ -33,7 +33,11 @@ class Spec:
     phrases: List[Source] = field(default_factory=list)
     # The variation selector of the bare glyph; reading n is at base + n.
     selector_base: Optional[int] = None
+    # The least distance between the character and its annotation.
+    min_gap: float = 0
     glyph_headroom: int = 500
+    # A file of known findings, which do not fail a run.
+    baseline: Optional[Path] = None
 
 
 class SpecError(ValueError):
@@ -64,8 +68,11 @@ def load_spec(path: Path) -> Spec:
         letter_pattern=letters.get("pattern"),
         letter_encoding=letters.get("encoding"),
         selector_base=data.get("selectors", {}).get("base"),
+        min_gap=data.get("geometry", {}).get("min_gap", 0),
         glyph_headroom=data.get("limits", {}).get("glyph_headroom", 500),
     )
+    if "path" in data.get("ignore", {}):
+        spec.baseline = directory / data["ignore"]["path"]
     if spec.profile not in PROFILES:
         known = ", ".join(sorted(PROFILES))
         raise SpecError(f"[font] profile {spec.profile!r} is not known ({known})")
