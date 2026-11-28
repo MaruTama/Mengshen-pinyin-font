@@ -5,9 +5,30 @@ from __future__ import annotations
 import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from .profiles import PROFILES
+
+# The GSUB features a shaper runs without being asked: HarfBuzz's common and
+# horizontal ones (ccmp, locl, rlig, calt, clig, liga, rclt), `rvrn`, the
+# vertical `vert` and `vrt2`, and the bidirectional ones. `aalt`, `salt` and
+# the stylistic sets are chosen by the user, so they are not here.
+DEFAULT_FEATURES = (
+    "ccmp",
+    "locl",
+    "rvrn",
+    "rlig",
+    "calt",
+    "clig",
+    "liga",
+    "rclt",
+    "vert",
+    "vrt2",
+    "ltra",
+    "ltrm",
+    "rtla",
+    "rtlm",
+)
 
 
 @dataclass
@@ -44,6 +65,8 @@ class Spec:
     # The smallest an annotation may be drawn, relative to the largest.
     min_scale: float = 0.6
     glyph_headroom: int = 500
+    # The features that are on without the user choosing them.
+    default_features: Tuple[str, ...] = DEFAULT_FEATURES
     # A file of known findings, which do not fail a run.
     baseline: Optional[Path] = None
 
@@ -84,6 +107,23 @@ def _in_range(
         )
 
 
+def _tags(value: Any) -> Tuple[str, ...]:
+    """The feature tags of `[context] default_features`: four printable ASCII
+    characters each."""
+    ok = isinstance(value, list) and all(
+        isinstance(tag, str)
+        and len(tag) == 4
+        and all(" " <= char <= "~" for char in tag)
+        for tag in value
+    )
+    if not ok:
+        raise SpecError(
+            f"[context] default_features = {value!r} must be a list of "
+            "four-letter feature tags"
+        )
+    return tuple(value)
+
+
 def load_spec(path: Path) -> Spec:
     path = Path(path)
     try:
@@ -108,6 +148,8 @@ def load_spec(path: Path) -> Spec:
         min_scale=data.get("geometry", {}).get("min_scale", 0.6),
         glyph_headroom=data.get("limits", {}).get("glyph_headroom", 500),
     )
+    if "default_features" in data.get("context", {}):
+        spec.default_features = _tags(data["context"]["default_features"])
     if "path" in data.get("ignore", {}):
         spec.baseline = directory / data["ignore"]["path"]
     _in_range(spec.center_tolerance, "center_tolerance", 0, 1, high_open=True)

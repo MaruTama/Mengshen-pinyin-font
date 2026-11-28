@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Sequence
+from typing import Any, Dict, List, Optional, Sequence
 
 import pytest
 
@@ -47,6 +48,9 @@ base = 0xE01E0
 [geometry]
 {geometry}
 
+[context]
+{context}
+
 [limits]
 glyph_headroom = {headroom}
 """
@@ -67,6 +71,7 @@ class Project:
         headroom: int = 500,
         min_gap: int = 0,
         geometry: Optional[Dict[str, float]] = None,
+        context: Optional[Dict[str, Any]] = None,
     ) -> None:
         self.font = make_font(directory / "font.ttf", plan)
         write_dictionary(directory / "dictionary.txt", dictionary)
@@ -76,6 +81,9 @@ class Project:
             SPEC.format(
                 kind=kind,
                 headroom=headroom,
+                context="".join(
+                    f"{k} = {json.dumps(v)}\n" for k, v in (context or {}).items()
+                ),
                 geometry="".join(
                     f"{k} = {v}\n"
                     for k, v in {"min_gap": min_gap, **(geometry or {})}.items()

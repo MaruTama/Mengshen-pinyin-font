@@ -236,6 +236,46 @@ def test_lines_so_close_that_annotations_touch_the_line_above(project):
     assert built.findings() == ["geometry/line-gap"]
 
 
+# ---- the rules themselves -------------------------------------------------
+
+
+def test_two_lookups_that_substitute_differently_for_one_context(project):
+    built = project(plan=FontPlan(conflicting_rule=True))
+    assert built.findings() == ["context/rule-conflict"]
+
+
+def test_a_rule_that_an_earlier_rule_with_the_same_match_hides(project):
+    built = project(plan=FontPlan(shadowed_rule=True))
+    assert built.findings() == ["context/unreachable-rule"]
+
+
+def test_a_reading_chosen_by_a_feature_that_is_off_by_default(project):
+    built = project(plan=FontPlan(reading_feature="ss01"))
+    assert built.findings() == ["context/feature-always-on"]
+
+
+def test_a_reading_chosen_by_a_feature_that_is_on_by_default(project):
+    assert project(plan=FontPlan(reading_feature="calt")).findings() == []
+
+
+def test_the_spec_says_which_features_are_on(project):
+    plan = FontPlan(reading_feature="ss01")
+    built = project(plan=plan, context={"default_features": ["rclt", "ss01"]})
+    assert built.findings() == []
+    built = project(plan=FontPlan(), context={"default_features": ["calt"]})
+    assert built.findings() == ["context/feature-always-on"]
+
+
+def test_the_rule_checks_say_which_rule(project):
+    from yomilint.runner import run
+
+    plan = FontPlan(shadowed_rule=True, conflicting_rule=True)
+    built = project(plan=plan)
+    messages = {f.check: f for f in run(built.font, built.spec)}
+    assert messages["context/unreachable-rule"].subject.startswith("lookup ")
+    assert "lookup" in messages["context/rule-conflict"].message
+
+
 # ---- format ---------------------------------------------------------------
 
 
