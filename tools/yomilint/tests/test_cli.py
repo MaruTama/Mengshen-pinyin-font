@@ -43,3 +43,68 @@ def test_a_spec_that_cannot_be_used_exits_two(project, capsys):
     built.spec.write_text(text.replace('"pinyin"', '"klingon"'), encoding="utf-8")
     assert main(["check", str(built.font), "--spec", str(built.spec)]) == 2
     assert "klingon" in capsys.readouterr().err
+
+
+# ---- known findings ------------------------------------------------------
+
+
+def _check(built, *extra):
+    return main(["check", str(built.font), "--spec", str(built.spec), *extra])
+
+
+def test_known_findings_do_not_fail_the_run(project, tmp_path, capsys):
+    built = project(plan=FontPlan(with_rclt=False))
+    known = tmp_path / "known.json"
+    assert (
+        main(["baseline", str(built.font), "--spec", str(built.spec), "-o", str(known)])
+        == 0
+    )
+    capsys.readouterr()
+    assert _check(built, "--baseline", str(known)) == 0
+    out = capsys.readouterr().out
+    assert "1 known" in out and "0 errors" in out
+
+
+def test_a_new_finding_fails_beside_the_known_ones(project, tmp_path, capsys):
+    built = project(plan=FontPlan(with_rclt=False))
+    known = tmp_path / "known.json"
+    main(["baseline", str(built.font), "--spec", str(built.spec), "-o", str(known)])
+    # The same font, now without alternates as well.
+    project(plan=FontPlan(with_rclt=False, with_aalt=False))
+    capsys.readouterr()
+    assert _check(built, "--baseline", str(known)) == 1
+    out = capsys.readouterr().out
+    assert "select/aalt-covers-readings" in out and "1 known" in out
+
+
+def test_a_known_finding_that_is_gone_is_pointed_out(project, tmp_path, capsys):
+    built = project(plan=FontPlan(with_rclt=False))
+    known = tmp_path / "known.json"
+    main(["baseline", str(built.font), "--spec", str(built.spec), "-o", str(known)])
+    project()  # the font is fixed
+    capsys.readouterr()
+    assert _check(built, "--baseline", str(known)) == 0
+    assert "no longer found" in capsys.readouterr().out
+
+
+def test_a_baseline_can_be_limited_to_some_checks(project, tmp_path, capsys):
+    # Two checks find something; only the selected one is saved as known.
+    built = project(plan=FontPlan(with_rclt=False, with_aalt=False))
+    known = tmp_path / "known.json"
+    args = ["baseline", str(built.font), "--spec", str(built.spec), "-o", str(known)]
+    assert main(args + ["--select", "select/"]) == 0
+    saved = json.loads(known.read_text(encoding="utf-8"))["known"]
+    assert {item["check"] for item in saved} == {"select/aalt-covers-readings"}
+
+
+def test_a_baseline_can_be_limited_to_several_checks(project, tmp_path):
+    built = project(plan=FontPlan(with_rclt=False, with_aalt=False))
+    known = tmp_path / "known.json"
+    args = ["baseline", str(built.font), "--spec", str(built.spec), "-o", str(known)]
+    select = ["--select", "select/aalt", "--select", "context/phrase"]
+    assert main(args + select) == 0
+    saved = json.loads(known.read_text(encoding="utf-8"))["known"]
+    assert {item["check"] for item in saved} == {
+        "select/aalt-covers-readings",
+        "context/phrase",
+    }

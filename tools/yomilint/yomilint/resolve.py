@@ -8,9 +8,9 @@ the glyph is made of, or from its name.
 from __future__ import annotations
 
 import re
-from typing import List, Optional, Pattern
+from typing import List, Optional, Pattern, Tuple
 
-from .font import FontUnderTest
+from .font import FontUnderTest, Part
 from .profiles import Profile, get_profile
 from .readers import Dictionary
 from .spec import Spec
@@ -56,17 +56,30 @@ class ComponentsResolver(Resolver):
                 )
         return None
 
-    def reading(self, glyph: str) -> Optional[str]:
-        letters = []
-        for part in self.font.parts(glyph):
+    def is_letter(self, glyph: str) -> bool:
+        return self.letter(glyph) is not None
+
+    def split(self, glyph: str) -> Tuple[List[Part], List[Tuple[Part, str]]]:
+        """The parts of `glyph` that draw the character, and those that
+        draw the annotation, each with its letter."""
+        base: List[Part] = []
+        annotation: List[Tuple[Part, str]] = []
+        # A letter is one part, even when it is drawn from several glyphs.
+        for part in self.font.parts(glyph, self.is_letter):
             letter = self.letter(part.glyph)
-            if letter is not None:
-                # Left to right, or top to bottom beside the character.
-                letters.append((-part.y if self.vertical else part.x, letter))
-        if not letters:
+            if letter is None:
+                base.append(part)
+            else:
+                annotation.append((part, letter))
+        return base, annotation
+
+    def reading(self, glyph: str) -> Optional[str]:
+        _, annotation = self.split(glyph)
+        if not annotation:
             return None
-        letters.sort(key=lambda item: item[0])
-        return self.profile.normalize("".join(letter for _, letter in letters))
+        # Left to right, or top to bottom beside the character.
+        annotation.sort(key=lambda item: -item[0].y if self.vertical else item[0].x)
+        return self.profile.normalize("".join(letter for _, letter in annotation))
 
 
 class NamesResolver(Resolver):
@@ -74,7 +87,11 @@ class NamesResolver(Resolver):
     dictionary gives the character of `<base>`, and index 0 is the bare one."""
 
     def __init__(
-        self, font: FontUnderTest, profile: Profile, pattern: str, dictionary: Dictionary
+        self,
+        font: FontUnderTest,
+        profile: Profile,
+        pattern: str,
+        dictionary: Dictionary,
     ) -> None:
         self.font = font
         self.profile = profile
@@ -84,7 +101,9 @@ class NamesResolver(Resolver):
     def reading(self, glyph: str) -> Optional[str]:
         match = self.pattern.match(glyph)
         # A name without the suffix is the default glyph: the first reading.
-        base, index = (match.group("base"), int(match.group("index"))) if match else (glyph, 1)
+        base, index = (
+            (match.group("base"), int(match.group("index"))) if match else (glyph, 1)
+        )
         # Of the characters mapped to the glyph, the one the dictionary has.
         readings: List[str] = []
         for char in self.font.chars_of.get(base, []):

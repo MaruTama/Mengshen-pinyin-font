@@ -68,7 +68,7 @@ RCLT = """
 lookup zhe_to_zhuo {{ sub {zhe} by {zhe}.ss02; }} zhe_to_zhuo;
 feature rclt {{
   ignore sub {bei} {zhe}' {shou};
-  sub {zhe}' lookup zhe_to_zhuo {shou};
+{ignores}  sub {zhe}' lookup zhe_to_zhuo {shou};
 }} rclt;
 """
 
@@ -117,11 +117,36 @@ class FontPlan:
     missing_selectors: Sequence[Tuple[str, int]] = ()
     # Characters to leave out of the cmap.
     unmapped: Sequence[str] = ()
+    # Characters after which the 着手 rule wrongly does not fire.
+    ignore_after: Sequence[str] = ()
+    # Where the annotation sits and how far apart its letters are.
+    annotation_y: int = ANNOTATION_Y
+    letter_advance: int = LETTER_ADVANCE
+    # (char, ss index) -> how far its annotation is moved sideways, how far
+    # it is raised, and by what factor its letters (and their spacing) are
+    # shrunk. Each moves one glyph's annotation and nothing else.
+    annotation_dx: Dict[Tuple[str, int], int] = field(default_factory=dict)
+    baseline_shift: Dict[Tuple[str, int], int] = field(default_factory=dict)
+    shrink: Dict[Tuple[str, int], float] = field(default_factory=dict)
+    # head.unitsPerEm. The outlines stay as they are, so a larger value makes
+    # the same distances in units a smaller part of the em.
+    units_per_em: int = UNITS_PER_EM
+    # hhea ascender: with the descender it sets the line spacing.
+    hhea_ascent: int = 1000
+    # Glyph name -> an advance width other than the font's.
+    advances: Dict[str, int] = field(default_factory=dict)
+    # Two composite glyphs that refer to each other.
+    circular: bool = False
     # Other code points mapped to the glyph of a character, as a font maps
     # KANGXI RADICAL ONE (U+2F00) to the glyph of 一.
     aliases: Dict[str, str] = field(default_factory=dict)
     # Extra glyphs that do nothing, to reach a glyph count.
     padding_glyphs: int = 0
+    # Draw each letter as a composite of a body and a mark above it (the
+    # mark's own origin is 380 up), as a font draws ǚ from u and a caron.
+    composite_letters: bool = False
+    # A letter glyph (U+0067) reaching this far below the baseline; 0 for none.
+    latin_descent: int = 0
 
 
 def _annotated(
@@ -129,17 +154,22 @@ def _annotated(
 ) -> Glyph:
     """The composite for reading `index` (1-based) of `char`."""
     reading = plan.shown.get((char, index), plan.readings[char][index - 1])
-    width = LETTER_ADVANCE * len(reading)
-    x = (ADVANCE - width) / 2
+    factor = plan.shrink.get((char, index), 1.0)
+    step = plan.letter_advance * factor
+    scale = LETTER_SCALE * factor
+    # The ink of the letters, not their advances, is what is centered.
+    ink = step * (len(reading) - 1) + 400 * scale
+    x = (ADVANCE - ink) / 2 - 50 * scale + plan.annotation_dx.get((char, index), 0)
+    y = plan.annotation_y + plan.baseline_shift.get((char, index), 0)
     parts: List[Tuple[str, Tuple[float, ...]]] = []
     for letter in reading:
         parts.append(
             (
                 letter_glyph_name(letter),
-                (LETTER_SCALE, 0, 0, LETTER_SCALE, x, ANNOTATION_Y),
+                (scale, 0, 0, scale, x, y),
             )
         )
-        x += LETTER_ADVANCE
+        x += step
     parts.append((f"{base_name(char)}.ss00", (1, 0, 0, 1, 0, 0)))
     return _composite(parts, glyphs)
 
@@ -148,12 +178,52 @@ def _features(plan: FontPlan, alternates: Sequence[str]) -> str:
     """The feature file: the reading rules and the alternates."""
     features = ""
     if plan.with_rclt:
+        zhe, shou = base_name("着"), base_name("手")
+        ignores = "".join(
+            f"  ignore sub {base_name(c)} {zhe}' {shou};\n" for c in plan.ignore_after
+        )
         features += RCLT.format(
-            zhe=base_name("着"), bei=base_name("背"), shou=base_name("手")
+            zhe=zhe, bei=base_name("背"), shou=shou, ignores=ignores
         )
     if plan.with_aalt:
         features += "feature aalt {\n  " + "\n  ".join(alternates) + "\n} aalt;\n"
     return features
+
+
+def _hanzi_glyphs(
+    plan: FontPlan, char: str, glyphs: Dict[str, Glyph]
+) -> Tuple[List[str], str]:
+    """Adds the glyphs of `char`. Returns the glyphs its selectors choose,
+    the bare one first, and its `aalt` rule."""
+    base = base_name(char)
+    count = len(plan.readings[char])
+    glyphs[f"{base}.ss00"] = _box(100, 0, 900, 700)
+    if count == 1:
+        # One reading: the default glyph carries it, as in Mengshen.
+        glyphs[base] = _annotated(plan, char, 1, glyphs)
+        return [f"{base}.ss00"], f"sub {base} by {base}.ss00;"
+    for index in range(1, count + 1):
+        glyphs[f"{base}.ss{index:02d}"] = _annotated(plan, char, index, glyphs)
+    glyphs[base] = _composite([(f"{base}.ss01", (1, 0, 0, 1, 0, 0))], glyphs)
+    variants = [f"{base}.ss{i:02d}" for i in range(count + 1)]
+    return variants, f"sub {base} from [{' '.join(variants)}];"
+
+
+def _letter_glyphs(
+    plan: FontPlan, letters: Sequence[str], glyphs: Dict[str, Glyph]
+) -> None:
+    """Adds a glyph for each letter: a box, or a body with a mark above it."""
+    if plan.composite_letters:
+        glyphs["lt_body"] = _box(50, 0, 450, 380)
+        glyphs["lt_mark"] = _box(150, 0, 350, 120)
+    for letter in letters:
+        if plan.composite_letters:
+            glyphs[letter_glyph_name(letter)] = _composite(
+                [("lt_body", (1, 0, 0, 1, 0, 0)), ("lt_mark", (1, 0, 0, 1, 0, 380))],
+                glyphs,
+            )
+        else:
+            glyphs[letter_glyph_name(letter)] = _box(50, 0, 450, 500)
 
 
 def make_font(path: Path, plan: Optional[FontPlan] = None) -> Path:
@@ -161,30 +231,15 @@ def make_font(path: Path, plan: Optional[FontPlan] = None) -> Path:
     glyphs: Dict[str, Glyph] = {".notdef": _box(100, 0, 900, 700)}
     letters = sorted({ch for rs in plan.readings.values() for r in rs for ch in r})
     letters = sorted(set(letters) | {ch for r in plan.shown.values() for ch in r})
-    for letter in letters:
-        glyphs[letter_glyph_name(letter)] = _box(50, 0, 450, 500)
+    _letter_glyphs(plan, letters, glyphs)
 
     cmap: Dict[int, str] = {}
     uvs: List[Tuple[int, int, str]] = []
     alternates: List[str] = []
-    for char, readings in plan.readings.items():
+    for char in plan.readings:
         base = base_name(char)
-        glyphs[f"{base}.ss00"] = _box(100, 0, 900, 700)
-        if len(readings) == 1:
-            # One reading: the default glyph carries it, as in Mengshen.
-            glyphs[base] = _annotated(plan, char, 1, glyphs)
-            variants = [f"{base}.ss00"]
-            alternates.append(f"sub {base} by {base}.ss00;")
-        else:
-            for index in range(1, len(readings) + 1):
-                glyphs[f"{base}.ss{index:02d}"] = _annotated(
-                    plan, char, index, glyphs
-                )
-            glyphs[base] = _composite(
-                [(f"{base}.ss01", (1, 0, 0, 1, 0, 0))], glyphs
-            )
-            variants = [f"{base}.ss{i:02d}" for i in range(len(readings) + 1)]
-            alternates.append(f"sub {base} from [{' '.join(variants)}];")
+        variants, alternate = _hanzi_glyphs(plan, char, glyphs)
+        alternates.append(alternate)
         if char not in plan.unmapped:
             cmap[ord(char)] = base
         for offset, variant in enumerate(variants):
@@ -192,16 +247,26 @@ def make_font(path: Path, plan: Optional[FontPlan] = None) -> Path:
                 uvs.append((ord(char), IVS_BASE + offset, variant))
     for alias, char in plan.aliases.items():
         cmap[ord(alias)] = base_name(char)
+    if plan.latin_descent:
+        glyphs["g"] = _box(100, -plan.latin_descent, 900, 500)
+        cmap[ord("g")] = "g"
     for n in range(plan.padding_glyphs):
         glyphs[f"pad{n:05d}"] = Glyph()
+    if plan.circular:
+        # Two composites of .notdef for now; `_tie_the_loop` makes them
+        # refer to each other once the font is saved.
+        for name in ("loop.a", "loop.b"):
+            glyphs[name] = _composite([(".notdef", (1, 0, 0, 1, 0, 0))], glyphs)
 
     order = list(glyphs)
-    builder = FontBuilder(UNITS_PER_EM, isTTF=True)
+    builder = FontBuilder(plan.units_per_em, isTTF=True)
     builder.setupGlyphOrder(order)
     builder.setupCharacterMap(cmap, uvs=uvs if plan.with_selectors else None)
     builder.setupGlyf(glyphs)
-    builder.setupHorizontalMetrics({name: (ADVANCE, 0) for name in order})
-    builder.setupHorizontalHeader(ascent=1000, descent=-200)
+    builder.setupHorizontalMetrics(
+        {name: (plan.advances.get(name, ADVANCE), 0) for name in order}
+    )
+    builder.setupHorizontalHeader(ascent=plan.hhea_ascent, descent=-200)
     builder.setupNameTable({"familyName": "Yomilint Test", "styleName": "Regular"})
     builder.setupOS2(usWinAscent=1000, usWinDescent=200)
     builder.setupPost()
@@ -209,10 +274,50 @@ def make_font(path: Path, plan: Optional[FontPlan] = None) -> Path:
     if features:
         addOpenTypeFeaturesFromString(builder.font, features)
     builder.save(str(path))
+    if plan.circular:
+        _tie_the_loop(path, order.index("loop.a"), order.index("loop.b"))
     return path
 
 
-def write_dictionary(path: Path, readings: Optional[Dict[str, List[str]]] = None) -> Path:
+def _tie_the_loop(path: Path, first: int, second: int) -> None:
+    """Makes the composites `first` and `second` each other's component.
+    fontTools refuses to build such a font, so the saved file is patched:
+    a composite's first component index is 12 bytes into the glyph."""
+    data = bytearray(path.read_bytes())
+    tables = int.from_bytes(data[4:6], "big")
+    offset = {}
+    for record in range(12, 12 + 16 * tables, 16):
+        tag = bytes(data[record : record + 4]).decode()
+        offset[tag] = int.from_bytes(data[record + 8 : record + 12], "big")
+    long_loca = int.from_bytes(data[offset["head"] + 50 : offset["head"] + 52], "big")
+
+    def glyph_start(gid: int) -> int:
+        at = offset["loca"] + gid * (4 if long_loca else 2)
+        if long_loca:
+            return offset["glyf"] + int.from_bytes(data[at : at + 4], "big")
+        return offset["glyf"] + 2 * int.from_bytes(data[at : at + 2], "big")
+
+    for gid, other in ((first, second), (second, first)):
+        start = glyph_start(gid)
+        data[start + 12 : start + 14] = other.to_bytes(2, "big")
+    path.write_bytes(bytes(data))
+
+
+def corrupt_gsub(path: Path) -> Path:
+    """Points the GSUB script, feature and lookup lists past the table."""
+    data = bytearray(path.read_bytes())
+    tables = int.from_bytes(data[4:6], "big")
+    for record in range(12, 12 + 16 * tables, 16):
+        if data[record : record + 4] == b"GSUB":
+            start = int.from_bytes(data[record + 8 : record + 12], "big")
+            data[start + 4 : start + 10] = b"\xff\xf0" * 3
+    path.write_bytes(bytes(data))
+    return path
+
+
+def write_dictionary(
+    path: Path, readings: Optional[Dict[str, List[str]]] = None
+) -> Path:
     """A dictionary in Mengshen's `merged-mapping-table.txt` format."""
     lines = [
         f"U+{ord(char):04X}: {','.join(rs)}  #{char}"

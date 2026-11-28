@@ -31,7 +31,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install fonttools uharfbuzz pytest black isort flake8 mypy
+          pip install fonttools uharfbuzz opentype-sanitizer pytest black isort flake8 mypy
 
       - name: Check formatting and lint
         working-directory: tools/yomilint

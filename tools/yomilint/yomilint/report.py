@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from collections import Counter
-from typing import Dict, List
+from typing import Dict, List, Sequence, Tuple
 
 from .checks import CHECKS, ERROR, WARN, Finding
 
@@ -17,7 +17,12 @@ def summary(findings: List[Finding]) -> Dict[str, int]:
     return {"errors": counts[ERROR], "warnings": counts[WARN]}
 
 
-def as_text(font: str, findings: List[Finding]) -> str:
+def as_text(
+    font: str,
+    findings: List[Finding],
+    known: int = 0,
+    gone: Sequence[Tuple[str, str]] = (),
+) -> str:
     lines = [font]
     by_check: Dict[str, List[Finding]] = {}
     for finding in findings:
@@ -30,16 +35,29 @@ def as_text(font: str, findings: List[Finding]) -> str:
             lines.append(f"    - {finding.subject}: {finding.message}")
         if len(found) > SHOWN_PER_CHECK:
             lines.append(f"    ... and {len(found) - SHOWN_PER_CHECK} more")
+    for check_id, subject in gone:
+        lines.append(f"  known but no longer found: {check_id} {subject}")
     counts = summary(findings)
-    lines.append(f"  {counts['errors']} errors, {counts['warnings']} warnings")
+    total = f"  {counts['errors']} errors, {counts['warnings']} warnings"
+    if known or gone:
+        total += f", {known} known"
+    lines.append(total)
     return "\n".join(lines)
 
 
-def as_json(font: str, findings: List[Finding]) -> str:
+def as_json(
+    font: str,
+    findings: List[Finding],
+    known: int = 0,
+    gone: Sequence[Tuple[str, str]] = (),
+) -> str:
     return json.dumps(
         {
             "font": font,
-            "summary": summary(findings),
+            "summary": {**summary(findings), "known": known},
+            "no_longer_found": [
+                {"check": check_id, "subject": subject} for check_id, subject in gone
+            ],
             "findings": [
                 {
                     "check": finding.check,
