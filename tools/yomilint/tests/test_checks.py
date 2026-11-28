@@ -118,7 +118,6 @@ def test_an_annotation_on_the_character(project):
 
 def test_an_annotation_too_close_to_the_character(project):
     # 60 units above the character, where the spec asks for 100.
-    assert project(min_gap=100).findings() != []
     assert set(project(min_gap=100).findings()) == {"geometry/no-overlap"}
     assert project(min_gap=60).findings() == []
 

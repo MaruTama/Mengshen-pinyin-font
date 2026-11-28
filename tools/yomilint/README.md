@@ -34,6 +34,10 @@ python -m yomilint check FONT --spec SPEC --baseline known.json
 なった指摘は「known but no longer found」と表示するので、一覧から消してください。
 仕様ファイルの `[ignore] path` に書いておくこともできます。
 
+一覧にはフォントの名前が入らないので、フォントごとに別のファイルにしてください。
+1 つの一覧で 2 つのフォントを検査すると、片方にしかない指摘が、もう片方で
+「no longer found」と表示されます。
+
 ## 今ある検査
 
 | ID | 重大度 | 検査すること |
@@ -57,6 +61,10 @@ python -m yomilint check FONT --spec SPEC --baseline known.json
 | `format/tables-parse` | ERROR | fontTools が全テーブルを読める |
 | `format/no-circular-reference` | ERROR | 複合グリフに循環参照がない |
 | `format/ots` | ERROR | OpenType Sanitizer を通る（入っていなければ走らない） |
+
+寸法の検査（`geometry/`）は、複合グリフの部品を親字と注釈に分けて測ります。
+仕様ファイルに `[resolver.letters]` がなく、注釈の字母が cmap にもないフォントでは、
+分けられないので何も報告しません。
 
 検査が例外で止まったときは、その検査の指摘として「the check could not run」を出し、
 ほかの検査は続けます。壊れたテーブルが 1 つあっても、残りの結果は得られます。
