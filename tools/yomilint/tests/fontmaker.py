@@ -122,6 +122,14 @@ class FontPlan:
     # Where the annotation sits and how far apart its letters are.
     annotation_y: int = ANNOTATION_Y
     letter_advance: int = LETTER_ADVANCE
+    # (char, ss index) -> how far its annotation is moved sideways, how far
+    # it is raised, and by what factor its letters (and their spacing) are
+    # shrunk. Each moves one glyph's annotation and nothing else.
+    annotation_dx: Dict[Tuple[str, int], int] = field(default_factory=dict)
+    baseline_shift: Dict[Tuple[str, int], int] = field(default_factory=dict)
+    shrink: Dict[Tuple[str, int], float] = field(default_factory=dict)
+    # hhea ascender: with the descender it sets the line spacing.
+    hhea_ascent: int = 1000
     # Glyph name -> an advance width other than the font's.
     advances: Dict[str, int] = field(default_factory=dict)
     # Two composite glyphs that refer to each other.
@@ -138,17 +146,22 @@ def _annotated(
 ) -> Glyph:
     """The composite for reading `index` (1-based) of `char`."""
     reading = plan.shown.get((char, index), plan.readings[char][index - 1])
-    width = plan.letter_advance * len(reading)
-    x = (ADVANCE - width) / 2
+    factor = plan.shrink.get((char, index), 1.0)
+    step = plan.letter_advance * factor
+    scale = LETTER_SCALE * factor
+    # The ink of the letters, not their advances, is what is centered.
+    ink = step * (len(reading) - 1) + 400 * scale
+    x = (ADVANCE - ink) / 2 - 50 * scale + plan.annotation_dx.get((char, index), 0)
+    y = plan.annotation_y + plan.baseline_shift.get((char, index), 0)
     parts: List[Tuple[str, Tuple[float, ...]]] = []
     for letter in reading:
         parts.append(
             (
                 letter_glyph_name(letter),
-                (LETTER_SCALE, 0, 0, LETTER_SCALE, x, plan.annotation_y),
+                (scale, 0, 0, scale, x, y),
             )
         )
-        x += plan.letter_advance
+        x += step
     parts.append((f"{base_name(char)}.ss00", (1, 0, 0, 1, 0, 0)))
     return _composite(parts, glyphs)
 
@@ -226,7 +239,7 @@ def make_font(path: Path, plan: Optional[FontPlan] = None) -> Path:
     builder.setupHorizontalMetrics(
         {name: (plan.advances.get(name, ADVANCE), 0) for name in order}
     )
-    builder.setupHorizontalHeader(ascent=1000, descent=-200)
+    builder.setupHorizontalHeader(ascent=plan.hhea_ascent, descent=-200)
     builder.setupNameTable({"familyName": "Yomilint Test", "styleName": "Regular"})
     builder.setupOS2(usWinAscent=1000, usWinDescent=200)
     builder.setupPost()
@@ -275,7 +288,9 @@ def corrupt_gsub(path: Path) -> Path:
     return path
 
 
-def write_dictionary(path: Path, readings: Optional[Dict[str, List[str]]] = None) -> Path:
+def write_dictionary(
+    path: Path, readings: Optional[Dict[str, List[str]]] = None
+) -> Path:
     """A dictionary in Mengshen's `merged-mapping-table.txt` format."""
     lines = [
         f"U+{ord(char):04X}: {','.join(rs)}  #{char}"

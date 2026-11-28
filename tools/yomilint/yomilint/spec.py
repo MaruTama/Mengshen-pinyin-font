@@ -35,6 +35,13 @@ class Spec:
     selector_base: Optional[int] = None
     # The least distance between the character and its annotation.
     min_gap: float = 0
+    # How far the middle of the annotation may be from the middle of the
+    # advance, in font units.
+    center_tolerance: float = 20
+    # How far an annotation's baseline may be from the font's usual one.
+    baseline_tolerance: float = 1
+    # The smallest an annotation may be drawn, relative to the largest.
+    min_scale: float = 0.6
     glyph_headroom: int = 500
     # A file of known findings, which do not fail a run.
     baseline: Optional[Path] = None
@@ -69,6 +76,9 @@ def load_spec(path: Path) -> Spec:
         letter_encoding=letters.get("encoding"),
         selector_base=data.get("selectors", {}).get("base"),
         min_gap=data.get("geometry", {}).get("min_gap", 0),
+        center_tolerance=data.get("geometry", {}).get("center_tolerance", 20),
+        baseline_tolerance=data.get("geometry", {}).get("baseline_tolerance", 1),
+        min_scale=data.get("geometry", {}).get("min_scale", 0.6),
         glyph_headroom=data.get("limits", {}).get("glyph_headroom", 500),
     )
     if "path" in data.get("ignore", {}):
@@ -81,7 +91,7 @@ def load_spec(path: Path) -> Spec:
     if spec.resolver_kind not in ("components", "names"):
         raise SpecError(f"[resolver] kind {spec.resolver_kind!r} is not known")
     if spec.resolver_kind == "names" and not spec.name_pattern:
-        raise SpecError("[resolver] kind = \"names\" needs a pattern")
+        raise SpecError('[resolver] kind = "names" needs a pattern')
     if "dictionary" in data:
         spec.dictionary = _source(data["dictionary"], directory, "dictionary")
     spec.phrases = [_source(t, directory, "phrases") for t in data.get("phrases", [])]

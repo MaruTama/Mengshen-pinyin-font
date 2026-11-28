@@ -57,6 +57,10 @@ python -m yomilint check FONT --spec SPEC --baseline known.json
 | `geometry/no-overlap` | ERROR | 注釈が親字と重ならず、`[geometry] min_gap` 以上離れている |
 | `geometry/advance-matches-base` | ERROR | 読みを切り替えても送り幅が変わらない |
 | `geometry/annotation-within-advance` | WARN | 注釈が送り幅からはみ出さない |
+| `geometry/centered` | WARN | 注釈の中央が送り幅の中央から `[geometry] center_tolerance`（既定 20）以内にある |
+| `geometry/baseline-aligned` | WARN | 注釈のベースラインがグリフ間でそろっている（許容 `baseline_tolerance`、既定 1） |
+| `geometry/min-scale` | WARN | 長い読みの縮小率が `[geometry] min_scale`（既定 0.6）以上である |
+| `geometry/line-gap` | WARN | hhea の行送りで、隣の行の注釈と親字が `min_gap` 以上離れている |
 | `format/glyph-count` | WARN | グリフ数に余裕がある |
 | `format/tables-parse` | ERROR | fontTools が全テーブルを読める |
 | `format/no-circular-reference` | ERROR | 複合グリフに循環参照がない |
@@ -64,13 +68,15 @@ python -m yomilint check FONT --spec SPEC --baseline known.json
 
 寸法の検査（`geometry/`）は、複合グリフの部品を親字と注釈に分けて測ります。
 仕様ファイルに `[resolver.letters]` がなく、注釈の字母が cmap にもないフォントでは、
-分けられないので何も報告しません。
+分けられないので何も報告しません。`centered`、`baseline-aligned`、`line-gap` は注釈が
+親字の上か下にあるとき（`position` が `top` か `bottom`）だけ見ます。
+各検査の定義は設計書の 5 章にあります。
 
 検査が例外で止まったときは、その検査の指摘として「the check could not run」を出し、
 ほかの検査は続けます。壊れたテーブルが 1 つあっても、残りの結果は得られます。
 
-設計書の最小版の検査は、これで全部です。拡張（規則の静的解析、寸法の残りの検査、
-HTML の報告、リリース間の差分、元のフォントとの差分）はまだありません。
+設計書の最小版の検査と、寸法の検査（`geometry/`）は、これで全部です。拡張（規則の
+静的解析、HTML の報告、リリース間の差分、元のフォントとの差分）はまだありません。
 
 ## 開発
 

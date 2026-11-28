@@ -4,12 +4,13 @@ with an id, a severity and the reason it exists."""
 from __future__ import annotations
 
 import tempfile
+from collections import Counter
 from dataclasses import dataclass, field
 from typing import Callable, Dict, Iterable, Iterator, List, Optional, Tuple
 
 from fontTools.ttLib import TTFont
 
-from .font import Box, FontUnderTest, union
+from .font import Box, FontUnderTest, Part, union
 from .profiles import Profile
 from .readers import Dictionary, Phrase
 from .resolve import ComponentsResolver, Resolver
@@ -30,6 +31,19 @@ class Finding:
     message: str
 
 
+@dataclass(frozen=True)
+class Annotated:
+    """A glyph that draws an annotation: the character it belongs to, the
+    box of the character, the box of the annotation and the letter parts
+    the annotation is made of."""
+
+    char: str
+    glyph: str
+    base: Box
+    box: Box
+    letters: List[Part]
+
+
 @dataclass
 class Context:
     """What a check may look at."""
@@ -45,6 +59,7 @@ class Context:
     _sequences: Optional[Dict] = field(default=None, repr=False)
     _selected: Optional[Dict[str, List[str]]] = field(default=None, repr=False)
     _alternates: Optional[Dict] = field(default=None, repr=False)
+    _annotations: Optional[List[Annotated]] = field(default=None, repr=False)
 
     def reading(self, glyph: str) -> Optional[str]:
         return self.resolver.reading(glyph)
@@ -54,6 +69,10 @@ class Context:
         `glyph`, or None when it has not both or its parts cannot be told
         apart (the font has no composites, or the spec no way to name the
         letters)."""
+        found = self._split(glyph)
+        return None if found is None else (found[0], found[1])
+
+    def _split(self, glyph: str) -> Optional[Tuple[Box, Box, List[Part]]]:
         for resolver in (self.resolver, self.second_resolver):
             if isinstance(resolver, ComponentsResolver):
                 base, annotation = resolver.split(glyph)
@@ -61,17 +80,28 @@ class Context:
                 annotation_box = union([part.box for part, _ in annotation])
                 if base_box is None or annotation_box is None:
                     return None
-                return base_box, annotation_box
+                return base_box, annotation_box, [part for part, _ in annotation]
         return None
+
+    def annotations(self) -> List[Annotated]:
+        """Every glyph that draws an annotation, with what it is made of.
+        Worked out once: the geometry checks all walk it."""
+        if self._annotations is None:
+            self._annotations = []
+            for char, _ in self.mapped():
+                for glyph in self.glyphs_of(char):
+                    found = self._split(glyph)
+                    if found is not None:
+                        self._annotations.append(
+                            Annotated(char, glyph, found[0], found[1], found[2])
+                        )
+        return self._annotations
 
     def annotated(self) -> Iterator[Tuple[str, str, Box, Box]]:
         """(character, glyph, character box, annotation box) of every glyph
         that draws an annotation."""
-        for char, _ in self.mapped():
-            for glyph in self.glyphs_of(char):
-                boxes = self.layout(glyph)
-                if boxes is not None:
-                    yield char, glyph, boxes[0], boxes[1]
+        for item in self.annotations():
+            yield item.char, item.glyph, item.base, item.box
 
     def expected(self, char: str) -> List[str]:
         return [self.profile.normalize(r) for r in self.dictionary.get(char, [])]
@@ -469,14 +499,141 @@ def annotation_within_advance(context: Context):
     yield from once_per_character(found())
 
 
+def _beside_the_line(context: Context) -> bool:
+    """Whether the annotation stands above or below the character: the
+    checks of its width and baseline mean nothing for one at the side."""
+    return context.spec.position in ("top", "bottom")
+
+
+@check(
+    "geometry/centered",
+    WARN,
+    "An annotation off the middle of its character looks as if it belonged to "
+    "the neighbour; its middle must be within [geometry] center_tolerance of "
+    "the middle of the advance.",
+)
+def centered(context: Context):
+    if not _beside_the_line(context):
+        return
+    tolerance = context.spec.center_tolerance
+
+    def found():
+        for char, glyph, _, box in context.annotated():
+            # The advance of the character itself: a glyph that advances
+            # otherwise is the business of geometry/advance-matches-base.
+            default = context.font.glyph_for(char) or glyph
+            advance = context.font.advance(default)
+            off = (box[0] + box[2]) / 2 - advance / 2
+            if abs(off) > tolerance:
+                side = "right" if off > 0 else "left"
+                yield char, (
+                    f"{glyph}: the annotation is {abs(off):g} to the {side} of "
+                    f"the middle of the advance, more than {tolerance:g}"
+                )
+
+    yield from once_per_character(found())
+
+
+@check(
+    "geometry/baseline-aligned",
+    WARN,
+    "The letters of annotations stand on one line across the font; one "
+    "raised or lowered by a few units shows next to its neighbours.",
+)
+def baseline_aligned(context: Context):
+    if not _beside_the_line(context):
+        return
+    tolerance = context.spec.baseline_tolerance
+    # The baseline of a letter is where its glyph's origin is drawn. The
+    # usual one is the one most letters stand on.
+    counts = Counter(
+        round(part.y) for item in context.annotations() for part in item.letters
+    )
+    if not counts:
+        return
+    usual = counts.most_common(1)[0][0]
+
+    def found():
+        for item in context.annotations():
+            for part in item.letters:
+                if abs(part.y - usual) > tolerance:
+                    yield item.char, (
+                        f"{item.glyph}: a letter stands on {part.y:g}, the usual "
+                        f"baseline is {usual}"
+                    )
+                    break
+
+    yield from once_per_character(found())
+
+
+@check(
+    "geometry/min-scale",
+    WARN,
+    "A long reading is drawn smaller to fit; below [geometry] min_scale of "
+    "the largest letters it is too small to read.",
+)
+def min_scale(context: Context):
+    items = [item for item in context.annotations() if item.letters]
+    if not items:
+        return
+    # The size of a reading is that of its smallest letter; the full size is
+    # the largest any reading is drawn at.
+    sizes = {id(item): min(part.scale for part in item.letters) for item in items}
+    largest = max(sizes.values())
+    if largest <= 0:
+        return
+    least = context.spec.min_scale
+
+    def found():
+        for item in items:
+            ratio = sizes[id(item)] / largest
+            if ratio < least:
+                yield item.char, (
+                    f"{item.glyph}: the letters are drawn at {ratio:.2f} of the "
+                    f"largest, less than {least:g}"
+                )
+
+    yield from once_per_character(found())
+
+
+@check(
+    "geometry/line-gap",
+    WARN,
+    "With the font's own line spacing (hhea), the annotation of one line must "
+    "not reach the characters of the line next to it.",
+)
+def line_gap(context: Context):
+    side = context.spec.position
+    pitch = context.font.line_pitch()
+    if side not in ("top", "bottom") or pitch is None or not context.annotations():
+        return
+    least = context.spec.min_gap
+    # Lines are `pitch` apart. Above the characters, the annotation of the
+    # lower line reaches up toward the characters of the upper line; below,
+    # the annotation of the upper line reaches down.
+    if side == "top":
+        reaching = max(context.annotations(), key=lambda item: item.box[3])
+        facing = min(context.annotations(), key=lambda item: item.base[1])
+        gap = pitch + facing.base[1] - reaching.box[3]
+    else:
+        reaching = min(context.annotations(), key=lambda item: item.box[1])
+        facing = max(context.annotations(), key=lambda item: item.base[3])
+        gap = pitch + reaching.box[1] - facing.base[3]
+    if gap < least:
+        yield reaching.char, (
+            f"lines {pitch} apart leave {gap:g} between the annotation of "
+            f"{reaching.glyph} and the character of {facing.glyph} on the next "
+            f"line, less than {least:g}"
+        )
+
+
 # ---- format ------------------------------------------------------------
 
 
 @check(
     "format/glyph-count",
     WARN,
-    "A font holds 65,535 glyphs; one close to that has no room for another "
-    "reading.",
+    "A font holds 65,535 glyphs; one close to that has no room for another " "reading.",
 )
 def glyph_count(context: Context):
     count = len(context.font.glyph_order)

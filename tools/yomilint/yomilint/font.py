@@ -3,6 +3,7 @@ made of. Everything the checks know about the font comes through here."""
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Tuple
@@ -22,12 +23,16 @@ Box = Tuple[float, float, float, float]
 @dataclass(frozen=True)
 class Part:
     """A simple glyph a composite draws, where it is drawn, and the box it
-    covers there."""
+    covers there. `x` and `y` are where its origin lands (for a letter, the
+    baseline); `scale` is the size it is drawn at relative to its own design:
+    the smaller of its horizontal and vertical factors, so a letter squeezed
+    in one direction only counts as squeezed."""
 
     glyph: str
     x: float
     y: float
     box: Box
+    scale: float = 1.0
 
 
 def union(boxes: Sequence[Box]) -> Optional[Box]:
@@ -110,6 +115,14 @@ class FontUnderTest:
     def advance(self, glyph: str) -> int:
         return int(self.tt["hmtx"][glyph][0])
 
+    def line_pitch(self) -> Optional[int]:
+        """The distance between two lines of text set with the font's own
+        spacing: hhea ascender, descender and lineGap. None without hhea."""
+        if "hhea" not in self.tt:
+            return None
+        hhea = self.tt["hhea"]
+        return int(hhea.ascent - hhea.descent + hhea.lineGap)
+
     def window(self) -> Optional[Tuple[int, int]]:
         """The lowest and highest y Windows draws: outside usWinDescent and
         usWinAscent a glyph is cut off. None without an OS/2 table."""
@@ -167,7 +180,8 @@ class FontUnderTest:
                     max(x for x, _ in corners),
                     max(y for _, y in corners),
                 )
-                found.append(Part(name, offset[0], offset[1], box))
+                scale = min(math.hypot(a, b), math.hypot(c, d))
+                found.append(Part(name, offset[0], offset[1], box, scale))
             return
         for component in glyph.components:
             # An anchored component has no offset of its own.
