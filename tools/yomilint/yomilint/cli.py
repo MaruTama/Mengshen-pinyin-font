@@ -46,6 +46,12 @@ def _parser() -> argparse.ArgumentParser:
     baseline.add_argument("font", metavar="FONT")
     baseline.add_argument("--spec", required=True, help="the spec file (yomilint.toml)")
     baseline.add_argument("-o", "--output", required=True, help="the file to write")
+    baseline.add_argument(
+        "--select",
+        action="append",
+        help="save only the findings of the checks whose id starts with this "
+        "(may be given more than once)",
+    )
     return parser
 
 
@@ -68,7 +74,11 @@ def _check(args: argparse.Namespace) -> int:
 
 
 def _baseline(args: argparse.Namespace) -> int:
-    findings = run(args.font, args.spec)
+    findings = [
+        finding
+        for select in args.select or [None]
+        for finding in run(args.font, args.spec, select)
+    ]
     write_baseline(Path(args.output), findings)
     print(f"{len({(f.check, f.subject) for f in findings})} findings saved as known")
     return 0

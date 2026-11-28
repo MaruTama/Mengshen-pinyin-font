@@ -35,7 +35,9 @@ format = "mengshen"
 base = 0xE01E0
 
 [geometry]
-min_gap = 0
+min_gap = 0                   # フォントの単位
+center_tolerance = 0.01       # em に対する比
+baseline_tolerance = 0.001    # em に対する比
 
 [limits]
 glyph_headroom = 500

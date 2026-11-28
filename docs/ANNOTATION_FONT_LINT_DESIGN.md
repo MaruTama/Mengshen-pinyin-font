@@ -87,10 +87,11 @@ format = "mengshen"
 base = 0xE01E0                # base + n が n 番目（0 は注釈なし）
 order = "dictionary"          # n 番目の意味。dictionary = 辞書の読みの並び順
 
-[geometry]                    # 寸法の許容値（フォントの単位。省略時は既定値）
-min_gap = 0                   # 親字と注釈の間の最小のすき間
-center_tolerance = 20         # 注釈の中央と送り幅の中央のずれ
-min_scale = 0.6               # 長い読みを縮めるときの下限（最大の読みに対する比）
+[geometry]                    # 寸法の許容値。省略時は既定値。単位はキーごとに違う
+min_gap = 0                   # 親字と注釈の間の最小のすき間（フォントの単位）
+center_tolerance = 0.01       # 注釈の中央と送り幅の中央のずれ（em に対する比。0 以上 1 未満）
+baseline_tolerance = 0.001    # 注釈のベースラインの、最頻値からのずれ（em に対する比。0 以上 1 未満）
+min_scale = 0.6               # 長い読みを縮めるときの下限（最頻の大きさに対する比。0 より大きく 1 以下）
 
 [limits]
 glyph_headroom = 500          # 65,535 に対して残しておくグリフ数
@@ -178,10 +179,38 @@ path = "yomilint-baseline.json"
 | `geometry/no-overlap` | ERROR | ○ | 注釈と親字の bbox が重ならず、`min_gap` 以上離れている |
 | `geometry/advance-matches-base` | ERROR | ○ | 注釈付きのグリフの送り幅が、注釈なしと同じ |
 | `geometry/annotation-within-advance` | WARN | ○ | 注釈が送り幅からはみ出さない |
-| `geometry/centered` | WARN | - | 注釈の中央が送り幅の中央にある（`center_tolerance` 以内） |
-| `geometry/baseline-aligned` | WARN | - | 注釈のベースラインがグリフ間でそろっている |
-| `geometry/min-scale` | WARN | - | 長い読みの縮小率が `min_scale` 以上である |
-| `geometry/line-gap` | WARN | - | 行間の指定で、隣の行の注釈と親字がぶつからない |
+| `geometry/centered` | WARN | ✓ 実装済み | 注釈の中央が送り幅の中央にある（`center_tolerance` 以内） |
+| `geometry/baseline-aligned` | WARN | ✓ 実装済み | 注釈のベースラインがグリフ間でそろっている |
+| `geometry/min-scale` | WARN | ✓ 実装済み | 長い読みの縮小率が `min_scale` 以上である |
+| `geometry/line-gap` | WARN | ✓ 実装済み | 行間の指定で、隣の行の注釈と親字がぶつからない |
+
+`centered`、`baseline-aligned`、`min-scale`、`line-gap` の定義は、実装で次のように決めた。
+`centered`、`baseline-aligned`、`line-gap` は、注釈が親字の上か下にあるとき（`position` が
+`top` か `bottom`）の検査で、左右にあるときは何も報告しない（`annotation-within-advance` と
+同じ扱い）。`min-scale` は字母の大きさだけを見るので、位置によらず走る。
+`center_tolerance` と `baseline_tolerance` は、仕様ファイルの読み込みのときに、範囲
+（0 以上 1 未満）を外れた値と数でない値を拒否する。古い単位（`20` など）の指定を
+そのまま使わないためである。
+
+- `centered`: 注釈の輪郭の bbox の中央と、親字の既定のグリフの送り幅の中央の差。
+  差が `center_tolerance`（em に対する比。UPM で割った値）を超えると指摘する。輪郭の
+  bbox で測ると決めた（字母の左右の余白の違いも「見える中央」として数える）。送り幅が違うグリフは
+  `advance-matches-base` が見るので、基準は既定のグリフの送り幅にそろえ、二重に
+  指摘しない。
+- `baseline-aligned`: 字母（最上位の字母コンポーネント）を置く y（その原点。字母の字形は
+  ベースラインを原点に作る前提）を、注釈の字母すべてで数え、最頻値を「フォントの
+  ベースライン」とする。字母が本体と声調記号などの合成グリフでも、中の部品ではなく
+  字母ごとに 1 つ数える。それと `baseline_tolerance`（em に対する比）を超えて違う字母のあるグリフを
+  指摘する。
+- `min-scale`: 字母を描く倍率（変換の横と縦の倍率の小さいほう）を、グリフごとに
+  最小の字母で表す。全グリフで最も多い倍率（小数 3 桁に丸める）を「いつもの大きさ」
+  として、それに対する比が `min_scale` 未満のグリフを指摘する。1 つだけ大きく描いた
+  読みがあっても、ほかは指摘しない。
+- `line-gap`: 行送りは hhea の `ascender - descender + lineGap`。`top` なら、下の行の
+  注釈のいちばん上（注釈付きの全グリフで最大）と、上の行にあり得る文字のいちばん下
+  （cmap にある全グリフで最小。英字の下に出る部分も含む）のすき間が `[geometry] min_gap` に満たないと指摘する。`bottom` なら上下を逆にする。グリフの上下は `glyf` の bbox で測る。
+  最悪の組み合わせの 1 件だけを報告する。Windows が使う usWin の値や、
+  `USE_TYPO_METRICS` で選ばれる typo の値での行送りは見ない。
 
 ### 読みの求め方（`resolve/`）
 
@@ -268,6 +297,8 @@ yomilint diff OLD.ttf NEW.ttf --spec SPEC
 
 ## 9. 未決定の点
 
+- 寸法のキーの単位。`center_tolerance` と `baseline_tolerance` は em に対する比にしたが、
+  `min_gap` などの既存のキーはフォントの単位のまま。そろえるなら別の変更で行う。
 - ツールの名前（`yomilint` は仮）。
 - 語句テストの大きな公開データ（CC-CEDICT など）を任意で取り込むか。ライセンスは
   CC BY-SA なので、同梱せずダウンロードする形になる。

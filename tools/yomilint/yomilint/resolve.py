@@ -56,12 +56,16 @@ class ComponentsResolver(Resolver):
                 )
         return None
 
+    def is_letter(self, glyph: str) -> bool:
+        return self.letter(glyph) is not None
+
     def split(self, glyph: str) -> Tuple[List[Part], List[Tuple[Part, str]]]:
         """The parts of `glyph` that draw the character, and those that
         draw the annotation, each with its letter."""
         base: List[Part] = []
         annotation: List[Tuple[Part, str]] = []
-        for part in self.font.parts(glyph):
+        # A letter is one part, even when it is drawn from several glyphs.
+        for part in self.font.parts(glyph, self.is_letter):
             letter = self.letter(part.glyph)
             if letter is None:
                 base.append(part)
@@ -83,7 +87,11 @@ class NamesResolver(Resolver):
     dictionary gives the character of `<base>`, and index 0 is the bare one."""
 
     def __init__(
-        self, font: FontUnderTest, profile: Profile, pattern: str, dictionary: Dictionary
+        self,
+        font: FontUnderTest,
+        profile: Profile,
+        pattern: str,
+        dictionary: Dictionary,
     ) -> None:
         self.font = font
         self.profile = profile
@@ -93,7 +101,9 @@ class NamesResolver(Resolver):
     def reading(self, glyph: str) -> Optional[str]:
         match = self.pattern.match(glyph)
         # A name without the suffix is the default glyph: the first reading.
-        base, index = (match.group("base"), int(match.group("index"))) if match else (glyph, 1)
+        base, index = (
+            (match.group("base"), int(match.group("index"))) if match else (glyph, 1)
+        )
         # Of the characters mapped to the glyph, the one the dictionary has.
         readings: List[str] = []
         for char in self.font.chars_of.get(base, []):

@@ -3,9 +3,10 @@ made of. Everything the checks know about the font comes through here."""
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Sequence, Tuple
+from typing import Callable, Dict, List, Optional, Sequence, Tuple
 
 import uharfbuzz as hb
 from fontTools.ttLib import TTFont
@@ -17,17 +18,23 @@ Matrix = Tuple[float, float, float, float]
 IDENTITY: Matrix = (1.0, 0.0, 0.0, 1.0)
 # xMin, yMin, xMax, yMax
 Box = Tuple[float, float, float, float]
+# Tells whether a glyph is drawn as one part, however it is made.
+Stop = Callable[[str], bool]
 
 
 @dataclass(frozen=True)
 class Part:
     """A simple glyph a composite draws, where it is drawn, and the box it
-    covers there."""
+    covers there. `x` and `y` are where its origin lands (for a letter, the
+    baseline); `scale` is the size it is drawn at relative to its own design:
+    the smaller of its horizontal and vertical factors, so a letter squeezed
+    in one direction only counts as squeezed."""
 
     glyph: str
     x: float
     y: float
     box: Box
+    scale: float = 1.0
 
 
 def union(boxes: Sequence[Box]) -> Optional[Box]:
@@ -58,7 +65,7 @@ class FontUnderTest:
         for code in sorted(self.cmap):
             self.chars_of.setdefault(self.cmap[code], []).append(chr(code))
         self._hb_font = hb.Font(hb.Face(self.path.read_bytes()))
-        self._parts: Dict[str, List[Part]] = {}
+        self._parts: Dict[Tuple[str, Optional[Stop]], List[Part]] = {}
 
     # ---- mapping -------------------------------------------------------
 
@@ -110,6 +117,31 @@ class FontUnderTest:
     def advance(self, glyph: str) -> int:
         return int(self.tt["hmtx"][glyph][0])
 
+    def extents(self) -> Dict[str, Tuple[float, float]]:
+        """Glyph -> (lowest y, highest y) of every glyph the cmap maps that
+        draws something, from the bounding box in `glyf`. Empty without a
+        `glyf` table."""
+        if "glyf" not in self.tt:
+            return {}
+        glyf = self.tt["glyf"]
+        found: Dict[str, Tuple[float, float]] = {}
+        for name in dict.fromkeys(self.cmap.values()):
+            glyph = glyf[name]
+            if glyph.numberOfContours != 0:
+                found[name] = (glyph.yMin, glyph.yMax)
+        return found
+
+    def units_per_em(self) -> int:
+        return int(self.tt["head"].unitsPerEm)
+
+    def line_pitch(self) -> Optional[int]:
+        """The distance between two lines of text set with the font's own
+        spacing: hhea ascender, descender and lineGap. None without hhea."""
+        if "hhea" not in self.tt:
+            return None
+        hhea = self.tt["hhea"]
+        return int(hhea.ascent - hhea.descent + hhea.lineGap)
+
     def window(self) -> Optional[Tuple[int, int]]:
         """The lowest and highest y Windows draws: outside usWinDescent and
         usWinAscent a glyph is cut off. None without an OS/2 table."""
@@ -130,17 +162,21 @@ class FontUnderTest:
 
     # ---- glyph structure -----------------------------------------------
 
-    def parts(self, glyph: str) -> List[Part]:
+    def parts(self, glyph: str, stop: Optional[Stop] = None) -> List[Part]:
         """The simple glyphs `glyph` draws, composites followed to the end.
-        A font without a `glyf` table has no composites: the glyph itself."""
-        if glyph not in self._parts:
+        A glyph for which `stop` is true is not followed: it is one part,
+        its box the one around what it draws (a letter made of a body and a
+        mark is one part). A font without a `glyf` table has no composites:
+        the glyph itself."""
+        key = (glyph, stop)
+        if key not in self._parts:
             if "glyf" not in self.tt:
-                self._parts[glyph] = [Part(glyph, 0.0, 0.0, (0.0, 0.0, 0.0, 0.0))]
+                self._parts[key] = [Part(glyph, 0.0, 0.0, (0.0, 0.0, 0.0, 0.0))]
             else:
                 found: List[Part] = []
-                self._collect(glyph, IDENTITY, (0.0, 0.0), 0, found)
-                self._parts[glyph] = found
-        return self._parts[glyph]
+                self._collect(glyph, IDENTITY, (0.0, 0.0), 0, found, stop)
+                self._parts[key] = found
+        return self._parts[key]
 
     def _collect(
         self,
@@ -149,11 +185,20 @@ class FontUnderTest:
         offset: Tuple[float, float],
         depth: int,
         found: List[Part],
+        stop: Optional[Stop] = None,
     ) -> None:
         if depth > MAX_COMPONENT_DEPTH:
             raise CircularReference(name)
         glyph = self.tt["glyf"][name]
         a, b, c, d = matrix
+        if stop is not None and glyph.isComposite() and stop(name):
+            inner: List[Part] = []
+            self._collect(name, matrix, offset, depth, inner)
+            box = union([part.box for part in inner])
+            if box is not None:
+                scale = min(math.hypot(a, b), math.hypot(c, d))
+                found.append(Part(name, offset[0], offset[1], box, scale))
+            return
         if not glyph.isComposite():
             if glyph.numberOfContours > 0:
                 corners = [
@@ -167,7 +212,8 @@ class FontUnderTest:
                     max(x for x, _ in corners),
                     max(y for _, y in corners),
                 )
-                found.append(Part(name, offset[0], offset[1], box))
+                scale = min(math.hypot(a, b), math.hypot(c, d))
+                found.append(Part(name, offset[0], offset[1], box, scale))
             return
         for component in glyph.components:
             # An anchored component has no offset of its own.
@@ -184,7 +230,12 @@ class FontUnderTest:
                     b * tc + d * td,
                 )
             self._collect(
-                component.glyphName, child_matrix, child_offset, depth + 1, found
+                component.glyphName,
+                child_matrix,
+                child_offset,
+                depth + 1,
+                found,
+                stop,
             )
 
     def circular_glyphs(self) -> List[str]:
