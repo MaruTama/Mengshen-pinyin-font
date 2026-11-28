@@ -314,7 +314,7 @@ def make_exceptional_pattern(OUTPUT_EXCEPTION_PATTERN_TABLE_FILE):
                 "pattern": [{"背": None}, {"着": "lookup_pattern_21"}, {"手": None}],
             },
             "着手": {
-                "ignore": "背 着' 手",
+                "ignore": None,
                 "pattern": [{"着": "lookup_pattern_20"}, {"手": None}],
             },
             "大轴子": {
@@ -474,7 +474,7 @@ def main():
     } calt2;
 
     着手: zhuó/shǒu, 背着手: bèi/zhe/shǒu
-    轴子 は zhóu が標準的なピンインなので、ingone にしない
+    轴子 は zhóu が標準的なピンインなので、ignore にしない
     轴子: zhóu/zi, 大轴子: dà/zhòu/zi, 压轴子: yā/zhòu/zi
     """
     make_exceptional_pattern(OUTPUT_EXCEPTION_PATTERN_TABLE_FILE)

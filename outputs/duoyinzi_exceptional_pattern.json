@@ -25,7 +25,7 @@
             ]
         },
         "着手": {
-            "ignore": "背 着' 手",
+            "ignore": null,
             "pattern": [
                 {
                     "着": "lookup_pattern_20"

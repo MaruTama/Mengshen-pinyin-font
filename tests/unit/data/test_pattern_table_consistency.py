@@ -218,6 +218,10 @@ class TestExceptionalPatternSubstitutions:
         phrases = list(exceptional["patterns"])
         assert phrases.index("背着手") < phrases.index("着手")
 
+    def test_zhuoshou_has_no_ignore(self, exceptional):
+        """背着手 の規則が先に効くので 着手 に ignore は要らない。"""
+        assert exceptional["patterns"]["着手"]["ignore"] is None
+
     @pytest.mark.parametrize("phrase,first", [("大轴子", "大"), ("压轴子", "压")])
     def test_zhouzi_substitutes_zhou_and_zi(
         self, exceptional, mapping_table, phrase, first

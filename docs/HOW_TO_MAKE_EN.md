@@ -220,14 +220,7 @@ PYTHONPATH=src python -m refactored.scripts.retrieve_latin_alphabet --style hand
 
 ### 5. Font Generation
 
-#### Legacy Version
-
-```bash
-cd <PROJECT-ROOT>
-time python src/legacy/main.py --style han_serif
-# or
-time python src/legacy/main.py --style handwritten
-```
+The legacy builder (`src/legacy/main.py`) cannot read the current output tables (it does not support tables whose numbering skips, such as `outputs/duoyinzi_pattern_one.txt`), so it is not documented as a build step.
 
 #### Refactored Version
 
