@@ -128,6 +128,9 @@ class FontPlan:
     annotation_dx: Dict[Tuple[str, int], int] = field(default_factory=dict)
     baseline_shift: Dict[Tuple[str, int], int] = field(default_factory=dict)
     shrink: Dict[Tuple[str, int], float] = field(default_factory=dict)
+    # head.unitsPerEm. The outlines stay as they are, so a larger value makes
+    # the same distances in units a smaller part of the em.
+    units_per_em: int = UNITS_PER_EM
     # hhea ascender: with the descender it sets the line spacing.
     hhea_ascent: int = 1000
     # Glyph name -> an advance width other than the font's.
@@ -232,7 +235,7 @@ def make_font(path: Path, plan: Optional[FontPlan] = None) -> Path:
             glyphs[name] = _composite([(".notdef", (1, 0, 0, 1, 0, 0))], glyphs)
 
     order = list(glyphs)
-    builder = FontBuilder(UNITS_PER_EM, isTTF=True)
+    builder = FontBuilder(plan.units_per_em, isTTF=True)
     builder.setupGlyphOrder(order)
     builder.setupCharacterMap(cmap, uvs=uvs if plan.with_selectors else None)
     builder.setupGlyf(glyphs)

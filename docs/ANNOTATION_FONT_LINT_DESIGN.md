@@ -89,8 +89,8 @@ order = "dictionary"          # n 番目の意味。dictionary = 辞書の読み
 
 [geometry]                    # 寸法の許容値（フォントの単位。省略時は既定値）
 min_gap = 0                   # 親字と注釈の間の最小のすき間
-center_tolerance = 20         # 注釈の中央と送り幅の中央のずれ
-baseline_tolerance = 1        # 注釈のベースラインの、フォント全体での最頻値からのずれ
+center_tolerance = 0.01       # 注釈の中央と送り幅の中央のずれ（em に対する比）
+baseline_tolerance = 0.001    # 注釈のベースラインの、最頻値からのずれ（em に対する比）
 min_scale = 0.6               # 長い読みを縮めるときの下限（最大の読みに対する比）
 
 [limits]
@@ -189,12 +189,14 @@ path = "yomilint-baseline.json"
 左右にあるときは何も報告しない（`annotation-within-advance` と同じ扱い）。
 
 - `centered`: 注釈の輪郭の bbox の中央と、親字の既定のグリフの送り幅の中央の差。
-  差が `center_tolerance`（フォントの単位）を超えると指摘する。送り幅が違うグリフは
+  差が `center_tolerance`（em に対する比。UPM で割った値）を超えると指摘する。輪郭の
+  bbox で測ると決めた（字母の左右の余白の違いも「見える中央」として数える）。送り幅が違うグリフは
   `advance-matches-base` が見るので、基準は既定のグリフの送り幅にそろえ、二重に
   指摘しない。
 - `baseline-aligned`: 字母の部品を置く y（部品の原点。字母の字形はベースラインを
   原点に作る前提）を、注釈の字母すべてで数え、最頻値を「フォントのベースライン」と
-  する。それと `baseline_tolerance` を超えて違う字母のあるグリフを指摘する。
+  する。それと `baseline_tolerance`（em に対する比）を超えて違う字母のあるグリフを
+  指摘する。
 - `min-scale`: 字母の部品を描く倍率（変換の横と縦の倍率の小さいほう）を、グリフごとに
   最小の字母で表す。全グリフのうち最大の倍率を「縮めていない大きさ」として、それに
   対する比が `min_scale` 未満のグリフを指摘する。
@@ -289,6 +291,8 @@ yomilint diff OLD.ttf NEW.ttf --spec SPEC
 
 ## 9. 未決定の点
 
+- 寸法のキーの単位。`center_tolerance` と `baseline_tolerance` は em に対する比にしたが、
+  `min_gap` などの既存のキーはフォントの単位のまま。そろえるなら別の変更で行う。
 - ツールの名前（`yomilint` は仮）。
 - 語句テストの大きな公開データ（CC-CEDICT など）を任意で取り込むか。ライセンスは
   CC BY-SA なので、同梱せずダウンロードする形になる。

@@ -115,6 +115,9 @@ class FontUnderTest:
     def advance(self, glyph: str) -> int:
         return int(self.tt["hmtx"][glyph][0])
 
+    def units_per_em(self) -> int:
+        return int(self.tt["head"].unitsPerEm)
+
     def line_pitch(self) -> Optional[int]:
         """The distance between two lines of text set with the font's own
         spacing: hhea ascender, descender and lineGap. None without hhea."""

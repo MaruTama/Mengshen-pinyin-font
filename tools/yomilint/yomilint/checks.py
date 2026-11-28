@@ -515,6 +515,7 @@ def _beside_the_line(context: Context) -> bool:
 def centered(context: Context):
     if not _beside_the_line(context):
         return
+    em = context.font.units_per_em()
     tolerance = context.spec.center_tolerance
 
     def found():
@@ -524,11 +525,12 @@ def centered(context: Context):
             default = context.font.glyph_for(char) or glyph
             advance = context.font.advance(default)
             off = (box[0] + box[2]) / 2 - advance / 2
-            if abs(off) > tolerance:
+            if abs(off) / em > tolerance:
                 side = "right" if off > 0 else "left"
                 yield char, (
-                    f"{glyph}: the annotation is {abs(off):g} to the {side} of "
-                    f"the middle of the advance, more than {tolerance:g}"
+                    f"{glyph}: the annotation is {abs(off):.1f} units "
+                    f"({abs(off) / em:.4f} em) to the {side} of the middle of "
+                    f"the advance, more than {tolerance:g} em"
                 )
 
     yield from once_per_character(found())
@@ -543,6 +545,7 @@ def centered(context: Context):
 def baseline_aligned(context: Context):
     if not _beside_the_line(context):
         return
+    em = context.font.units_per_em()
     tolerance = context.spec.baseline_tolerance
     # The baseline of a letter is where its glyph's origin is drawn. The
     # usual one is the one most letters stand on.
@@ -556,10 +559,12 @@ def baseline_aligned(context: Context):
     def found():
         for item in context.annotations():
             for part in item.letters:
-                if abs(part.y - usual) > tolerance:
+                off = abs(part.y - usual)
+                if off / em > tolerance:
                     yield item.char, (
                         f"{item.glyph}: a letter stands on {part.y:g}, the usual "
-                        f"baseline is {usual}"
+                        f"baseline is {usual}: {off:.1f} units ({off / em:.4f} "
+                        f"em) apart, more than {tolerance:g} em"
                     )
                     break
 

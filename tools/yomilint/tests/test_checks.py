@@ -136,18 +136,30 @@ def test_an_annotation_wider_than_the_character(project):
 
 
 def test_an_annotation_off_the_center(project):
-    # 着's second reading is 60 units to the right of the middle of the
-    # advance; the tolerance is 20.
+    # 着's second reading is 60 units (0.06 em) to the right of the middle
+    # of the advance; the tolerance is 0.01 em.
     built = project(plan=FontPlan(annotation_dx={("着", 2): 60}))
     assert built.findings() == ["geometry/centered"]
 
 
 def test_an_annotation_within_the_center_tolerance(project):
-    plan = FontPlan(annotation_dx={("着", 2): 15})
+    plan = FontPlan(annotation_dx={("着", 2): 8})
     assert project(plan=plan).findings() == []
     # The spec may ask for more.
-    built = project(plan=plan, geometry={"center_tolerance": 10})
+    built = project(plan=plan, geometry={"center_tolerance": 0.005})
     assert built.findings() == ["geometry/centered"]
+
+
+def test_the_center_tolerance_is_a_part_of_the_em(project):
+    # The same 15 units: 0.015 em in a 1000-unit em, 0.0075 em in 2000.
+    shift = {("着", 2): 15}
+    small = project(plan=FontPlan(annotation_dx=shift))
+    assert small.findings() == ["geometry/centered"]
+    large = project(plan=FontPlan(annotation_dx=shift, units_per_em=2000))
+    assert large.findings() == []
+    # And 30 units are 0.015 em in 2000: the same verdict as 15 in 1000.
+    far = project(plan=FontPlan(annotation_dx={("着", 2): 30}, units_per_em=2000))
+    assert far.findings() == ["geometry/centered"]
 
 
 def test_an_annotation_on_another_baseline(project):
@@ -157,10 +169,21 @@ def test_an_annotation_on_another_baseline(project):
 
 
 def test_a_baseline_within_the_tolerance(project):
+    # One unit is 0.001 em, the default tolerance.
     plan = FontPlan(baseline_shift={("着", 2): 1})
     assert project(plan=plan).findings() == []
     built = project(plan=plan, geometry={"baseline_tolerance": 0})
     assert built.findings() == ["geometry/baseline-aligned"]
+
+
+def test_the_baseline_tolerance_is_a_part_of_the_em(project):
+    # The same 2 units: 0.002 em in a 1000-unit em, 0.001 em in 2000.
+    shift = {("着", 2): 2}
+    assert project(plan=FontPlan(baseline_shift=shift)).findings() == [
+        "geometry/baseline-aligned"
+    ]
+    large = project(plan=FontPlan(baseline_shift=shift, units_per_em=2000))
+    assert large.findings() == []
 
 
 def test_a_long_reading_shrunk_too_far(project):

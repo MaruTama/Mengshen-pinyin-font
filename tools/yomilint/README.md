@@ -57,8 +57,8 @@ python -m yomilint check FONT --spec SPEC --baseline known.json
 | `geometry/no-overlap` | ERROR | 注釈が親字と重ならず、`[geometry] min_gap` 以上離れている |
 | `geometry/advance-matches-base` | ERROR | 読みを切り替えても送り幅が変わらない |
 | `geometry/annotation-within-advance` | WARN | 注釈が送り幅からはみ出さない |
-| `geometry/centered` | WARN | 注釈の中央が送り幅の中央から `[geometry] center_tolerance`（既定 20）以内にある |
-| `geometry/baseline-aligned` | WARN | 注釈のベースラインがグリフ間でそろっている（許容 `baseline_tolerance`、既定 1） |
+| `geometry/centered` | WARN | 注釈の中央が送り幅の中央から `[geometry] center_tolerance`（em に対する比、既定 0.01）以内にある |
+| `geometry/baseline-aligned` | WARN | 注釈のベースラインがグリフ間でそろっている（許容 `baseline_tolerance`、em に対する比、既定 0.001） |
 | `geometry/min-scale` | WARN | 長い読みの縮小率が `[geometry] min_scale`（既定 0.6）以上である |
 | `geometry/line-gap` | WARN | hhea の行送りで、隣の行の注釈と親字が `min_gap` 以上離れている |
 | `format/glyph-count` | WARN | グリフ数に余裕がある |

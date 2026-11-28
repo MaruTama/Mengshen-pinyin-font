@@ -36,10 +36,11 @@ class Spec:
     # The least distance between the character and its annotation.
     min_gap: float = 0
     # How far the middle of the annotation may be from the middle of the
-    # advance, in font units.
-    center_tolerance: float = 20
-    # How far an annotation's baseline may be from the font's usual one.
-    baseline_tolerance: float = 1
+    # advance, as a part of the em (unitsPerEm).
+    center_tolerance: float = 0.01
+    # How far an annotation's baseline may be from the font's usual one, as a
+    # part of the em.
+    baseline_tolerance: float = 0.001
     # The smallest an annotation may be drawn, relative to the largest.
     min_scale: float = 0.6
     glyph_headroom: int = 500
@@ -76,8 +77,8 @@ def load_spec(path: Path) -> Spec:
         letter_encoding=letters.get("encoding"),
         selector_base=data.get("selectors", {}).get("base"),
         min_gap=data.get("geometry", {}).get("min_gap", 0),
-        center_tolerance=data.get("geometry", {}).get("center_tolerance", 20),
-        baseline_tolerance=data.get("geometry", {}).get("baseline_tolerance", 1),
+        center_tolerance=data.get("geometry", {}).get("center_tolerance", 0.01),
+        baseline_tolerance=data.get("geometry", {}).get("baseline_tolerance", 0.001),
         min_scale=data.get("geometry", {}).get("min_scale", 0.6),
         glyph_headroom=data.get("limits", {}).get("glyph_headroom", 500),
     )
