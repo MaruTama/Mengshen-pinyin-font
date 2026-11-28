@@ -217,14 +217,7 @@ PYTHONPATH=src python -m refactored.scripts.retrieve_latin_alphabet --style hand
 
 ### 5. フォント生成
 
-#### レガシー版
-
-```bash
-cd <PROJECT-ROOT>
-time python src/legacy/main.py --style han_serif
-# または
-time python src/legacy/main.py --style handwritten
-```
+旧ビルダー（`src/legacy/main.py`）は今の出力表を読めない（`outputs/duoyinzi_pattern_one.txt` のような番号が飛ぶ表に未対応）ので、生成手順としては案内しない。
 
 #### リファクタ版
 

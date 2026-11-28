@@ -62,6 +62,31 @@
      止めるだけなので、着 は既定の zháo になる。語句表は zhe を期待している。
   3. **2 件（大轴子、压轴子）: 2 文字目の読みしか替えない。** 轴 は zhòu になるが、
      子 を軽声の zi にする規則がない。
+- **原因 1 の修正と検証（ブランチ `fix/pattern-one-nonstandard-only`）。**
+  `compress_pattern_one_table` が外す対象を「パターンのある読みが 1 種類で、かつそれが標準の
+  読み」の漢字に絞った。再生成した `outputs/duoyinzi_pattern_one.txt` は +70/−31（39 文字の行が
+  戻り、誤って移された語句が消える）。ほかの outputs は変わらない。HanSerif をビルドして
+  yomilint を実行すると `context/phrase` が 58 件から 3 件（背着手、大轴子、压轴子）に減り、
+  ほかの 11 個の検査は通ったまま。GSUB は 17 lookup・18 subtable のまま、サイズは
+  122,434 → 123,858 バイト。Handwritten は 58 件から 4 件（上の 3 件と 差点儿）に減る。
+  Handwritten には、修正前後で変わらない別の失敗が残る（`coverage/charset-has-reading`、
+  `coverage/all-readings-reachable`、`context/isolated-default`、`select/ivs-order`、
+  `select/aalt-covers-readings` が各 2 件、警告 `select/ivs-none`、`resolve/methods-agree` が各 2 件）。
+- **原因 2・3 は案 A（`make_exceptional_pattern` の辞書に追記）で修正した。** 例外パターンは
+  `make_pattern_table.py` の `make_exceptional_pattern` に手書きされた辞書で、
+  `phrase_of_exceptional_pattern.txt` は yomilint と gsub_checker が読む期待値の表にすぎない
+  （生成コードは読まない）。GSUB 側の `_make_rclt2_feature`（`gsub_table_generator.py`）は、
+  1 つの語句に複数の置換位置を持てて、規則は書かれた順に試され、最初に一致した規則だけが働く。
+  そこで次の 3 点を足した（ジェネレータは変更なし）。
+  1. `lookup_pattern_20` に `"子": "子.ss02"` を足し、大轴子・压轴子の 子 も替える。
+  2. 着 → zhe 用に `lookup_pattern_21 = {"着": "着.ss05"}` を足す。
+  3. `背着手` を `着手` より前に置く。
+  結果は HanSerif の `context/phrase` が 0 件、GSUB は 18 lookup・19 subtable、123,916 バイト。
+  Handwritten も同じ GSUB（18 / 19 / 123,916 バイト）で、`context/phrase` は 差点儿
+  （chà/diǎn/ér、期待は r）の 1 件だけ残る。これは Handwritten のみの残件。
+  ほかの Handwritten の失敗は修正前と同じ。
+  ビルドしたフォントで `tests/integration/test_built_font_gsub.py` も通った。
+  Homebrew の otfccbuild（0.10.4）でビルドすると GSUB が壊れるので、otfcc-rs でビルドした。
 - **リリース版の HanSerif は、寸法の検査をすべて通る。** 注釈付きのグリフ 31,748 個で、
   注釈と親字のすき間は最小 19.6、注釈の上端は最大 2,439（usWinAscent は 2,628）。
 - **検査の速さ。** 異体字セレクタの対応を漢字ごとに全件走査していたのをやめ、

@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
 
-# python3 make_pattern_table.py 
+# python3 make_pattern_table.py
 
-import os
 import json
-import pinyin_getter
+import os
+
 import phrase_holder as ph
+import pinyin_getter
 import validate_phrase as validate
 
 PINYIN_MAPPING_TABLE = pinyin_getter.get_pinyin_table_with_mapping_table()
-NORMAL_PRONUNCIATION      = 0
+NORMAL_PRONUNCIATION = 0
 VARIATIONAL_PRONUNCIATION = 1
 
 # ss0X の番号振り
@@ -19,11 +20,12 @@ VARIATIONAL_PRONUNCIATION = 1
 # uni4E0D　　　　標準の読みの拼音
 # uni4E0D.ss00　ピンインの無い漢字グリフ。設定を変更するだけで拼音を変更できる
 # uni4E0D.ss01　標準の読みの拼音（uni4E0D と重複しているが GSUB の置換（多音字のパターン）を無効にして強制的に置き換えるため）
-# uni4E0D.ss02　以降、異読　
+# uni4E0D.ss02　以降、異読
 
-SS_WITHOUT_PRONUNCIATION     = 0
-SS_NORMAL_PRONUNCIATION      = 1
+SS_WITHOUT_PRONUNCIATION = 0
+SS_NORMAL_PRONUNCIATION = 1
 SS_VARIATIONAL_PRONUNCIATION = 2
+
 
 # [階層構造のあるdictをupdateする](https://www.greptips.com/posts/1242/)
 def deepupdate(dict_base, other):
@@ -33,99 +35,128 @@ def deepupdate(dict_base, other):
         else:
             dict_base[k] = v
 
+
 def replace_chr(target_str, index, replace_character):
     tmp = list(target_str)
     tmp[index] = replace_character
-    return "".join( tmp )
+    return "".join(tmp)
+
 
 def expand_pattern_list2str(patterns):
-    return "|".join( patterns )
+    return "|".join(patterns)
 
 
 """
 ここから pattern_one のための関数
 """
 
+
 def add_pattern_one_table(pattern_table, character, pinyin, pattern):
     if not (pinyin in PINYIN_MAPPING_TABLE[character]):
         message = "{} => {} は 正しいピンインではありません".format(character, pinyin)
         raise Exception(message)
-        
+
     if not (character in pattern_table):
-        pattern_table.update( 
-            { 
-                character: { 
+        pattern_table.update(
+            {
+                character: {
                     "pinyin": PINYIN_MAPPING_TABLE[character],
-                    "patterns": { pinyin: [pattern] }
+                    "patterns": {pinyin: [pattern]},
                 }
-            })
-        return 
+            }
+        )
+        return
 
     if not (pinyin in pattern_table[character]["patterns"]):
         new_dict_of_character = pattern_table[character]
-        deepupdate( new_dict_of_character, { "patterns": { pinyin: [pattern] }} )
-        pattern_table.update( 
-            { 
-                character: new_dict_of_character
-            }
-        )
+        deepupdate(new_dict_of_character, {"patterns": {pinyin: [pattern]}})
+        pattern_table.update({character: new_dict_of_character})
     else:
         new_dict_of_character = pattern_table[character]
         new_patterns = new_dict_of_character["patterns"][pinyin]
         new_patterns.append(pattern)
-        deepupdate( new_dict_of_character, { "patterns": { pinyin: new_patterns }} )
-        pattern_table.update( 
-            { 
-                character: new_dict_of_character
-            }
-        )
+        deepupdate(new_dict_of_character, {"patterns": {pinyin: new_patterns}})
+        pattern_table.update({character: new_dict_of_character})
 
-# pattern_table[漢字]["patterns"] が一つだけのときは不要なパターンである。
+
+# pattern_table[漢字]["patterns"] が標準の読み一つだけのときは不要なパターンである。
 # （標準的なピンインで構成された単語なので消してもいいが、もったいないので他のパターンに入れる. 他のパターンが見つからないなら削除）
 # 辨 {'pinyin': ['biàn', 'biǎn', 'bàn', 'piàn'], 'patterns': {'biàn': ['~别']}}
 # なら 别 のテーブルに移動する
 # ネスト深くてキモいな。。。
 def compress_pattern_one_table(pattern_table):
     import copy as cy
+
     pattern_table_4_work = cy.deepcopy(pattern_table)
-    characters_of_having_pattern_length_one_only = [c for c in pattern_table if len(pattern_table[c]["patterns"]) == 1]
+    # 標準の読みだけのものに限る。標準でない読み（个 の gè など）だけのパターンは
+    # 表から外すと規則そのものが失われるので残す。
+    characters_of_having_pattern_length_one_only = [
+        c
+        for c in pattern_table
+        if len(pattern_table[c]["patterns"]) == 1
+        and PINYIN_MAPPING_TABLE[c][NORMAL_PRONUNCIATION]
+        in pattern_table[c]["patterns"]
+    ]
 
     for character in characters_of_having_pattern_length_one_only:
-        normal_pronunciation_patterns = list( pattern_table_4_work[character]["patterns"].values() )[NORMAL_PRONUNCIATION]
+        normal_pronunciation_patterns = list(
+            pattern_table_4_work[character]["patterns"].values()
+        )[NORMAL_PRONUNCIATION]
         for normal_pronunciation_pattern in normal_pronunciation_patterns:
             phrase = normal_pronunciation_pattern.replace("~", character)
             # 置き換え先を探す
-            index_of_destination_character = search_4_replacement_destination(phrase, character, pattern_table_4_work)
+            index_of_destination_character = search_4_replacement_destination(
+                phrase, character, pattern_table_4_work
+            )
             if index_of_destination_character != None:
                 destination_character = phrase[index_of_destination_character]
-                pinyin = PINYIN_MAPPING_TABLE[destination_character][NORMAL_PRONUNCIATION]
+                pinyin = PINYIN_MAPPING_TABLE[destination_character][
+                    NORMAL_PRONUNCIATION
+                ]
                 # replace で置き換えると　累累: lěi/lèi　のpatternが ~~ になるので手動で置換する
-                normal_pronunciation_pattern = replace_chr(phrase, index_of_destination_character, "~")
-                add_pattern_one_table( pattern_table_4_work, destination_character, pinyin, normal_pronunciation_pattern )
+                normal_pronunciation_pattern = replace_chr(
+                    phrase, index_of_destination_character, "~"
+                )
+                add_pattern_one_table(
+                    pattern_table_4_work,
+                    destination_character,
+                    pinyin,
+                    normal_pronunciation_pattern,
+                )
         pattern_table_4_work.pop(character)
 
     return pattern_table_4_work
 
+
 def search_4_replacement_destination(phrase, source_character, pattern_table):
     for index in range(len(phrase)):
         destination_character = phrase[index]
-        if destination_character != source_character and destination_character in pattern_table:
+        if (
+            destination_character != source_character
+            and destination_character in pattern_table
+        ):
             if len(pattern_table[destination_character]["patterns"]) > 1:
                 return index
     return None
+
 
 # パターンテーブルの txt を出力する
 # order は merged-mapping-table.txt の読みの添字 + 1（= ss 番号）。
 # パターンの無い読みを飛ばしても番号を詰めない（ssNN = readings[NN-1] の規約を守る）
 def export_pattern_one_table(pattern_table, PATTERN_ONE_TABLE_FILE):
-    with open(PATTERN_ONE_TABLE_FILE, mode='w', encoding='utf-8') as write_file:
+    with open(PATTERN_ONE_TABLE_FILE, mode="w", encoding="utf-8") as write_file:
         for character in pattern_table:
-            for index, pinyin in enumerate( PINYIN_MAPPING_TABLE[character] ):
-                if pinyin in list( pattern_table[character]["patterns"].keys() ):
+            for index, pinyin in enumerate(PINYIN_MAPPING_TABLE[character]):
+                if pinyin in list(pattern_table[character]["patterns"].keys()):
                     order = SS_NORMAL_PRONUNCIATION + index
-                    str_patterns = expand_pattern_list2str( pattern_table[character]["patterns"][pinyin] )
-                    line = "{0}, {1}, {2}, [{3}]\n".format(order, character, pinyin, str_patterns)
+                    str_patterns = expand_pattern_list2str(
+                        pattern_table[character]["patterns"][pinyin]
+                    )
+                    line = "{0}, {1}, {2}, [{3}]\n".format(
+                        order, character, pinyin, str_patterns
+                    )
                     write_file.write(line)
+
 
 # 単語中に含まれる標準的でないピンインの数を返す
 def seek_variational_pronunciation_in_phrase(phrase_instance):
@@ -135,12 +166,15 @@ def seek_variational_pronunciation_in_phrase(phrase_instance):
     for i in range(len(phrase)):
         character = phrase[i]
         character_pinyin = phrase_instance.get_list_pinyin()[i]
-        character_normal_pronunciation = PINYIN_MAPPING_TABLE[character][NORMAL_PRONUNCIATION]
+        character_normal_pronunciation = PINYIN_MAPPING_TABLE[character][
+            NORMAL_PRONUNCIATION
+        ]
         if character_pinyin != character_normal_pronunciation:
             count_variational_pronunciation += 1
-            target_hanzes.append( (i, character) )
+            target_hanzes.append((i, character))
 
     return count_variational_pronunciation, target_hanzes
+
 
 def make_pattern_one(phrase_holder, PATTERN_ONE_TABLE_FILE):
     """
@@ -157,7 +191,9 @@ def make_pattern_one(phrase_holder, PATTERN_ONE_TABLE_FILE):
     """
     pattern_table = {}
     for phrase_instance in phrase_holder.get_list_instance_phrases():
-        count_variational_pronunciation, target_hanzes = seek_variational_pronunciation_in_phrase(phrase_instance)
+        count_variational_pronunciation, target_hanzes = (
+            seek_variational_pronunciation_in_phrase(phrase_instance)
+        )
         phrase = phrase_instance.get_name()
         # 単語はすべて標準的なピンイン（多音字ではない）
         # ピンインを複数持つ(かつ今回は標準的なピンインで読む）漢字を見つけ次第入れる。先勝ち。
@@ -169,25 +205,32 @@ def make_pattern_one(phrase_holder, PATTERN_ONE_TABLE_FILE):
                     pinyin = phrase_instance.get_list_pinyin()[i]
                     # replace で置き換えると　累累: lěi/lèi　のpatternが ~~ になるので、手動で置換する
                     pattern = replace_chr(phrase, i, "~")
-                    add_pattern_one_table( pattern_table, character, pinyin, pattern )
+                    add_pattern_one_table(pattern_table, character, pinyin, pattern)
                     break
         # 対象の多音字の漢字のパターンに入れる
         elif 1 == count_variational_pronunciation:
-            (idx, target_hanzi) = target_hanzes[0]
+            idx, target_hanzi = target_hanzes[0]
             variational_pronunciation = phrase_instance.get_list_pinyin()[idx]
             pattern = replace_chr(phrase, idx, "~")
-            add_pattern_one_table( pattern_table, target_hanzi, variational_pronunciation, pattern )
+            add_pattern_one_table(
+                pattern_table, target_hanzi, variational_pronunciation, pattern
+            )
         # 単語はすべて標準的なピンイン（多音字ではない）
         else:
-            message = "{} は 2文字以上 多音字を含んでいます。".format( phrase_instance.get_name() )
+            message = "{} は 2文字以上 多音字を含んでいます。".format(
+                phrase_instance.get_name()
+            )
             raise Exception(message)
 
     pattern_table = compress_pattern_one_table(pattern_table)
     export_pattern_one_table(pattern_table, PATTERN_ONE_TABLE_FILE)
 
+
 """
 ここから pattern_two のための関数
 """
+
+
 # lookup table の番号にする
 def get_pinyin_priority(character, pinyin):
     # uni4E0D　　　　標準の読みの拼音
@@ -195,49 +238,62 @@ def get_pinyin_priority(character, pinyin):
     # uni4E0D.ss01　以降、異読なので、必ず "1" 以上になる. なので、- 1 をして添字を0から開始にする
     return PINYIN_MAPPING_TABLE[character].index(pinyin) - 1
 
+
 def add_lookup4pattern_two(lookup_table_dict, phrase_instance):
-    _, has_variational_pronunciation_hanzes = seek_variational_pronunciation_in_phrase(phrase_instance)
-    for (idx, target_character) in has_variational_pronunciation_hanzes:
+    _, has_variational_pronunciation_hanzes = seek_variational_pronunciation_in_phrase(
+        phrase_instance
+    )
+    for idx, target_character in has_variational_pronunciation_hanzes:
         pinyin = phrase_instance.get_list_pinyin()[idx]
         priority = get_pinyin_priority(target_character, pinyin)
-        lookup_name = "lookup_pattern_1{}".format( priority )
+        lookup_name = "lookup_pattern_1{}".format(priority)
         # init
         if not (lookup_name in lookup_table_dict):
-            lookup_table_dict.update( {lookup_name:{}} )
+            lookup_table_dict.update({lookup_name: {}})
         # set
         if not (target_character in lookup_table_dict[lookup_name]):
-            lookup_table_dict[lookup_name].update( { target_character : "{0}.ss0{1}".format( target_character, (SS_VARIATIONAL_PRONUNCIATION + priority) ) } )
+            lookup_table_dict[lookup_name].update(
+                {
+                    target_character: "{0}.ss0{1}".format(
+                        target_character, (SS_VARIATIONAL_PRONUNCIATION + priority)
+                    )
+                }
+            )
+
 
 def get_pattern4pattern_two(phrase_instance):
     phrase_value = []
     phrase = phrase_instance.get_name()
     # init
     for character in phrase:
-        phrase_value.append( {character: None} )
+        phrase_value.append({character: None})
     # set
-    _, has_variational_pronunciation_hanzes = seek_variational_pronunciation_in_phrase(phrase_instance)
-    for (idx, target_character) in has_variational_pronunciation_hanzes:
+    _, has_variational_pronunciation_hanzes = seek_variational_pronunciation_in_phrase(
+        phrase_instance
+    )
+    for idx, target_character in has_variational_pronunciation_hanzes:
         pinyin = phrase_instance.get_list_pinyin()[idx]
         priority = get_pinyin_priority(target_character, pinyin)
-        phrase_value[idx] = \
-            {
-                target_character: "lookup_pattern_1{}".format( priority )
-            }
+        phrase_value[idx] = {target_character: "lookup_pattern_1{}".format(priority)}
     return phrase_value
 
+
 def make_pattern_two(phrase_holder, OUTPUT_PATTERN_TWO_TABLE_FILE):
-    dict_base = { "lookup_table": {}, "patterns": {} }
+    dict_base = {"lookup_table": {}, "patterns": {}}
     for phrase_instance in phrase_holder.get_list_instance_phrases():
         add_lookup4pattern_two(dict_base["lookup_table"], phrase_instance)
         pattern = get_pattern4pattern_two(phrase_instance)
-        dict_base["patterns"].update( {phrase_instance.get_name() : pattern} )
-    
-    with open(OUTPUT_PATTERN_TWO_TABLE_FILE, mode='w', encoding='utf-8') as f:
+        dict_base["patterns"].update({phrase_instance.get_name(): pattern})
+
+    with open(OUTPUT_PATTERN_TWO_TABLE_FILE, mode="w", encoding="utf-8") as f:
         json.dump(dict_base, f, indent=4, ensure_ascii=False)
+
 
 """
 ここから exceptional_pattern のための関数
 """
+
+
 # 特別なのでこれは手動で作成する。
 def make_exceptional_pattern(OUTPUT_EXCEPTION_PATTERN_TABLE_FILE):
     dict_base = {
@@ -245,39 +301,43 @@ def make_exceptional_pattern(OUTPUT_EXCEPTION_PATTERN_TABLE_FILE):
             # ss 番号は merged-mapping-table.txt の読みの添字 + 1
             # 着: [zháo, zhù, zhāo, zhuó, zhe, zhuo] -> zhuó = ss04
             # 轴: [zhóu, zhòu, zhú] -> zhòu = ss02
-            "lookup_pattern_20": {
-                "着" : "着.ss04",
-                "轴" : "轴.ss02"
-            }
+            # 子: [zǐ, zi] -> zi = ss02
+            "lookup_pattern_20": {"着": "着.ss04", "轴": "轴.ss02", "子": "子.ss02"},
+            # 着 -> zhe = ss05（lookup_pattern_20 の 着 は zhuó なので別の lookup）
+            "lookup_pattern_21": {"着": "着.ss05"},
         },
+        # 規則は書いた順に試され、最初に一致したものだけが働く。
+        # 着手 を含む 背着手 は 着手 より前に置く。
         "patterns": {
-            "着手" : {
-                "ignore" : "背 着' 手",
-                "pattern" :[
-                    {"着" : "lookup_pattern_20"}, 
-                    {"手" : None}
-                ]
+            "背着手": {
+                "ignore": None,
+                "pattern": [{"背": None}, {"着": "lookup_pattern_21"}, {"手": None}],
             },
-            "大轴子" : {
-                "ignore" : None,
-                "pattern" :[
-                    {"大" : None}, 
-                    {"轴" : "lookup_pattern_20"},
-                    {"子" : None}
-                ]
+            "着手": {
+                "ignore": None,
+                "pattern": [{"着": "lookup_pattern_20"}, {"手": None}],
             },
-            "压轴子" : {
-                "ignore" : None,
-                "pattern" :[
-                    {"压" : None}, 
-                    {"轴" : "lookup_pattern_20"},
-                    {"子" : None}
-                ]
-            }
-        }
+            "大轴子": {
+                "ignore": None,
+                "pattern": [
+                    {"大": None},
+                    {"轴": "lookup_pattern_20"},
+                    {"子": "lookup_pattern_20"},
+                ],
+            },
+            "压轴子": {
+                "ignore": None,
+                "pattern": [
+                    {"压": None},
+                    {"轴": "lookup_pattern_20"},
+                    {"子": "lookup_pattern_20"},
+                ],
+            },
+        },
     }
-    with open(OUTPUT_EXCEPTION_PATTERN_TABLE_FILE, mode='w', encoding='utf-8') as f:
+    with open(OUTPUT_EXCEPTION_PATTERN_TABLE_FILE, mode="w", encoding="utf-8") as f:
         json.dump(dict_base, f, indent=4, ensure_ascii=False)
+
 
 def main():
     PHRASE_ONE_TABLE = "phrase_of_pattern_one.txt"
@@ -294,8 +354,9 @@ def main():
 
     OUTPUT_PATTERN_ONE_TABLE_FILE = os.path.join(DIR_OT, OUTPUT_PATTERN_ONE_TABLE)
     OUTPUT_PATTERN_TWO_TABLE_FILE = os.path.join(DIR_OT, OUTPUT_PATTERN_TWO_TABLE)
-    OUTPUT_EXCEPTION_PATTERN_TABLE_FILE = os.path.join(DIR_OT, OUTPUT_EXCEPTION_PATTERN_TABLE)
-    
+    OUTPUT_EXCEPTION_PATTERN_TABLE_FILE = os.path.join(
+        DIR_OT, OUTPUT_EXCEPTION_PATTERN_TABLE
+    )
 
     """
     0, 阿, ā, [~托品]
@@ -336,7 +397,6 @@ def main():
     make_pattern_one(phrase_holder, OUTPUT_PATTERN_ONE_TABLE_FILE)
 
     print("========================================================================")
-
 
     # pattern_two の検証を作成
     # 重複を確認する
@@ -400,8 +460,6 @@ def main():
     }
     """
 
-
-
     # 特殊なパターンを作る
     # [5.f.ii. Specifying exceptions to the Chain Sub rule](http://adobe-type-tools.github.io/afdko/OpenTypeFeatureFileSpecification.html#5fii-specifying-exceptions-to-the-chain-sub-rule)
     # を利用する
@@ -416,14 +474,14 @@ def main():
     } calt2;
 
     着手: zhuó/shǒu, 背着手: bèi/zhe/shǒu
-    轴子 は zhóu が標準的なピンインなので、ingone にしない
+    轴子 は zhóu が標準的なピンインなので、ignore にしない
     轴子: zhóu/zi, 大轴子: dà/zhòu/zi, 压轴子: yā/zhòu/zi
     """
     make_exceptional_pattern(OUTPUT_EXCEPTION_PATTERN_TABLE_FILE)
     print("========================================================================")
     print("success!")
     print("Output duoyinzi_exceptional_pattern.json.")
-    
+
 
 if __name__ == "__main__":
     main()

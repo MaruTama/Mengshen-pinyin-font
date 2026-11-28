@@ -91,6 +91,77 @@ class TestExportPatternOneTable:
         assert orders == {"zháo": 1, "zhāo": 3, "zhuó": 4, "zhe": 5}
 
 
+class TestCompressPatternOneTable:
+    """compress_pattern_one_table: 読みが 1 種類だけの漢字の扱い。"""
+
+    FAKE_MAPPING = {
+        "个": ["ge", "gè", "gě"],
+        "别": ["bié", "biè"],
+        "累": ["lèi", "léi"],
+    }
+
+    def _table(self):
+        return {
+            "个": {
+                "pinyin": self.FAKE_MAPPING["个"],
+                "patterns": {"gè": ["~别"]},
+            },
+            "别": {
+                "pinyin": self.FAKE_MAPPING["别"],
+                "patterns": {"bié": ["个~"], "biè": ["~扭"]},
+            },
+        }
+
+    def test_nonstandard_only_pattern_is_kept(
+        self, make_pattern_table_module, monkeypatch
+    ):
+        """標準でない読み（个 の gè）だけのパターンは表に残す。
+
+        消すと 个别 が標準の読み ge で描かれ、規則が失われる。
+        """
+        mpt = make_pattern_table_module
+        monkeypatch.setattr(mpt, "PINYIN_MAPPING_TABLE", self.FAKE_MAPPING)
+
+        result = mpt.compress_pattern_one_table(self._table())
+
+        assert result["个"]["patterns"] == {"gè": ["~别"]}
+
+    def test_partner_standard_pattern_does_not_absorb_it(
+        self, make_pattern_table_module, monkeypatch
+    ):
+        """残した語句を、相手（别）の標準の読みのパターンへ移さない。"""
+        mpt = make_pattern_table_module
+        monkeypatch.setattr(mpt, "PINYIN_MAPPING_TABLE", self.FAKE_MAPPING)
+        table = self._table()
+        table["别"]["patterns"] = {"bié": ["~扭"], "biè": ["~字"]}
+
+        result = mpt.compress_pattern_one_table(table)
+
+        assert result["别"]["patterns"]["bié"] == ["~扭"]
+
+    def test_standard_only_pattern_is_moved_to_partner(
+        self, make_pattern_table_module, monkeypatch
+    ):
+        """標準の読みだけのパターンは従来どおり相手へ移して表から外す。"""
+        mpt = make_pattern_table_module
+        monkeypatch.setattr(mpt, "PINYIN_MAPPING_TABLE", self.FAKE_MAPPING)
+        table = {
+            "累": {
+                "pinyin": self.FAKE_MAPPING["累"],
+                "patterns": {"lèi": ["~别"]},
+            },
+            "别": {
+                "pinyin": self.FAKE_MAPPING["别"],
+                "patterns": {"bié": ["~扭"], "biè": ["~字"]},
+            },
+        }
+
+        result = mpt.compress_pattern_one_table(table)
+
+        assert "累" not in result
+        assert "累~" in result["别"]["patterns"]["bié"]
+
+
 class TestExceptionalPattern:
     """make_exceptional_pattern の ss 番号の単体テスト。"""
 
@@ -108,6 +179,59 @@ class TestExceptionalPattern:
         expected_zhou_ss = mapping_table["轴"].index("zhòu") + 1
         assert lookup["着"] == f"着.ss{expected_zhuo_ss:02d}"
         assert lookup["轴"] == f"轴.ss{expected_zhou_ss:02d}"
+
+
+class TestExceptionalPatternSubstitutions:
+    """例外パターンが期待どおりの読みへ替えること（yomilint context/phrase 由来）。"""
+
+    @pytest.fixture
+    def exceptional(self, make_pattern_table_module, tmp_path):
+        out_file = tmp_path / "exceptional.json"
+        make_pattern_table_module.make_exceptional_pattern(str(out_file))
+        return json.loads(out_file.read_text(encoding="utf-8"))
+
+    @staticmethod
+    def _substituted_glyphs(data, phrase):
+        """語句の規則が各位置で替えるグリフ名（替えない位置は None）。"""
+        glyphs = []
+        for entry in data["patterns"][phrase]["pattern"]:
+            ((hanzi, lookup_name),) = entry.items()
+            glyphs.append(
+                data["lookup_table"][lookup_name][hanzi] if lookup_name else None
+            )
+        return glyphs
+
+    @staticmethod
+    def _ss(mapping_table, hanzi, reading):
+        return f"{hanzi}.ss{mapping_table[hanzi].index(reading) + 1:02d}"
+
+    def test_beizhuoshou_substitutes_zhe(self, exceptional, mapping_table):
+        """背着手 の 着 は zhe のグリフへ替える。"""
+        assert self._substituted_glyphs(exceptional, "背着手") == [
+            None,
+            self._ss(mapping_table, "着", "zhe"),
+            None,
+        ]
+
+    def test_beizhuoshou_rule_precedes_zhuoshou(self, exceptional):
+        """最初に一致した規則だけが働くので 背着手 は 着手 より前に並ぶ。"""
+        phrases = list(exceptional["patterns"])
+        assert phrases.index("背着手") < phrases.index("着手")
+
+    def test_zhuoshou_has_no_ignore(self, exceptional):
+        """背着手 の規則が先に効くので 着手 に ignore は要らない。"""
+        assert exceptional["patterns"]["着手"]["ignore"] is None
+
+    @pytest.mark.parametrize("phrase,first", [("大轴子", "大"), ("压轴子", "压")])
+    def test_zhouzi_substitutes_zhou_and_zi(
+        self, exceptional, mapping_table, phrase, first
+    ):
+        """大轴子・压轴子 は 轴→zhòu と 子→zi の両方を替える。"""
+        assert self._substituted_glyphs(exceptional, phrase) == [
+            None,
+            self._ss(mapping_table, "轴", "zhòu"),
+            self._ss(mapping_table, "子", "zi"),
+        ]
 
 
 class TestGeneratedOutputConsistency:

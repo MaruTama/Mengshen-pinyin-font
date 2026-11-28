@@ -44,7 +44,9 @@ def selected(select: Optional[str]) -> Set[str]:
     return {c.id for c in CHECKS if not select or c.id.startswith(select)}
 
 
-def run(font_path: Path, spec_path: Path, select: Optional[str] = None) -> List[Finding]:
+def run(
+    font_path: Path, spec_path: Path, select: Optional[str] = None
+) -> List[Finding]:
     """Every finding of the checks whose id starts with `select` (all of
     them without it), in the order the checks are registered."""
     context = build_context(Path(font_path), load_spec(Path(spec_path)))
