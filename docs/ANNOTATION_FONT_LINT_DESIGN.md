@@ -90,6 +90,7 @@ order = "dictionary"          # n 番目の意味。dictionary = 辞書の読み
 [geometry]                    # 寸法の許容値（フォントの単位。省略時は既定値）
 min_gap = 0                   # 親字と注釈の間の最小のすき間
 center_tolerance = 20         # 注釈の中央と送り幅の中央のずれ
+baseline_tolerance = 1        # 注釈のベースラインの、フォント全体での最頻値からのずれ
 min_scale = 0.6               # 長い読みを縮めるときの下限（最大の読みに対する比）
 
 [limits]
@@ -178,10 +179,30 @@ path = "yomilint-baseline.json"
 | `geometry/no-overlap` | ERROR | ○ | 注釈と親字の bbox が重ならず、`min_gap` 以上離れている |
 | `geometry/advance-matches-base` | ERROR | ○ | 注釈付きのグリフの送り幅が、注釈なしと同じ |
 | `geometry/annotation-within-advance` | WARN | ○ | 注釈が送り幅からはみ出さない |
-| `geometry/centered` | WARN | - | 注釈の中央が送り幅の中央にある（`center_tolerance` 以内） |
-| `geometry/baseline-aligned` | WARN | - | 注釈のベースラインがグリフ間でそろっている |
-| `geometry/min-scale` | WARN | - | 長い読みの縮小率が `min_scale` 以上である |
-| `geometry/line-gap` | WARN | - | 行間の指定で、隣の行の注釈と親字がぶつからない |
+| `geometry/centered` | WARN | ✓ 実装済み | 注釈の中央が送り幅の中央にある（`center_tolerance` 以内） |
+| `geometry/baseline-aligned` | WARN | ✓ 実装済み | 注釈のベースラインがグリフ間でそろっている |
+| `geometry/min-scale` | WARN | ✓ 実装済み | 長い読みの縮小率が `min_scale` 以上である |
+| `geometry/line-gap` | WARN | ✓ 実装済み | 行間の指定で、隣の行の注釈と親字がぶつからない |
+
+`centered`、`baseline-aligned`、`min-scale`、`line-gap` の定義は、実装で次のように決めた。
+どれも、注釈が親字の上か下にあるとき（`position` が `top` か `bottom`）の検査で、
+左右にあるときは何も報告しない（`annotation-within-advance` と同じ扱い）。
+
+- `centered`: 注釈の輪郭の bbox の中央と、親字の既定のグリフの送り幅の中央の差。
+  差が `center_tolerance`（フォントの単位）を超えると指摘する。送り幅が違うグリフは
+  `advance-matches-base` が見るので、基準は既定のグリフの送り幅にそろえ、二重に
+  指摘しない。
+- `baseline-aligned`: 字母の部品を置く y（部品の原点。字母の字形はベースラインを
+  原点に作る前提）を、注釈の字母すべてで数え、最頻値を「フォントのベースライン」と
+  する。それと `baseline_tolerance` を超えて違う字母のあるグリフを指摘する。
+- `min-scale`: 字母の部品を描く倍率（変換の横と縦の倍率の小さいほう）を、グリフごとに
+  最小の字母で表す。全グリフのうち最大の倍率を「縮めていない大きさ」として、それに
+  対する比が `min_scale` 未満のグリフを指摘する。
+- `line-gap`: 行送りは hhea の `ascender - descender + lineGap`。`top` なら、下の行の
+  注釈のいちばん上（全グリフで最大）と、上の行の親字のいちばん下（全グリフで最小）の
+  すき間が `[geometry] min_gap` に満たないと指摘する。`bottom` なら上下を逆にする。
+  最悪の組み合わせの 1 件だけを報告する。Windows が使う usWin の値や、
+  `USE_TYPO_METRICS` で選ばれる typo の値での行送りは見ない。
 
 ### 読みの求め方（`resolve/`）
 
