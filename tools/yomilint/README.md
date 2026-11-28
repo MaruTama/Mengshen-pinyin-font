@@ -38,14 +38,16 @@ python -m yomilint check FONT --spec SPEC --baseline known.json
 1 つの一覧で 2 つのフォントを検査すると、片方にしかない指摘が、もう片方で
 「no longer found」と表示されます。
 
-`--select` を付けると、その検査の指摘だけを一覧にします。
+`--select` を付けると、その検査の指摘だけを一覧にします。複数回指定できます。
 
 ```bash
-python -m yomilint baseline FONT --spec SPEC --select geometry/centered -o known.json
+python -m yomilint baseline FONT --spec SPEC \
+  --select geometry/centered --select geometry/line-gap -o known.json
 ```
 
 Mengshen のリリース版は、`geometry/centered` の指摘（許容の 0.01 em を超える字母の
-置き方）を `baselines/` に登録してあります。2 つの書体は同じ仕様ファイルを使うので、
+置き方）と、`geometry/line-gap` の指摘（横書きの本文ではほぼ現れない字との間隔。
+HanSerif は U+3031、Handwritten は U+0326）を `baselines/` に登録してあります。2 つの書体は同じ仕様ファイルを使うので、
 `[ignore] path` ではなく `--baseline` で渡します。
 
 ```bash
@@ -53,9 +55,12 @@ python -m yomilint check FONT --spec mengshen.toml --baseline baselines/Mengshen
 python -m yomilint check FONT --spec mengshen.toml --baseline baselines/Mengshen-Handwritten.json
 ```
 
-`centered` 以外の指摘は登録していないので、残ります（HanSerif の `context/phrase`
-など）。フォントを作り直して `centered` の指摘が変わったら、`baseline --select
-geometry/centered` で作り直してください。
+この 2 つ以外の指摘は登録していないので、残ります（HanSerif の `context/phrase`
+など）。フォントを作り直して指摘が変わったら、上の `--select` 付きの `baseline` で
+作り直してください。
+
+`line-gap` は `glyf` の bbox で測るので、CFF のフォント（`glyf` がない）では何も
+報告しません。
 
 ## 今ある検査
 

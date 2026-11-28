@@ -85,12 +85,16 @@
 
 - **PR #88 のレビュー対応（実フォントでの結果）。**
   - `geometry/centered` の指摘は、フォントごとの baseline（`tools/yomilint/baselines/`）に
-    登録した（HanSerif 128 件、Handwritten 9,809 件。`baseline --select geometry/centered`）。
+    登録した（HanSerif 128 件、Handwritten 9,809 件。`baseline --select geometry/centered`。
+    `line-gap` の 1 件ずつも同じファイルに登録）。
     許容の 0.01 em はそのまま。
   - `geometry/line-gap` を、注釈付きの漢字だけでなく cmap の全グリフで見るようにした。
     両書体で 1 件ずつ出る。HanSerif は U+3031（縦書き用の繰り返し記号）の下端が -1116 で
     すき間 -341、Handwritten は U+0326（下に付く結合コンマ）の下端が -258 ですき間 -40。
-    漢字だけで見たときの最小すき間は 558 と 69 で、変わらない。
+    漢字だけで見たときの最小すき間は 558 と 69 で、変わらない。オーナー決定で、この 2 件は
+    baseline に登録した（検査は全グリフのまま）。登録後の結果は、HanSerif が
+    `context/phrase` の 58 件だけ、Handwritten は既存の指摘だけ。`line-gap` は `glyf` が
+    ない（CFF）フォントでは何も報告しない。
   - 字母が合成グリフ（本体と声調記号）でも、字母ごとに 1 つの部品として扱う
     （`FontUnderTest.parts` の `stop`）。`min-scale` の基準は最頻の倍率にした。
 

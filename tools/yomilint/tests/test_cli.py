@@ -95,3 +95,16 @@ def test_a_baseline_can_be_limited_to_some_checks(project, tmp_path, capsys):
     assert main(args + ["--select", "select/"]) == 0
     saved = json.loads(known.read_text(encoding="utf-8"))["known"]
     assert {item["check"] for item in saved} == {"select/aalt-covers-readings"}
+
+
+def test_a_baseline_can_be_limited_to_several_checks(project, tmp_path):
+    built = project(plan=FontPlan(with_rclt=False, with_aalt=False))
+    known = tmp_path / "known.json"
+    args = ["baseline", str(built.font), "--spec", str(built.spec), "-o", str(known)]
+    select = ["--select", "select/aalt", "--select", "context/phrase"]
+    assert main(args + select) == 0
+    saved = json.loads(known.read_text(encoding="utf-8"))["known"]
+    assert {item["check"] for item in saved} == {
+        "select/aalt-covers-readings",
+        "context/phrase",
+    }

@@ -39235,6 +39235,10 @@
     {
       "check": "geometry/centered",
       "subject": "𬸦"
+    },
+    {
+      "check": "geometry/line-gap",
+      "subject": "欸"
     }
   ]
 }
